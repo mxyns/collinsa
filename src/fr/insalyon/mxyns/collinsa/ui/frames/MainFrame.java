@@ -3,11 +3,9 @@ package fr.insalyon.mxyns.collinsa.ui.frames;
 
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 
-import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 
 /**
@@ -18,7 +16,7 @@ public class MainFrame extends JFrame {
     /**
      * Panel permettant le rendu de la simulation via le Renderer
      */
-    public SandboxPanel sandboxPanel;
+    final private SandboxPanel sandboxPanel;
 
     public MainFrame(int width, int height) {
         super();
@@ -31,7 +29,6 @@ public class MainFrame extends JFrame {
         title.setFont(font);
 
         sandboxPanel = new SandboxPanel();
-        sandboxPanel.setBorder(BorderFactory.createLineBorder(Color.black, 2));
 
         add(sandboxPanel, BorderLayout.CENTER);
         add(title, BorderLayout.NORTH);

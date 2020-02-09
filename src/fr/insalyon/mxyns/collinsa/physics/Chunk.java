@@ -19,7 +19,7 @@ public class Chunk {
     /**
      * Contient les entités présentes dans le chunk
      */
-    public LinkedHashSet<Entity> entities;
+    final public LinkedHashSet<Entity> entities;
 
     /**
      * Un chunk

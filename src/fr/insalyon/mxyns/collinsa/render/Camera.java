@@ -19,7 +19,7 @@ public class Camera {
     private double width, height;
 
     /**
-     * Ratio largeur / hauteur écran (e.g: 16:9)
+     * Ratio largeur / hauteur de la caméra (e.g: 16:9)
      */
     private double ratio;
 
@@ -95,6 +95,25 @@ public class Camera {
     }
 
     /**
+     * Déplace la camera dans une certaine direction
+     * @param dir direction de mouvement, la norme du vecteur est la longueur du déplacement
+     */
+    void move(Vec2 dir) {
+
+        this.pos.add(dir);
+    }
+
+    /**
+     * Déplace la camera dans une certaine direction
+     * @param x déplacement selon x
+     * @param y déplacement selon y
+     */
+    void move(int x , int y) {
+
+        this.pos.add(x, y);
+    }
+
+    /**
      * Définit la position x du coin supérieur-gauche de la Camera dans le monde.
      * @param x coordonnée x en mètres
      */
@@ -162,6 +181,6 @@ public class Camera {
 
     public String toString() {
 
-        return "Camera[" + pos + ", "+new Vec2(width,height)+ ", " + ratio;
+        return "Camera[" + pos + ", "+new Vec2(width,height)+ ", ratio=" + ratio;
     }
 }

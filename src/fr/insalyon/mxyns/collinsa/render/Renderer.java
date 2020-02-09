@@ -9,7 +9,7 @@ import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import javax.swing.JPanel;
-import java.awt.Dimension;
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
 
@@ -24,35 +24,44 @@ public class Renderer {
      * Rectangle renderBounds est un rectangle délimitant la zone de l'espace à rendre (tout objet en dehors de cette zone est toujours mis à jour mais n'est pas affiché)
      * Il est toujours proportionnel à la taille du Panel et donc de la Frame
      */
-    private Camera camera;
+    final private Camera camera;
+
+    /**
+     * Le controleur qui permet de controller la Camera (déplacement, zoom/redimensionnement, etc.)
+     */
+    final private CameraController cameraController;
 
     /**
      * Scale est l'échelle de rendu en pixels / m, toutes les valeurs dans le programme sont en SI donc les distances en m.
      */
-    private float scale = 2f /* pixels / m */;
+    float scale = 2f /* pixels / m */;
 
     /**
      * Factor est le multiplicateur de rendu, prenant en compte l'échelle et le zoom de la camera
      **/
-    private float factor = 1.0f;
+    float factor = 1.0f;
 
     /**
      * Détermine si le Renderer dessine les contours des Chunks
      */
-    boolean renderChunksBounds = false;
+    private boolean renderChunksBounds = false;
 
     /**
      * Destination de rendu du Renderer. On la stocke pour sauvegarder la matrice de passage Monde -> Panel et limiter les calculs (quand les matrices seront implémentées)
+     * Peut être remplacé par une Dimension pour généraliser le Renderer à tous les types de surface d'affichage
      */
-    private JPanel destination;
+    JPanel destination;
 
     public Renderer() {
 
-         camera = new Camera();
+        camera = new Camera();
+        cameraController = new CameraController(camera, this);
      }
      public Renderer(SandboxPanel panel) {
 
          camera = new Camera(panel, scale);
+         cameraController = new CameraController(camera, this);
+
          setDestination(panel);
      }
 
@@ -76,7 +85,7 @@ public class Renderer {
      * @return true si le chunk est visible
      * @see Camera
      */
-    public boolean shouldRenderChunk(Chunk chunk) {
+    private boolean shouldRenderChunk(Chunk chunk) {
 
         return camera.sees(chunk);
     }
@@ -85,7 +94,7 @@ public class Renderer {
      * @param chunk Le Chunk à rendre
      * @param g L'objet Graphics2D associé au Panel permettant de dessiner dessus
      */
-    public void renderChunk(Chunk chunk, Graphics2D g) {
+    private void renderChunk(Chunk chunk, Graphics2D g) {
 
         for (Entity entity : chunk.entities)
             entity.render(this, g);
@@ -114,10 +123,13 @@ public class Renderer {
 
     }
 
-    // WARNING: Only for display, do not modify Camera without passing by Renderer's methods
-    public Camera getCamera() {
+    /**
+     * Renvoie le panel de destination du renderer
+     * @return panel de rendu
+     */
+    public Component getDestination() {
 
-        return camera;
+        return destination;
     }
 
     /**
@@ -127,92 +139,10 @@ public class Renderer {
     public void setDestination(SandboxPanel destination) {
 
         this.destination = destination;
-        setCameraDisplayBoundsInPixels(destination.getSize());
-        destination.setRenderer(this);
-    }
+        cameraController.setCameraDisplayBoundsInPixels(destination.getSize());
 
-    /**
-     * The ratio is conserved so we only need height, we use height bc the ratio w/h ratio is stored and mult. is faster than div.
-     * @param height camera height in meters
-     */
-    public void setCameraDisplayBounds(int height) {
-
-        this.camera.setHeight(height);
-        this.factor = (float)this.destination.getHeight() / height;
-    }
-
-    /**
-     * Définit la taille de la caméra en pixels
-     * @param sizeInPixels dimension de la caméra en pixels
-     */
-    public void setCameraDisplayBoundsInPixels(Dimension sizeInPixels) {
-
-        Dimension sizeInMeters = new Dimension((int)(sizeInPixels.width * scale), (int)(sizeInPixels.height * scale));
-        setCameraDisplayBounds(sizeInMeters);
-    }
-
-    /**
-     * Définit la taille de la caméra en mètres
-     * @param size dimension de la caméra en mètres
-     */
-    public void setCameraDisplayBounds(Dimension size) {
-
-        this.camera.setSize(size);
-        setCameraDisplayBounds((int)size.getWidth());
-    }
-
-    /**
-     * Détermine le coin haut-gauche du champs de vue de la caméra
-     * @param x en mètres
-     * @param y en mètres
-     */
-    public void setCameraFocus(float x, float y) {
-
-        this.camera.setPos(x, y);
-    }
-
-    /**
-     * Détermine la position en X du coin haut-gauche du champs de vue de la caméra
-     * @param x en mètres
-     */
-    public void setCameraFocusX(float x) {
-
-        this.camera.setX(x);
-    }
-
-
-    /**
-     * Détermine la position en Y du coin haut-gauche du champs de vue de la caméra
-     * @param y en mètres
-     */
-    public void setCameraFocusY(float y) {
-
-        this.camera.setY(y);
-    }
-
-    /**
-     * Renvoie le zoom de la caméra
-     * Le zoom c'est l'équivalent de la taille de ma caméra dans le monde. En effet, à échelle constante, si je veux zoomer je dois réduire la taille de ma caméra.
-     * La scale rentre en jeu dans le calcul du zoom pour avoir une valeur sans unité
-     * @return zoom
-     * @see #scale
-     */
-    public float getCameraZoom() {
-
-        return (float)(destination.getWidth() / (scale * camera.getWidth()));
-    }
-
-    /**
-     * Applique un nouveau zoom à la caméra et modifie le facteur total.
-     * C'est-à-dire que l'on réduit la taille de la caméra pour qu'elle se focus sur une zone du monde.
-     * @param zoom Zoom voulu
-     * @see #scale
-     * @see #factor
-     */
-    public void setCameraZoom(float zoom) {
-
-        this.camera.setHeight(this.destination.getHeight() / (scale * zoom));
-        this.factor = zoom * scale;
+        // A faire soit même (pour éviter de le faire deux fois, ou pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
+        //destination.setRenderer(this);
     }
 
     /**
@@ -235,5 +165,14 @@ public class Renderer {
 
         this.factor = this.factor * scale / this.scale;
         this.scale = scale;
+    }
+
+    /**
+     * Renvoie le controleur de caméra
+     * @return controleur de caméra
+     */
+    public CameraController getCameraController() {
+
+        return cameraController;
     }
 }

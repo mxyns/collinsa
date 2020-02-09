@@ -30,6 +30,44 @@ public class Vec2 {
     }
 
     /**
+     * Ajout de valeurs au coordonnées x et y
+     * @param x valeur à ajouter à la coordonnée x
+     * @param y valeur à ajouter à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2 add(int x, int y) {
+
+        this.x += x;
+        this.y += y;
+
+        return this;
+    }
+
+    /**
+     * Ajout de valeur à la coordonnée x
+     * @param x valeur à ajouter à la coordonnée x
+     * @return vecteur courant modifié
+     */
+    public Vec2 addX(int x) {
+
+        this.x += x;
+
+        return this;
+    }
+
+    /**
+     * Ajout de valeur à la coordonnée y
+     * @param y valeur à ajouter à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2 addY(int y) {
+
+        this.y += y;
+
+        return this;
+    }
+
+    /**
      * Soustraction d'un Vec2 au vecteur courant
      * @param other Vec2 à ajouter
      * @return vecteur courant modifié
@@ -41,6 +79,45 @@ public class Vec2 {
 
         return this;
     }
+
+    /**
+     * Retrait de valeurs au coordonnées x et y
+     * @param x valeur à retirer à la coordonnée x
+     * @param y valeur à retirer à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2 sub(int x, int y) {
+
+        this.x -= x;
+        this.y -= y;
+
+        return this;
+    }
+
+    /**
+     * Retrait de valeur à la coordonnée x
+     * @param x valeur à retirer à la coordonnée x
+     * @return vecteur courant modifié
+     */
+    public Vec2 subX(int x) {
+
+        this.x -= x;
+
+        return this;
+    }
+
+    /**
+     * Retrait de valeur à la coordonnée y
+     * @param y valeur à retirer à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2 subY(int y) {
+
+        this.y -= y;
+
+        return this;
+    }
+
 
     /**
      * Multiplication du vecteur courant par un facteur

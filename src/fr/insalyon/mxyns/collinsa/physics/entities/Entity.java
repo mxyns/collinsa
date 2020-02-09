@@ -15,13 +15,13 @@ public abstract class Entity {
     /**
      * Vec2 vitesse de l'entité
      */
-    Vec2 vel;
+    private Vec2 vel;
 
 
     /**
      * Vec2 acceleration de l'entité
      */
-    Vec2 acc;
+    private Vec2 acc;
 
     private Entity() {
 

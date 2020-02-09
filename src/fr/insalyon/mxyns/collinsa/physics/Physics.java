@@ -8,7 +8,7 @@ public class Physics {
     /**
      * Moteur de calcul de collisions
      */
-    private Collider collider = new Collider();
+    final private Collider collider = new Collider();
 
     /**
      * Tableau 2D des différents Chunks partitionnant le monde
@@ -124,6 +124,6 @@ public class Physics {
 
     public String toString() {
 
-        return "Physics[ Size: [" + width + "m x" + height + "m], " + "Chunks [" +chunks.length + "x" + chunks[0].length + "], Collider: \n    " + collider;
+        return "Physics[ Size: [" + width + "m x " + height + "m], " + "Chunks [" +chunks.length + "x" + chunks[0].length + "], Collider: \n    " + collider;
     }
 }
