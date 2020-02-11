@@ -1,11 +1,11 @@
 package fr.insalyon.mxyns.collinsa;
 
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 
 import java.awt.Toolkit;
-import java.util.Scanner;
 
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme
@@ -15,7 +15,7 @@ public class Collinsa {
     /**
      * Stocke l'unique instance du programme pour un accès statique
      */
-    public static Collinsa INSTANCE;
+    private static Collinsa INSTANCE;
 
     /**
      * Instances du moteur physique, de  rendu, et de la Frame
@@ -55,6 +55,22 @@ public class Collinsa {
         System.out.println("World: " + physics);
         System.out.println("Renderer: " + renderer);
         System.out.println("    Camera : " + renderer.getCameraController());
+
+        Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
+        Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight()/2, 100,20);
+        physics.addEntity(rect);
+        physics.addEntity(rect1);
+
+        /* Pour forcer le dessin du SandboxPanel (par exemple pour avoir un texte qui suit la souris
+         * Inutile quand le Thread de rendu sera créé
+        while (true) {
+            mainFrame.getSandboxPanel().repaint();
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }*/
     }
 
     private void setRenderer(Renderer renderer) {

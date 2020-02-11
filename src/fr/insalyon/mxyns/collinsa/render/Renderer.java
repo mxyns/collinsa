@@ -1,17 +1,18 @@
 package fr.insalyon.mxyns.collinsa.render;
 
+import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Chunk;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 
 //TODO: utiliser un BufferStrategy pour supprimer le scintillement et rendre le rendu plus fluide
 
@@ -44,7 +45,7 @@ public class Renderer {
     /**
      * Détermine si le Renderer dessine les contours des Chunks
      */
-    private boolean renderChunksBounds = false;
+    private boolean renderChunksBounds = true;
 
     /**
      * Destination de rendu du Renderer. On la stocke pour sauvegarder la matrice de passage Monde -> Panel et limiter les calculs (quand les matrices seront implémentées)
@@ -73,8 +74,7 @@ public class Renderer {
 
         //TODO: appliquer de l'antialiasing sur Graphics2D
 
-        for (Chunk[] chunkA : physics.getChunks())
-            for (Chunk chunk : chunkA)
+            for (Chunk chunk : physics.getChunks())
                 if(shouldRenderChunk(chunk))
                     renderChunk(chunk, g);
     }
@@ -99,8 +99,10 @@ public class Renderer {
         for (Entity entity : chunk.entities)
             entity.render(this, g);
 
-        if (renderChunksBounds)
-            g.drawRect((int)((chunk.rectangle.x - camera.getPos().x)* factor), (int)((chunk.rectangle.y - camera.getPos().y) * factor), (int)(chunk.rectangle.getWidth() * factor), (int)(chunk.rectangle.getHeight() * factor));
+        if (renderChunksBounds) {
+            g.drawRect((int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y) * factor), (int) (chunk.bounds.getWidth() * factor), (int) (chunk.bounds.getHeight() * factor));
+            g.drawString(String.valueOf(Collinsa.getPhysics().getPositionHash(chunk.bounds.x, chunk.bounds.y)), (int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y + Collinsa.getPhysics().getChunkSize().y) * factor));
+        }
     }
 
     /**
@@ -110,8 +112,7 @@ public class Renderer {
      */
     public void renderCircle(Circle circle, Graphics2D g) {
 
-        Vec2 center = circle.getPos();
-        g.draw(new Ellipse2D.Double(factor * (center.x - circle.r - camera.getPos().x), factor * (center.y - circle.r - camera.getPos().y), 2 * factor * circle.r, 2 * factor *circle.r));
+        g.draw(new Ellipse2D.Double(factor * (circle.getPos().x - circle.r - camera.getPos().x), factor * (circle.getPos().y - circle.r - camera.getPos().y), 2 * factor * circle.r, 2 * factor *circle.r));
     }
 
     /**
@@ -121,6 +122,7 @@ public class Renderer {
      */
     public void renderRect(Rect rect, Graphics2D g) {
 
+        g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.size.x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.size.y * 0.5f - camera.getPos().y), factor * rect.size.x, factor * rect.size.y));
     }
 
     /**

@@ -3,15 +3,16 @@ package fr.insalyon.mxyns.collinsa.render;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import java.awt.Dimension;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.Point;
+import java.awt.event.*;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Une classe permettant de controller une Camera. En interaction avec le Renderer associé à la camera puisqu'il doit mettre à jour le facteur de rendu du Renderer
+ * Réagit aux entrées clavier, et aux entrées souris
  */
-public class CameraController implements KeyListener {
+public class CameraController extends MouseAdapter implements KeyListener {
 
     /**
      * Touches du clavier enfoncée à un instant donné.
@@ -128,6 +129,16 @@ public class CameraController implements KeyListener {
     }
 
     /**
+     * Translate la Camera d'un vecteur (x, y)
+     * @param x distance de déplacement sur x
+     * @param y distance de déplacement sur y
+     */
+    public void moveCameraFocus(int x, int y) {
+
+        camera.move(x, y);
+    }
+
+    /**
      * Renvoie le zoom de la caméra
      * Le zoom c'est l'équivalent de la taille de ma caméra dans le monde. En effet, à échelle constante, si je veux zoomer je dois réduire la taille de ma caméra.
      * La scale rentre en jeu dans le calcul du zoom pour avoir une valeur sans unité
@@ -148,7 +159,20 @@ public class CameraController implements KeyListener {
      */
     public void setCameraZoom(float zoom) {
 
+        if (zoom <= 0) return;
+
         this.camera.setHeight(renderer.destination.getHeight() / (renderer.scale * zoom));
+
+        //TODO move camera so that center of focus doesn't move
+        /*
+          void centerScale(float m) {
+
+            move(w*(1-m)/2, h*(1-m)/2);
+            mult(m); -> just multiply width & height by m
+         }
+         processing code
+         */
+
         renderer.factor = zoom * renderer.scale;
     }
 
@@ -171,6 +195,15 @@ public class CameraController implements KeyListener {
     }
 
 
+    /**
+     * Renvoie le vecteur position de la caméra
+     * @return Vec2 camera position
+     */
+    public Vec2 getCameraPosition() {
+
+        return camera.getPos();
+    }
+
     @Override
     public void keyTyped(KeyEvent e) {}
 
@@ -184,7 +217,7 @@ public class CameraController implements KeyListener {
         if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN)
             pressedKeys.add(e.getKeyCode());
 
-        moveCameraFocus(getDirection(pressedKeys), 5);
+        moveCameraFocus(getDirection(pressedKeys), 20);
 
         // TODO: make panel repaint itself with Rendering Thread
         renderer.getDestination().repaint();
@@ -211,5 +244,41 @@ public class CameraController implements KeyListener {
     public String toString() {
 
         return "CameraController[activesKeys=" + pressedKeys + ", Camera=" + camera + "]";
+    }
+    // Pas très conventionnel de ne pas mettre l'attribut en tête de classe mais il n'a de rapport qu'avec cette méthode
+
+    private Point dragOrigin;
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+        dragOrigin = e.getPoint();
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+        moveCameraFocus((int)((dragOrigin.getX() - e.getPoint().getX())  / renderer.factor), (int)((dragOrigin.getY() - e.getPoint().getY()) / renderer.factor));
+
+        dragOrigin = e.getPoint();
+
+        // TODO: make panel repaint itself with Rendering Thread
+        renderer.getDestination().repaint();
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+
+        // Scroll Amount: n° of units / mouseWheelNotch
+        // UnitsToScroll: units count scrolled on wheel -> negative if mouse wheel up
+
+        if (e.getWheelRotation() < 0)
+            zoomIn(-(float)e.getUnitsToScroll() * 0.1f / e.getScrollAmount());
+        else
+            zoomOut((float) e.getUnitsToScroll() * 0.1f / e.getScrollAmount());
+
+        // TODO: make panel repaint itself with Rendering Thread
+        renderer.getDestination().repaint();
+
     }
 }

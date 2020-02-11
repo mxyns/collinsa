@@ -60,10 +60,10 @@ public class Camera {
      */
     boolean sees(Chunk chunk) {
 
-        return pos.x < chunk.rectangle.x + chunk.rectangle.width &&
-               pos.x + width > chunk.rectangle.x &&
-               pos.y < chunk.rectangle.y + chunk.rectangle.height &&
-               height + pos.y > chunk.rectangle.y;
+        return pos.x < chunk.bounds.x + chunk.bounds.width &&
+               pos.x + width > chunk.bounds.x &&
+               pos.y < chunk.bounds.y + chunk.bounds.height &&
+               height + pos.y > chunk.bounds.y;
     }
 
     /**

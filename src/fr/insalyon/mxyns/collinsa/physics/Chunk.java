@@ -14,7 +14,7 @@ public class Chunk {
     /**
      * Rectangle représentant le chunk (position et taille)
      */
-    public Rectangle rectangle;
+    public Rectangle bounds;
 
     /**
      * Contient les entités présentes dans le chunk
@@ -30,7 +30,7 @@ public class Chunk {
      */
     public Chunk(int x, int y, int w, int h) {
 
-        rectangle = new Rectangle(x, y, w, h);
+        bounds = new Rectangle(x, y, w, h);
         entities = new LinkedHashSet<>();
     }
 
@@ -45,6 +45,8 @@ public class Chunk {
         chunk.entities.add(entity);
     }
 
+    public String toString() {
 
-
+        return "Chunk[pos(T-L)=" + bounds.getLocation() + ", size=" + bounds.getSize() + "]";
+    }
 }

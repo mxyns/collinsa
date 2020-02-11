@@ -1,7 +1,6 @@
 package fr.insalyon.mxyns.collinsa.ui.panels;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
-import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.render.CameraController;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 
@@ -39,7 +38,7 @@ public class SandboxPanel extends JPanel implements FocusListener {
         this();
 
         // Ajoute le controleur de la caméra aux keyListeners du panel
-        addKeyListener(renderer.getCameraController());
+        setRenderer(renderer);
     }
 
     @Override
@@ -48,14 +47,6 @@ public class SandboxPanel extends JPanel implements FocusListener {
         super.paint(g);
 
         renderer.renderSandbox(Collinsa.getPhysics(), (Graphics2D)g);
-
-        // Test draw
-        Circle circle = new Circle(300, 300, 100);
-        renderer.renderCircle(circle, (Graphics2D)g);
-        renderer.renderCircle(new Circle(0, 0, 50), (Graphics2D)g);
-        renderer.renderCircle(new Circle(Collinsa.getPhysics().getWidth(), 0, 50), (Graphics2D)g);
-        renderer.renderCircle(new Circle(0, Collinsa.getPhysics().getHeight(), 50), (Graphics2D)g);
-        renderer.renderCircle(new Circle(Collinsa.getPhysics().getWidth(), Collinsa.getPhysics().getHeight(), 50), (Graphics2D)g);
     }
 
     /**
@@ -82,6 +73,9 @@ public class SandboxPanel extends JPanel implements FocusListener {
 
         //On ajoute le nouveau controleur associé à la nouvelle camera
         addKeyListener(renderer.getCameraController());
+        addMouseWheelListener(renderer.getCameraController());
+        addMouseListener(renderer.getCameraController());
+        addMouseMotionListener(renderer.getCameraController());
     }
 
     /**
