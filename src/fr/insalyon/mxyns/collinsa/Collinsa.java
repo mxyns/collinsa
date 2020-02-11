@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa;
 
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
@@ -58,11 +59,21 @@ public class Collinsa {
 
         Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
         Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight()/2, 100,20);
+        Circle circle = new Circle(350, 400, 100);
         physics.addEntity(rect);
         physics.addEntity(rect1);
+        physics.addEntity(circle);
 
-        /* Pour forcer le dessin du SandboxPanel (par exemple pour avoir un texte qui suit la souris
-         * Inutile quand le Thread de rendu sera créé
+        System.out.println(physics.getChunksContaining(rect));
+        System.out.println(physics.getChunksContaining(rect1));
+        System.out.println(physics.getChunksContaining(circle));
+
+
+
+
+        // Pour forcer le dessin du SandboxPanel (par exemple pour avoir un texte qui suit la souris
+        // Inutile quand le Thread de rendu sera créé
+        /*
         while (true) {
             mainFrame.getSandboxPanel().repaint();
             try {
@@ -70,7 +81,8 @@ public class Collinsa {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
+        */
     }
 
     private void setRenderer(Renderer renderer) {

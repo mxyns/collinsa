@@ -73,7 +73,7 @@ public class Physics {
         entities.add(e);
 
 
-        for (int a : getContainingChunks(e))
+        for (int a : getChunksContaining(e))
             if (a >= 0)
                 chunks.get(a).entities.add(e);
     }
@@ -83,7 +83,7 @@ public class Physics {
      * @param e entité pour laquelle trouver dans les chunks
      * @return Set of Chunk ids
      */
-    public Set<Integer> getContainingChunks(Entity e) {
+    public Set<Integer> getChunksContaining(Entity e) {
 
         Rectangle.Double aabb = e.getAABB();
         Set<Integer> chunksToAddEntityTo = new TreeSet<>();
@@ -114,7 +114,7 @@ public class Physics {
         // On ne veut pas de doublons, et on parcourera la liste sans accès aléatoire
         // LinkedHashSet est donc un bon candidat
         LinkedHashSet<Entity> nearby = new LinkedHashSet<>();
-        Set<Integer> chunksId = getContainingChunks(e);
+        Set<Integer> chunksId = getChunksContaining(e);
 
         for (int chunkId : chunksId)
             nearby.addAll(chunks.get(chunkId).entities);

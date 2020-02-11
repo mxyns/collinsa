@@ -46,6 +46,6 @@ public class Circle extends Entity {
     @Override
     public Rectangle2D.Double getAABB() {
 
-        return new Rectangle.Double(pos.x - r, pos.y - r, r, r);
+        return new Rectangle.Double(pos.x - r, pos.y - r, 2 * r, 2 * r);
     }
 }
