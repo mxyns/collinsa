@@ -3,7 +3,7 @@ package fr.insalyon.mxyns.collinsa.physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 
 import java.awt.Rectangle;
-import java.util.LinkedHashSet;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Un chunk est une portion de la zone de calcul contenant une partie des entitées.
@@ -19,7 +19,7 @@ public class Chunk {
     /**
      * Contient les entités présentes dans le chunk
      */
-    final public LinkedHashSet<Entity> entities;
+    final public CopyOnWriteArraySet<Entity> entities;
 
     /**
      * Un chunk
@@ -31,7 +31,7 @@ public class Chunk {
     public Chunk(int x, int y, int w, int h) {
 
         bounds = new Rectangle(x, y, w, h);
-        entities = new LinkedHashSet<>();
+        entities = new CopyOnWriteArraySet<>();
     }
 
     /**

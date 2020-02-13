@@ -47,6 +47,9 @@ public class Collinsa {
         // On pose un zoom caméra inital de x1.0
         getRenderer().getCameraController().setCameraZoom(1.0f);
 
+        // On pose le framerate voulu
+        INSTANCE.setFramerate(200);
+
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
     }
@@ -82,15 +85,19 @@ public class Collinsa {
         //Création d'élements / entitées à ajouter à la simulation
         Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
         Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight()/2, 100,20);
-        Circle circle = new Circle(550, 400, 50);
 
-        // On teste une accélération vers le bas type gravité sur un objet de masse 10kg
-        circle.setAcc(new Vec2(0, 10 * 9.81));
 
+        for (int i = 0; i < 100000; ++i){
+
+            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 3);
+
+            // On teste une accélération vers le bas type gravité sur un objet de masse 10kg
+            circle.setAcc(new Vec2(0, 10 * 9.81));
+            physics.addEntity(circle);
+        }
         // On ajoute les entités au moteur physique
         physics.addEntity(rect);
         physics.addEntity(rect1);
-        physics.addEntity(circle);
 
         // Fait dans main() à présent
             // On démarre le moteur physique
@@ -107,6 +114,8 @@ public class Collinsa {
 
         physics.begin();
         renderer.begin();
+
+        System.out.println("Began !");
     }
 
     /**
@@ -163,6 +172,15 @@ public class Collinsa {
     public void setFramerate(short framerate) {
 
         getRenderer().getRenderingThread().setFramerate(framerate);
+    }
+
+    /**
+     * Redéfini le framerate voulu
+     * @param framerate framerate voulu
+     */
+    public void setFramerate(int framerate) {
+
+        getRenderer().getRenderingThread().setFramerate((short)framerate);
     }
 
     /**

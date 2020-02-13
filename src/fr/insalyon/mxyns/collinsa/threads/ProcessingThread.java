@@ -53,14 +53,16 @@ public class ProcessingThread extends ClockedThread {
     @Override
     public void tick(long elapsedTime) {
 
+        physics.clearChunks();
+
         // Test de mise à jour des positions, vitesses, accélérations
             for (Entity entity : physics.getEntities()) {
-                entity.updateMillis(clock.lastElapsed);
-
                 // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
-                if (entity.getPos().y >= physics.getHeight())
-                    interrupt();
+                if (entity.getPos().y <= physics.getHeight())
+                    entity.updateMillis(clock.lastElapsed);
             }
+
+        physics.spatialHashing();
     }
 
     /**

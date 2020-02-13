@@ -121,9 +121,12 @@ public class Renderer {
 
         //TODO: appliquer de l'antialiasing sur Graphics2D
 
-            for (Chunk chunk : physics.getChunks())
-                if(shouldRenderChunk(chunk))
-                    renderChunk(chunk, g);
+        for (Chunk chunk : physics.getChunks())
+            if(shouldRenderChunk(chunk))
+                renderChunk(chunk, g);
+
+        g.drawString("FPSP:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
+        g.drawString("FPSR:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
     }
 
     /**

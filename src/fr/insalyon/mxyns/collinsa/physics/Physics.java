@@ -36,9 +36,15 @@ public class Physics {
     private Vec2 chunkSize = Vec2.zero();
 
     /**
-     * Permet de stocker la taille des Chunks sans avoir à accéder au Set des chunks à chaque fois
+     * Permet de stocker le nombre de Chunks sans avoir à accéder au Set des chunks à chaque fois
      */
     private Vec2 chunkCount = Vec2.zero();
+
+    /**
+     * Permet de stocker le nombre total de Chunks sans avoir à accéder au Set des chunks ni à multiplier chunkCount.x par chunkCount.y à chaque fois
+     */
+    private int totalChunkCount;
+
 
     /**
      * ArrayList des entités présentes dans la simulation.
@@ -68,7 +74,7 @@ public class Physics {
         this.height = height;
 
         //chunks = Physics.generateChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
-        processingThread = new ProcessingThread(this, new MillisClock(), 10);
+        processingThread = new ProcessingThread(this, new MillisClock(), 5);
         chunks = buildChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
     }
 
@@ -99,7 +105,7 @@ public class Physics {
 
     /**
      * Ajoute une entité au monde.
-     * (Vérifie par la même occasion s'il faut redimensionner les Chunks ou non pas pour l'instant)
+     * TODO: (Vérifie par la même occasion s'il faut redimensionner les Chunks ou non pas pour l'instant)
      */
     public void addEntity(Entity e) {
 
@@ -107,8 +113,30 @@ public class Physics {
 
 
         for (int a : collider.getChunksContaining(e))
-            if (a >= 0)
+            if (a >= 0 && a < totalChunkCount)
                 chunks.get(a).entities.add(e);
+    }
+
+    /**
+     * Replace une entité dans les Chunk auxquels il appartient
+     * @param entity entité à replacer
+     */
+    public void spatialHashing(Entity entity) {
+
+        for (int a : collider.getChunksContaining(entity))
+            if (a >= 0 && a < totalChunkCount)
+                chunks.get(a).entities.add(entity);
+    }
+
+    /**
+     * Replace toutes les entités dans les Chunks
+     */
+    public void spatialHashing() {
+
+        for (Entity e : entities)
+            for (int a : collider.getChunksContaining(e))
+                if (a >= 0 && a < totalChunkCount)
+                    chunks.get(a).entities.add(e);
     }
 
     /**
@@ -129,6 +157,7 @@ public class Physics {
 
         chunkSize.set(w, h);
         chunkCount.set(n_x, n_y);
+        totalChunkCount = n_x * n_y;
 
         return chunksSet;
     }
@@ -268,6 +297,34 @@ public class Physics {
 
         return chunkCount;
     }
+
+    /**
+     * Renvoie le nombre actuel de chunks au total
+     * @return totalChunkCount nombre de chunks
+     */
+    public int getTotalChunkCount() {
+
+        return totalChunkCount;
+    }
+
+    /**
+     * Renvoie le Thread de calcul associé à la simulation
+     * @return thread de rendu
+     */
+    public ProcessingThread getProcessingThread() {
+
+        return processingThread;
+    }
+
+    /**
+     * Définit le Thread de calcul associé à la simulation
+     * @param processingThread nouveau thread de rendu
+     */
+    public void setProcessingThread(ProcessingThread processingThread) {
+
+        this.processingThread = processingThread;
+    }
+
 
     public String toString() {
 
