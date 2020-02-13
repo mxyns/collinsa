@@ -1,20 +1,27 @@
 package fr.insalyon.mxyns.collinsa.physics;
 
+import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
-import java.awt.Rectangle;
-import java.util.*;
+import java.util.ArrayList;
 
 /**
  * Moteur physique s'occupant de la logique physique du jeu.
  */
 public class Physics {
 
+
+    /**
+     * Thread de calcul dédié à la mise à jour de la simulation
+     */
+    private ProcessingThread processingThread;
+
     /**
      * Moteur de calcul de collisions
      */
-    final private Collider collider = new Collider();
+    final private Collider collider = new Collider(this);
 
     /**
      * Ensemble trié des différents Chunks partitionnant le monde
@@ -61,7 +68,33 @@ public class Physics {
         this.height = height;
 
         //chunks = Physics.generateChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
+        processingThread = new ProcessingThread(this, new MillisClock(), 10);
         chunks = buildChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
+    }
+
+    /**
+     * Démarre le Thread de calcul et donc le rendu (mise à jour de la simulation)
+     */
+    public void begin() {
+
+        processingThread.start();
+    }
+
+    /**
+     * Met en pause le Thread de calcul et donc le rendu (mise à jour de la simulation)
+     * @param delay durée de pause
+     */
+    public void pause(long delay) throws InterruptedException {
+
+        processingThread.sleep(delay);
+    }
+
+    /**
+     * Stoppe le Thread de calcul et donc le rendu (mise à jour de la simulation)
+     */
+    public void stop() {
+
+        processingThread.interrupt();
     }
 
     /**
@@ -73,53 +106,9 @@ public class Physics {
         entities.add(e);
 
 
-        for (int a : getChunksContaining(e))
+        for (int a : collider.getChunksContaining(e))
             if (a >= 0)
                 chunks.get(a).entities.add(e);
-    }
-
-    /**
-     * Trouve tous les chunks contenant une entité
-     * @param e entité pour laquelle trouver dans les chunks
-     * @return Set of Chunk ids
-     */
-    public Set<Integer> getChunksContaining(Entity e) {
-
-        Rectangle.Double aabb = e.getAABB();
-        Set<Integer> chunksToAddEntityTo = new TreeSet<>();
-
-        //TopLeft
-        chunksToAddEntityTo.add(getPositionHash(aabb.x, aabb.y));
-
-        //TopRight
-        chunksToAddEntityTo.add(getPositionHash(aabb.x + aabb.width, aabb.y));
-
-        //BottomRight
-        chunksToAddEntityTo.add(getPositionHash(aabb.x + aabb.width, aabb.y + aabb.height));
-
-        //BottomLeft
-        chunksToAddEntityTo.add(getPositionHash(aabb.x, aabb.y + aabb.height));
-
-        return chunksToAddEntityTo;
-    }
-
-    /**
-     * Trouve toutes les entités proches (proches <=> avec lesquelles une collision est envisageable <=> dans un chunk voisin de celui de 'e') de l'entité 'e'
-     * @param e entité pour laquelle il faut trouver les entités voisines
-     * @return Liste d'entités proches de 'e'
-     */
-    public LinkedHashSet<Entity> getNearbyEntities(Entity e) {
-
-        //TODO: optimize list type
-        // On ne veut pas de doublons, et on parcourera la liste sans accès aléatoire
-        // LinkedHashSet est donc un bon candidat
-        LinkedHashSet<Entity> nearby = new LinkedHashSet<>();
-        Set<Integer> chunksId = getChunksContaining(e);
-
-        for (int chunkId : chunksId)
-            nearby.addAll(chunks.get(chunkId).entities);
-
-        return nearby;
     }
 
     /**
@@ -195,29 +184,6 @@ public class Physics {
     public int getPositionHash(int x, int y) {
 
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
-    }
-
-    /**
-     * Partitionne le monde e [n_x * n_y] chunks de taille [w * h]
-     * @param n_x nombre de chunks à l'horizontale
-     * @param n_y nombre de chunks à la verticale
-     * @param w largeur d'un chunk
-     * @param h hauteur d'un chunk
-     * @return Tableau2D des chunks: Chunk[y][x]
-     * @see Chunk
-     *
-     * @deprecated not useless anymore
-     */
-    @Deprecated
-    private static Chunk[][] generateChunks(int n_x, int n_y, int w, int h) {
-
-        Chunk[][] chunks = new Chunk[n_y][n_x];
-
-        for (int x = 0; x < n_x; ++x)
-            for (int y = 0; y < n_y; ++y)
-                chunks[y][x] = new Chunk(x * w, y * h, w, h);
-
-        return chunks;
     }
 
     /**

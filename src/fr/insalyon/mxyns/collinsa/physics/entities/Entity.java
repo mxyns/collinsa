@@ -3,9 +3,13 @@ package fr.insalyon.mxyns.collinsa.physics.entities;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Représente une Entité (un objet ou un élément de la simulation) de manière générale
+ */
 public abstract class Entity {
 
     /**
@@ -25,12 +29,18 @@ public abstract class Entity {
     private Vec2 acc;
 
     /**
+     * Couleur de l'entité
+     */
+    private Color color;
+
+    /**
      * Constructeur global
      */
     private Entity() {
 
         vel = Vec2.zero();
         acc = Vec2.zero();
+        color = Color.black;
     }
 
     /**
@@ -76,10 +86,19 @@ public abstract class Entity {
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
      */
-    public void update() {
+    public void updateMillis(long elapsed) {
 
-        vel.add(acc);
-        pos.add(vel);
+        vel.add(acc, elapsed * 1e-3f);
+        pos.add(vel, elapsed * 1e-3f);
+    }
+
+    /**
+     * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
+     */
+    public void updateNano(long elapsed) {
+
+        vel.add(acc, elapsed * 1e-9f);
+        pos.add(vel, elapsed * 1e-9f);
     }
 
 
@@ -98,6 +117,14 @@ public abstract class Entity {
     public void setPos(Vec2 pos) {
 
         this.pos = pos;
+    }
+
+    /**
+     * Redéfinit le vecteur position de l'entité
+     */
+    public void setPos(float x, float y) {
+
+        this.pos.set(x, y);
     }
 
     /**
@@ -133,4 +160,23 @@ public abstract class Entity {
 
         this.acc = acc;
     }
+
+    /**
+     * Renvoie la couleur de l'entité
+     * @return couleur de l'entité
+     */
+    public Color getColor() {
+
+        return color;
+    }
+
+    /**
+     * Redéfini la couleur de l'entité
+     * @param color nouvelle couleur
+     */
+    public void setColor(Color color) {
+
+        this.color = color;
+    }
+
 }

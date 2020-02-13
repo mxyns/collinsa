@@ -30,6 +30,19 @@ public class Vec2 {
     }
 
     /**
+     * Ajout d'un Vec2 multiplié, sans le modifier, au vecteur courant
+     * @param other Vec2 à ajouter
+     * @return vecteur courant modifié
+     */
+    public Vec2 add(Vec2 other, float mult) {
+
+        x += other.x * mult;
+        y += other.y * mult;
+
+        return this;
+    }
+
+    /**
      * Ajout de valeurs au coordonnées x et y
      * @param x valeur à ajouter à la coordonnée x
      * @param y valeur à ajouter à la coordonnée y

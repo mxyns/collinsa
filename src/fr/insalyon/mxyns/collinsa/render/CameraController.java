@@ -219,8 +219,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         moveCameraFocus(getDirection(pressedKeys), 20);
 
-        // TODO: make panel repaint itself with Rendering Thread
-        renderer.getDestination().repaint();
+        renderer.forceRender();
     }
 
     /**
@@ -241,12 +240,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
         pressedKeys.clear();
     }
 
-    public String toString() {
-
-        return "CameraController[activesKeys=" + pressedKeys + ", Camera=" + camera + "]";
-    }
     // Pas très conventionnel de ne pas mettre l'attribut en tête de classe mais il n'a de rapport qu'avec cette méthode
-
     private Point dragOrigin;
 
     @Override
@@ -262,8 +256,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         dragOrigin = e.getPoint();
 
-        // TODO: make panel repaint itself with Rendering Thread
-        renderer.getDestination().repaint();
+        renderer.forceRender();
     }
 
     @Override
@@ -277,8 +270,12 @@ public class CameraController extends MouseAdapter implements KeyListener {
         else
             zoomOut((float) e.getUnitsToScroll() * 0.1f / e.getScrollAmount());
 
-        // TODO: make panel repaint itself with Rendering Thread
-        renderer.getDestination().repaint();
+        renderer.forceRender();
 
+    }
+
+    public String toString() {
+
+        return "CameraController[activesKeys=" + pressedKeys + ", Camera=" + camera + ", zoom=x" + getCameraZoom() + "]";
     }
 }

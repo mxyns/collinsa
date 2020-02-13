@@ -181,6 +181,6 @@ public class Camera {
 
     public String toString() {
 
-        return "Camera[" + pos + ", "+new Vec2(width,height)+ ", ratio=" + ratio;
+        return "Camera[" + pos + ", "+new Vec2(width,height)+ ", ratio=" + ratio + "]";
     }
 }

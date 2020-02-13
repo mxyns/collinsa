@@ -52,6 +52,7 @@ public class Rect extends Entity {
         renderer.renderRect(this, g);
     }
 
+    //TODO Manage Rect rotation
     @Override
     public double getMaximumSize() {
 

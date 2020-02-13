@@ -39,6 +39,9 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+
+        // On s'assure que le panel a bien le focus initialement
+        sandboxPanel.requestFocus();
     }
 
     /**

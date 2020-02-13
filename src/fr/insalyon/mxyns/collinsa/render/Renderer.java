@@ -6,9 +6,11 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 
 import javax.swing.JPanel;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
@@ -20,6 +22,13 @@ import java.awt.geom.Rectangle2D;
  * Renderer s'occupe de créer un visuel correspondant à l'état de la Sandbox visible par sa Camera et à l'afficher sur son panel de destination
  */
 public class Renderer {
+
+
+    /**
+     * Thread dédié au rendu des images
+     * N'est pas final car on associe le Physics après l'instanciation du Renderer
+     */
+    private RenderingThread renderingThread;
 
     /**
      * Rectangle renderBounds est un rectangle délimitant la zone de l'espace à rendre (tout objet en dehors de cette zone est toujours mis à jour mais n'est pas affiché)
@@ -48,23 +57,61 @@ public class Renderer {
     private boolean renderChunksBounds = true;
 
     /**
+     * Couleur des bordures de Chunks (si dessinées)
+     */
+    private Color chunkBoundsColor = Color.black;
+
+    /**
      * Destination de rendu du Renderer. On la stocke pour sauvegarder la matrice de passage Monde -> Panel et limiter les calculs (quand les matrices seront implémentées)
      * Peut être remplacé par une Dimension pour généraliser le Renderer à tous les types de surface d'affichage
      */
     JPanel destination;
 
+    /**
+     * Crée un Renderer vide inutilisable. Besoin de définir une destination de rendu.
+     */
     public Renderer() {
 
         camera = new Camera();
         cameraController = new CameraController(camera, this);
-     }
-     public Renderer(SandboxPanel panel) {
+    }
 
-         camera = new Camera(panel, scale);
-         cameraController = new CameraController(camera, this);
+    /**
+     * Crée un Renderer avec sa destination. Pour l'utiliser il faut appeler setRenderer() dans le programme
+     * @param panel destination de rendu
+     */
+    public Renderer(SandboxPanel panel) {
 
-         setDestination(panel);
-     }
+        camera = new Camera(panel, scale);
+        cameraController = new CameraController(camera, this);
+        setDestination(panel);
+    }
+
+    /**
+     * Démarre le Thread de rendu et donc le rendu (mise à jour de l'affichage)
+     */
+    public void begin() {
+
+        renderingThread.start();
+    }
+
+    /**
+     * Met en pause le Thread de rendu et donc le rendu (mise à jour de l'affichage)
+     * @param delay durée de pause
+     */
+    public void pause(long delay) throws InterruptedException {
+
+        renderingThread.sleep(delay);
+    }
+
+    /**
+     * Stoppe le Thread de rendu et donc le rendu (mise à jour de l'affichage)
+     */
+    public void stop() {
+
+        renderingThread.interrupt();
+    }
+
 
     /**
      * Crée le rendu de la Sandbox et l'affiche sur le panel
@@ -100,6 +147,7 @@ public class Renderer {
             entity.render(this, g);
 
         if (renderChunksBounds) {
+            g.setColor(chunkBoundsColor);
             g.drawRect((int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y) * factor), (int) (chunk.bounds.getWidth() * factor), (int) (chunk.bounds.getHeight() * factor));
             g.drawString(String.valueOf(Collinsa.getPhysics().getPositionHash(chunk.bounds.x, chunk.bounds.y)), (int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y + Collinsa.getPhysics().getChunkSize().y) * factor));
         }
@@ -112,6 +160,7 @@ public class Renderer {
      */
     public void renderCircle(Circle circle, Graphics2D g) {
 
+        g.setColor(circle.getColor());
         g.draw(new Ellipse2D.Double(factor * (circle.getPos().x - circle.r - camera.getPos().x), factor * (circle.getPos().y - circle.r - camera.getPos().y), 2 * factor * circle.r, 2 * factor *circle.r));
     }
 
@@ -122,6 +171,7 @@ public class Renderer {
      */
     public void renderRect(Rect rect, Graphics2D g) {
 
+        g.setColor(rect.getColor());
         g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.size.x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.size.y * 0.5f - camera.getPos().y), factor * rect.size.x, factor * rect.size.y));
     }
 
@@ -176,5 +226,31 @@ public class Renderer {
     public CameraController getCameraController() {
 
         return cameraController;
+    }
+
+    /**
+     * Renvoie le Thread de rendu associé au Renderer
+     * @return thread de rendu
+     */
+    public RenderingThread getRenderingThread() {
+
+        return renderingThread;
+    }
+
+    /**
+     * Définit le Thread de rendu associé au Renderer*
+     */
+    public void setRenderingThread(RenderingThread renderingThread) {
+
+        this.renderingThread = renderingThread;
+        renderingThread.setRenderer(this);
+    }
+
+    /**
+     * Force le rendu (utilisé majoritairement pour donner un sentiment de fluidité lors des déplacements de caméra)
+     */
+    public void forceRender() {
+
+        renderingThread.forceRender();
     }
 }
