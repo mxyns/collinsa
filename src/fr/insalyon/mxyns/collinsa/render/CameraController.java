@@ -29,10 +29,33 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     final private Renderer renderer;
 
+    /**
+     * Détermine si un mouvement de caméra par l'utilisateur doit forcer le rendu (augmente donc le nombre de FPS-R temporairement).
+     */
+    public boolean doesForceRender;
+
+    /**
+     * Crée un controleur de caméra à partir d'une Camera et du Renderer qui lui est associé
+     *
+     * @param camera caméra à controler
+     * @param renderer moteur de rendu pour la caméra
+     */
     public CameraController(Camera camera, Renderer renderer) {
+
+        this(camera, renderer, false);
+    }
+    /**
+     * Crée un controleur de caméra à partir d'une Camera et du Renderer qui lui est associé
+     *
+     * @param camera caméra à controler
+     * @param renderer moteur de rendu pour la caméra
+     * @param doesForceRender indique s'il faut forcer le rendu lors d'un mouvement de caméra
+     */
+    public CameraController(Camera camera, Renderer renderer, boolean doesForceRender) {
 
         this.camera = camera;
         this.renderer = renderer;
+        this.doesForceRender = doesForceRender;
     }
 
     /**
@@ -256,7 +279,8 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         dragOrigin = e.getPoint();
 
-        renderer.forceRender();
+        if (doesForceRender)
+            renderer.forceRender();
     }
 
     @Override
@@ -270,7 +294,8 @@ public class CameraController extends MouseAdapter implements KeyListener {
         else
             zoomOut((float) e.getUnitsToScroll() * 0.1f / e.getScrollAmount());
 
-        renderer.forceRender();
+        if (doesForceRender)
+            renderer.forceRender();
 
     }
 

@@ -4,7 +4,6 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Polygone convexe simple, points ordonnés dans le sens de l'angle (avec l'axe Ox) croissant (trigo)
@@ -33,8 +32,7 @@ public class ConvexPoly extends Polygon {
     }
 
     @Override
-    public Rectangle2D.Double getAABB() {
+    public void updateAABB() {
 
-        return null;
     }
 }

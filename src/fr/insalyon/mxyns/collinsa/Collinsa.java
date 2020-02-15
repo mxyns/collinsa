@@ -9,6 +9,7 @@ import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
+import java.awt.Color;
 import java.awt.Toolkit;
 
 //TODO:
@@ -31,7 +32,7 @@ public class Collinsa {
     private Renderer renderer;
     final private MainFrame mainFrame;
 
-    private final static double screenRatio = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+        private final static double screenRatio = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 
     /**
      * Crée une unique instance du programme.
@@ -41,14 +42,20 @@ public class Collinsa {
         // Crée l'INSTANCE unique du programme (Collinsa)
         INSTANCE = new Collinsa(1440, (int)(1440 / screenRatio));
 
-        // On pose une échelle d'affichage de 1 px/m
-        getRenderer().setRenderScale(1);
+        // Renderer settings
+            // On pose une échelle d'affichage de 1 px/m
+            getRenderer().setRenderScale(5);
 
-        // On pose un zoom caméra inital de x1.0
-        getRenderer().getCameraController().setCameraZoom(1.0f);
+            // On pose un zoom caméra inital de x1.0
+            getRenderer().getCameraController().setCameraZoom(0.2f);
+            getRenderer().setRenderChunksBounds(false);
+            getRenderer().setRenderEntitiesAABB(true);
+
+        // Physics settings
+        getPhysics().setRealtime(true);
 
         // On pose le framerate voulu
-        INSTANCE.setFramerate(200);
+        INSTANCE.setFramerate(60);
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
@@ -69,7 +76,7 @@ public class Collinsa {
         renderer = new Renderer();
 
         // On crée une instance de moteur physique vide, elle se remplit de Chunks et crée un thread de calcul à son initialisation
-        physics = new Physics(width, height, 5, 5);
+        physics = new Physics(width, height, 25, 25);
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
         mainFrame = new MainFrame(1440, (int)(1440 / screenRatio));
@@ -87,11 +94,12 @@ public class Collinsa {
         Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight()/2, 100,20);
 
 
-        for (int i = 0; i < 100000; ++i){
+        for (int i = 0; i < 300; ++i){
 
-            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 3);
+            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 5);
 
-            // On teste une accélération vers le bas type gravité sur un objet de masse 10kg
+            circle.setColor(new Color((int)(Math.random() * 256),(int)(Math.random() * 256),(int)(Math.random() * 256)));
+            // On teste une accélération vers le bas type gravité = 10g
             circle.setAcc(new Vec2(0, 10 * 9.81));
             physics.addEntity(circle);
         }
@@ -114,8 +122,21 @@ public class Collinsa {
 
         physics.begin();
         renderer.begin();
+    }
 
-        System.out.println("Began !");
+    /**
+     * Démarre le programme (Simulation & Rendu) après un certain temps
+     * @param delay temps avant démarrage
+     */
+    public void startIn(long delay) {
+
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        start();
     }
 
     /**
@@ -125,6 +146,21 @@ public class Collinsa {
 
         physics.stop();
         renderer.stop();
+    }
+
+    /**
+     * Stoppe le programme (Simulation & Rendu) après un certain temps
+     * @param delay temps avant arrêt
+     */
+    public void stopIn(long delay) {
+
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        stop();
     }
 
     /**
@@ -152,7 +188,7 @@ public class Collinsa {
         // Ce sera toujours le cas ici puisque on utilise cette méthode uniquement une fois juste après l'instanciation du Renderer
         // Mais dans certains cas il serait possible de changer de Renderer périodiquement par exemple si on veut plusieurs caméra mais avec des échelles de rendu différents (pas faisable seulement en interchangeant les caméras)
         if (renderer.getRenderingThread() == null)
-            renderer.setRenderingThread(new RenderingThread(getPhysics(), new MillisClock(), renderer, (short)60));
+            renderer.setRenderingThread(new RenderingThread(getPhysics(), new MillisClock(), renderer, 60));
 
         // Si on a changé de Renderer, on coupe son Thread de rendu car il est inutile est consomme des ressources et du temps de calcul
         if (renderer != getRenderer())
@@ -180,8 +216,28 @@ public class Collinsa {
      */
     public void setFramerate(int framerate) {
 
-        getRenderer().getRenderingThread().setFramerate((short)framerate);
+        getRenderer().getRenderingThread().setFramerate(framerate);
     }
+
+    /**
+     * Redéfini le refreshRate (pour le calcul / ProcessingThread) voulu
+     * @param refreshRate refreshRate voulu
+     */
+    public void setRefreshRate(short refreshRate) {
+
+        getPhysics().getProcessingThread().setRefreshRate(refreshRate);
+    }
+
+    /**
+     * Redéfini le refreshRate (pour le calcul / ProcessingThread) voulu
+     * @param refreshRate refreshRate voulu
+     */
+    public void setRefreshRate(int refreshRate) {
+
+        getPhysics().getProcessingThread().setRefreshRate(refreshRate);
+    }
+
+
 
     /**
      * Renvoie la Frame principale appartenant à l'unique instance créée

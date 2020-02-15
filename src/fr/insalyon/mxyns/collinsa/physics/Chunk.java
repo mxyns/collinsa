@@ -19,6 +19,7 @@ public class Chunk {
     /**
      * Contient les entités présentes dans le chunk
      */
+    // TODO : optimize data structure (temporarily is CopyOnWriteArraySet to fix Concurrent Modification problems)
     final public CopyOnWriteArraySet<Entity> entities;
 
     /**

@@ -3,6 +3,7 @@ package fr.insalyon.mxyns.collinsa.threads;
 import fr.insalyon.mxyns.collinsa.clocks.Clock;
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 
 /**
@@ -14,6 +15,22 @@ public class ProcessingThread extends ClockedThread {
      *  Physics représentant la simulation associée au Thread de calcul
      */
     private Physics physics;
+
+    /**
+     *  Collider représentant le détecteur de collisions associé à la simulation
+     */
+    private Collider collider;
+
+    /**
+     * Nombre de tick par secondes à générer visé par le Thread, s'il y arrive, il se fixe autour.
+     * Short car jamais plus quand que 32,767 fps
+     */
+    private short refreshRate;
+
+    /**
+     * Délai de base entre chaque tick en millisecondes, si le calcul prenait un temps de calcul de 0 (ms ou ns selon précision)
+     */
+    private int baseDelay;
 
     /**
      * Crée un Thread de calcul à partir d'une simulation (Physics), avec une précision par défaut en milliseconde et un refreshRate de 0
@@ -39,10 +56,13 @@ public class ProcessingThread extends ClockedThread {
      * @param clock horloge dédiée au Thread
      * @param refreshRate temps de rafraichissement (délai entre chaque calcul)
      */
-    public ProcessingThread(Physics physics, Clock clock, long refreshRate) {
+    public ProcessingThread(Physics physics, Clock clock, int refreshRate) {
 
         super(clock, refreshRate);
         this.physics = physics;
+        this.collider = physics.getCollider();
+        this.refreshRate = (short)refreshRate;
+        this.baseDelay = 1000 / refreshRate;
     }
 
     /**
@@ -50,19 +70,35 @@ public class ProcessingThread extends ClockedThread {
      *      Mise à jour des positions, détection de collisions, résolution des collisions, etc...
      * @param elapsedTime temps écoulé (c-à-d le temps dont il faut que la simulation avance)
      */
+    private long deltaTime;
     @Override
     public void tick(long elapsedTime) {
 
-        physics.clearChunks();
+        // Sélection du temps à utiliser
+        deltaTime = physics.isRealtime() ? elapsedTime : physics.getFixedDeltaTime();
 
         // Test de mise à jour des positions, vitesses, accélérations
             for (Entity entity : physics.getEntities()) {
+
+                // 1ère étape : mettre à jour les éléments
                 // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
                 if (entity.getPos().y <= physics.getHeight())
-                    entity.updateMillis(clock.lastElapsed);
+                    entity.updateMillis(deltaTime);
             }
 
-        physics.spatialHashing();
+            for (Entity entity : physics.getEntities())
+                // 2ème étape : détection de collisions
+                for (Entity target : collider.getNearbyEntities(entity))
+                    collider.checkForCollision(entity, target);
+
+        // 3ème étape : résolution des collisions détectées
+
+            // 4ème étape : on remet à jour les Chunks
+            physics.clearChunks();
+            physics.spatialHashing();
+
+            // 5ème on régule le délai
+            regulateDelay(baseDelay, elapsedTime);
     }
 
     /**
@@ -81,5 +117,25 @@ public class ProcessingThread extends ClockedThread {
     public void setPhysics(Physics physics) {
 
         this.physics = physics;
+        this.collider = physics.getCollider();
+    }
+
+    /**
+     * Redéfinit le taux de rafraîchissement de la simulation (nombre d'images calculées par secondes)
+     * @param refreshRate nouveau taux de rafraichissement de la simulation
+     */
+    public void setRefreshRate(int refreshRate) {
+
+        this.refreshRate = (short)refreshRate;
+        this.baseDelay = 1000 / refreshRate;
+    }
+
+    /**
+     * Donne le taux de rafraîchissement de la simulation (nombre d'images calculées par secondes)
+     * @return refreshRate taux de rafraichissement de la simulation
+     */
+    public int getRefreshRate() {
+
+        return refreshRate;
     }
 }

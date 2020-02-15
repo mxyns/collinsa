@@ -66,9 +66,24 @@ public class ClockedThread extends Thread {
 
     /**
      * Méthode à exécuter à en boucle. Doit être redéfinie.
-     * @param lastElapsed temps écoulé depuis la denière exécution de la méthode
+     * @param elapsedTime temps écoulé depuis la denière exécution de la méthode
      */
-    public void tick(long lastElapsed) {}
+    public void tick(long elapsedTime) {}
+
+    /**
+     * Régule le délai pour essayeer de maintenir délai moyen de 'avgDelay'
+     * @param avgDelay délai moyen visé entre chaque boucle
+     * @param elapsed temps écoulé depuis la dernière boucle
+     */
+    public void regulateDelay(int avgDelay, long elapsed) {
+
+        // Le délai nécessaire à la prochaine frame pour garder un framerate constant vaut :
+        // délaiInitial - dernierTempsDeRendu = délaiInitial - (dernierTempsTotalDeBoucle - délaiAppliqué(à la frame précédénte)
+        // Soit on prend le délai calculé, soit si il est négatif on prend 0
+        // Ensuite on choisit la plus petite valeur entre le délai de base et la valeur calculée car on préfère avoir plus de 60 que moins (on ne peut pas prédire combien de temps prendra le rendu de la prochaine frame donc autant prendre large)
+        delay = Math.min(Math.max(0, avgDelay + delay - elapsed), avgDelay);
+
+    }
 
     /**
      * Prend soin de stopper la Clock en même temps que le Thread

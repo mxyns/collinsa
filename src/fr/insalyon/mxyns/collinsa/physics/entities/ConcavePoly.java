@@ -4,7 +4,6 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Polygone concave à décomposer en polygones convexes pour analyse
@@ -33,8 +32,8 @@ public class ConcavePoly extends Polygon {
     }
 
     @Override
-    public Rectangle2D.Double getAABB() {
+    public void updateAABB() {
 
-        return null;
     }
+
 }

@@ -4,8 +4,6 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Entitée rectangulaire, simplifie les détections de collisions pour les objets simples
@@ -26,6 +24,8 @@ public class Rect extends Entity {
 
         super(pos);
         this.size = size;
+
+        updateAABB();
     }
 
     /**
@@ -39,6 +39,8 @@ public class Rect extends Entity {
 
         super(x, y);
         size = new Vec2(w, h);
+
+        updateAABB();
     }
 
     public String toString() {
@@ -61,9 +63,12 @@ public class Rect extends Entity {
 
     //TODO Manage Rect rotation
     @Override
-    public Rectangle2D.Double getAABB() {
+    public void updateAABB() {
 
-        return new Rectangle.Double(pos.x - size.x/2, pos.y - size.y/2, size.x, size.y);
+        this.aabb.x = pos.x - size.x/2;
+        this.aabb.y = pos.y - size.y/2;
+        this.aabb.width = size.x;
+        this.aabb.height = size.y;
     }
 
 

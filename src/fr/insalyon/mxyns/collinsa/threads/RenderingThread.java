@@ -28,10 +28,9 @@ public class RenderingThread extends ClockedThread {
     private short framerate;
 
     /**
-     * Délai de base entre chaque frame en millisecondes, si la rendu prenait un temps de calcul de 0 (ms ou ns selon précision)
+     * Délai de base entre chaque frame en millisecondes, si le rendu prenait un temps de calcul de 0 (ms ou ns selon précision)
      */
     private int baseDelay;
-
 
     /**
      * Crée un Thread de rendu à partir d'une simulation (Physics), et d'un Renderer, avec une précision par défaut en milliseconde et un framerate de 60
@@ -40,7 +39,7 @@ public class RenderingThread extends ClockedThread {
      */
     public RenderingThread(Physics physics, Renderer renderer) {
 
-        this(physics, new MillisClock(), renderer, (short)60);
+        this(physics, new MillisClock(), renderer, 60);
     }
     /**
      * Crée un Thread de rendu à partir d'une simulation (Physics), et d'un Renderer, un framerate, avec une précision par défaut en milliseconde
@@ -48,7 +47,7 @@ public class RenderingThread extends ClockedThread {
      * @param renderer Renderer utilisé pour le rendu
      * @param framerate nombre d'image par secondes que le Thread essayera d'atteindre
      */
-    public RenderingThread(Physics physics, Renderer renderer, short framerate) {
+    public RenderingThread(Physics physics, Renderer renderer, int framerate) {
 
         this(physics, new MillisClock(), renderer, framerate);
     }
@@ -60,7 +59,7 @@ public class RenderingThread extends ClockedThread {
      */
     public RenderingThread(Physics physics, Clock clock,  Renderer renderer) {
 
-        this(physics, clock, renderer, (short)60);
+        this(physics, clock, renderer, 60);
     }
     /**
      * Crée un Thread de rendu à partir d'une simulation (Physics), et d'un Renderer, d'une Clock et d'un framerate
@@ -69,13 +68,13 @@ public class RenderingThread extends ClockedThread {
      * @param clock horloge dédiée au Thread
      * @param framerate nombre d'image par secondes que le Thread essayera d'atteindre
      */
-    public RenderingThread(Physics physics, Clock clock, Renderer renderer, short framerate) {
+    public RenderingThread(Physics physics, Clock clock, Renderer renderer, int framerate) {
 
-        super(clock, (int)(1000.0f / framerate));
+        super(clock, 1000 / framerate);
 
         this.physics = physics;
         this.renderer = renderer;
-        this.framerate = framerate;
+        this.framerate = (short)framerate;
         this.baseDelay = 1000 / framerate;
         this.delay = baseDelay;
     }
@@ -83,18 +82,13 @@ public class RenderingThread extends ClockedThread {
     /**
      * Rendu, mise à jour de l'affichage.
      * On recalcule de delay nécessaire pour essayer d'avoir au minimum le framerate voulu
-     * @param lastElapsed temps écoulé depuis le dernier affichage
+     * @param elapsedTime temps écoulé depuis le dernier affichage
      */
     @Override
-    public void tick(long lastElapsed) {
+    public void tick(long elapsedTime) {
 
-        forceRender();
-
-        // Le délai nécessaire à la prochaine frame pour garder un framerate constant vaut :
-        // délaiInitial - dernierTempsDeRendu = délaiInitial - (dernierTempsTotalDeBoucle - délaiAppliqué(à la frame précédénte)
-        // Soit on prend le délai calculé, soit si il est négatif on prend 0
-        // Ensuite on choisit la plus petite valeur entre le délai de base et la valeur calculée car on préfère avoir plus de 60 que moins (on ne peut pas prédire combien de temps prendra le rendu de la prochaine frame donc autant prendre large)
-        delay = Math.min(Math.max(0, baseDelay - clock.lastElapsed + delay), baseDelay);
+        renderNoCheck();
+        regulateDelay(baseDelay, elapsedTime);
     }
 
     /**
@@ -107,7 +101,7 @@ public class RenderingThread extends ClockedThread {
     }
 
     /**
-     * Essaye de forcer la mise à jour de l'affichage si le rendu est actif
+     * Essaye de mettre à jour l'affichage si le rendu est actif
      */
     private void render() {
 
@@ -119,10 +113,18 @@ public class RenderingThread extends ClockedThread {
      * Force le rendu, que le Thread soit actif ou non, n'informe pas la Clock du rendu lorsqu'il est extérieur.
      * La frame n'est donc pas comptée dans les frames rendues lors de la dernière seconde
      */
+    private void renderNoCheck() {
+
+        renderer.getDestination().repaint();
+    }
+
+    /**
+     * Essaye de forcer la mise à jour de l'affichage que le rendu soit actif ou pas
+     */
     public void forceRender() {
 
         renderer.getDestination().repaint();
-        // TODO: manage clock time reset
+        clock.read();
     }
 
     /**
@@ -138,8 +140,9 @@ public class RenderingThread extends ClockedThread {
      * Redéfinit le framerate visé par le Thread
      * @param framerate nouveau framerate visé
      */
-    public void setFramerate(short framerate) {
+    public void setFramerate(int framerate) {
 
-        this.framerate = framerate;
+        this.framerate = (short)framerate;
+        this.baseDelay = 1000 / framerate;
     }
 }

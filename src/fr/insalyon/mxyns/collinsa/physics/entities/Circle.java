@@ -4,8 +4,6 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Entitée circulaire, la plus simple possible, permet de modéliser un liquide ou une particule par exemple
@@ -18,12 +16,16 @@ public class Circle extends Entity {
 
         super(pos);
         this.r = r;
+
+        updateAABB();
     }
 
     public Circle(double x, double y, double r) {
 
         super(x, y);
         this.r = r;
+
+        updateAABB();
     }
 
     public String toString() {
@@ -44,8 +46,13 @@ public class Circle extends Entity {
     }
 
     @Override
-    public Rectangle2D.Double getAABB() {
+    public void updateAABB() {
 
-        return new Rectangle.Double(pos.x - r, pos.y - r, 2 * r, 2 * r);
+        this.aabb.x = pos.x - r;
+        this.aabb.y = pos.y - r;
+        this.aabb.width = 2 * r;
+
+        //noinspection SuspiciousNameCombination, permet d'éviter de faire 2 fois le calcul
+        this.aabb.height = this.aabb.width;
     }
 }

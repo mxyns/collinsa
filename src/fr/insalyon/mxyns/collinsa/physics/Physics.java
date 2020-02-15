@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics;
 
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
@@ -14,19 +15,25 @@ public class Physics {
 
 
     /**
-     * Thread de calcul dédié à la mise à jour de la simulation
-     */
-    private ProcessingThread processingThread;
-
-    /**
      * Moteur de calcul de collisions
      */
     final private Collider collider = new Collider(this);
 
     /**
-     * Ensemble trié des différents Chunks partitionnant le monde
-     * L'implémentation de l'interface Set de SortedSet permet de garantir l'unicité de chaque chunk ajouté
-     * Le caractère trié de ce Set permet de garder un ordre logique dans l'organisation des Chunks et donc une manière rapide de trouver le Chunk voulu par hash-ache
+     * Thread de calcul dédié à la mise à jour de la simulation
+     */
+    private ProcessingThread processingThread;
+
+    /**
+     * ArrayList des différents Chunks partitionnant le monde
+     * La façon dont sont gérés les chunks permet quand même de garantir l'unicité de chaque chunk ajouté même si on n'a pas un 'Set'
+     * L'ArrayList permet d'accéder aléatoirement à un Chunk avec une complexité O(1) ce qui est nécessaire pour une simulation dense ou très vaste (à grand nombre de Chunks).
+     * Les Chunks sont organisés grâce au SpatialHashing qui est performant dans les simulations où la répartition des éléments est plutôt homogène.
+     * Un Oct-Tree serait moins couteux en mémoire mais plus difficile à implémenter et pas forcément plus performant.
+     *
+     * ArrayList Complexity:
+     * | Add  | Remove | Get  | Contains | Next |
+     * | O(1) |  O(n)  | O(1) |   O(n)   | O(1) |
      */
     private ArrayList<Chunk> chunks;
 
@@ -45,6 +52,15 @@ public class Physics {
      */
     private int totalChunkCount;
 
+    /**
+     * Temps fixé en en millisecondes dont la simulation doit avancer à chaque tour si on n'est pas en mode real-time
+     */
+    private int fixedDeltaTime;
+
+    /**
+     * Détermine si la simulation doit être mise à jour en temps réel (peut provoquer des incohérences, la simulation n'est plus déterministe)
+     */
+    private boolean isRealtime;
 
     /**
      * ArrayList des entités présentes dans la simulation.
@@ -64,17 +80,32 @@ public class Physics {
     private int width, height;
 
     /**
-     * Crée un moteur physique, avec un nombre défini de chunk
+     * Crée un moteur physique, avec un nombre défini de chunk avec un refreshRate par défaut de 60, isRealtime = true, fixedDeltaTime = 10
      * @param width largeur de la simulation en mètres
      * @param height hauteur de la simulation en mètres
+     * @param horizontalChunkCount nombre de chunks dans à l'horizontale
+     * @param verticalChunkCount nombre de chunks dans à la verticale
      */
     public Physics(int width, int height, int horizontalChunkCount, int verticalChunkCount) {
 
+        this(width, height, horizontalChunkCount, verticalChunkCount, 60, true, 10);
+    }
+    /**
+     * Crée un moteur physique, avec un nombre défini de chunk et un refreshRate
+     * @param width largeur de la simulation en mètres
+     * @param height hauteur de la simulation en mètres
+     * @param horizontalChunkCount nombre de chunks dans à l'horizontale
+     * @param verticalChunkCount nombre de chunks dans à la verticale
+     * @param refreshRate taux de rafraichissement visé par le ProcessingThread
+     */
+    public Physics(int width, int height, int horizontalChunkCount, int verticalChunkCount, int refreshRate, boolean isRealtime, int fixedDeltaTime) {
+
         this.width = width;
         this.height = height;
+        this.isRealtime = false;
+        this.fixedDeltaTime = fixedDeltaTime;
 
-        //chunks = Physics.generateChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
-        processingThread = new ProcessingThread(this, new MillisClock(), 5);
+        processingThread = new ProcessingThread(this, new MillisClock(), refreshRate);
         chunks = buildChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
     }
 
@@ -105,16 +136,17 @@ public class Physics {
 
     /**
      * Ajoute une entité au monde.
-     * TODO: (Vérifie par la même occasion s'il faut redimensionner les Chunks ou non pas pour l'instant)
+     * TODO: (Vérifier par la même occasion s'il faut redimensionner les Chunks ou non pas pour l'instant)
      */
     public void addEntity(Entity e) {
 
         entities.add(e);
 
-
         for (int a : collider.getChunksContaining(e))
             if (a >= 0 && a < totalChunkCount)
                 chunks.get(a).entities.add(e);
+
+
     }
 
     /**
@@ -325,6 +357,41 @@ public class Physics {
         this.processingThread = processingThread;
     }
 
+    /**
+     * Donne l'intervalle de temps dont la simulation avance par tick quand elle est en mode realTime = false;
+     * @return fixedDeltaTime
+     */
+    public int getFixedDeltaTime() {
+
+        return fixedDeltaTime;
+    }
+
+    /**
+     * Redéfinit le fixedDeltaTime, c'est-à-dire l'intervalle de temps dont la simulation avance par tick quand elle est en mode realTime = false;
+     * @param fixedDeltaTime nouvel intervalle de temps par tick
+     */
+    public void setFixedDeltaTime(int fixedDeltaTime) {
+
+        this.fixedDeltaTime = fixedDeltaTime;
+    }
+
+    /**
+     * Informe si la simulation est en mode temps-réel
+     * @return isRealtime = true si on est en temps-réel
+     */
+    public boolean isRealtime() {
+
+        return isRealtime;
+    }
+
+    /**
+     * Détermine si la simulation doit fonctionner en temps réel ou non.
+     * @param realtime true pour temps-réel.
+     */
+    public void setRealtime(boolean realtime) {
+
+        isRealtime = realtime;
+    }
 
     public String toString() {
 

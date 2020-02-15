@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
@@ -54,7 +55,17 @@ public class Renderer {
     /**
      * Détermine si le Renderer dessine les contours des Chunks
      */
-    private boolean renderChunksBounds = true;
+    private boolean renderChunksBounds = false;
+
+    /**
+     * Détermine si le Renderer dessine les AABB
+     */
+    private boolean renderEntitiesAABB = false;
+
+    /**
+     * Détermine si le Renderer dessine les bords du monde
+     */
+    private boolean renderWorldBounds = true;
 
     /**
      * Couleur des bordures de Chunks (si dessinées)
@@ -112,6 +123,13 @@ public class Renderer {
         renderingThread.interrupt();
     }
 
+    /**
+     * Force le rendu (utilisé majoritairement pour donner un sentiment de fluidité lors des déplacements de caméra)
+     */
+    public void forceRender() {
+
+        renderingThread.forceRender();
+    }
 
     /**
      * Crée le rendu de la Sandbox et l'affiche sur le panel
@@ -125,7 +143,13 @@ public class Renderer {
             if(shouldRenderChunk(chunk))
                 renderChunk(chunk, g);
 
-        g.drawString("FPSP:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
+        g.setColor(Color.black);
+
+        if (renderWorldBounds) {
+            g.drawRect((int) (camera.getPos().x * -factor), (int) ((camera.getPos().y) * -factor), (int) (physics.getWidth() * factor), (int) (physics.getHeight() * factor));
+        }
+
+        g.drawString("FPSP:"+(Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
         g.drawString("FPSR:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
     }
 
@@ -146,8 +170,14 @@ public class Renderer {
      */
     private void renderChunk(Chunk chunk, Graphics2D g) {
 
-        for (Entity entity : chunk.entities)
+        for (Entity entity : chunk.entities) {
             entity.render(this, g);
+            
+            if (renderEntitiesAABB) {
+                Rectangle.Double aabb = entity.getAABB();
+                g.drawRect((int) ((aabb.x - camera.getPos().x) * factor), (int) ((aabb.y - camera.getPos().y) * factor), (int) (aabb.getWidth() * factor), (int) (aabb.getHeight() * factor));
+            }
+        }
 
         if (renderChunksBounds) {
             g.setColor(chunkBoundsColor);
@@ -250,10 +280,75 @@ public class Renderer {
     }
 
     /**
-     * Force le rendu (utilisé majoritairement pour donner un sentiment de fluidité lors des déplacements de caméra)
+     * Informe si les AABB des entités vont être dessinées ou non
+     * @return renderEntitiesAABB = true si elles vont être dessinées
      */
-    public void forceRender() {
+    public boolean doesRenderEntitiesAABB() {
 
-        renderingThread.forceRender();
+        return renderEntitiesAABB;
+    }
+
+    /**
+     * Détermine si les AABB des entités vont être dessinées ou non
+     * @param renderEntitiesAABB = true pour les dessiner
+     */
+    public void setRenderEntitiesAABB(boolean renderEntitiesAABB) {
+
+        this.renderEntitiesAABB = renderEntitiesAABB;
+    }
+
+    /**
+     * Informe si les bordures des chunks vont être dessinées ou non
+     * @return renderChunkBounds = true si elles vont être dessinées
+     */
+    public boolean doesRenderChunksBounds() {
+
+        return renderChunksBounds;
+    }
+
+    /**
+     * Détermine si les bordures des chunks vont être dessinées ou non
+     * @param renderChunksBounds = true pour les dessiner
+     */
+    public void setRenderChunksBounds(boolean renderChunksBounds) {
+
+        this.renderChunksBounds = renderChunksBounds;
+    }
+
+    /**
+     * Informe si les bordures du monde vont être dessinées ou non
+     * @return renderWorldBounds = true si elles vont être dessinées
+     */
+    public boolean doesRenderWorldBounds() {
+
+        return renderWorldBounds;
+    }
+
+    /**
+     * Détermine si les bordures du monde vont être dessinées ou non
+     * @param renderWorldBounds = true pour les dessiner
+     */
+    public void setRenderWorldBounds(boolean renderWorldBounds) {
+
+        this.renderWorldBounds = renderWorldBounds;
+    }
+
+    /**
+     * Renvoie la couleur définie pour les bordures de Chunk
+     * @return chunkBoundsColor la couleur de bordures de Chunk
+     */
+    public Color getChunkBoundsColor() {
+
+        return chunkBoundsColor;
+    }
+
+
+    /**
+     * Redéfinit la couleur définie pour les bordures de Chunk
+     * @param chunkBoundsColor la nouvelle couleur de bordures de Chunk
+     */
+    public void setChunkBoundsColor(Color chunkBoundsColor) {
+
+        this.chunkBoundsColor = chunkBoundsColor;
     }
 }

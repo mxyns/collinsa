@@ -1,7 +1,9 @@
-package fr.insalyon.mxyns.collinsa.physics;
+package fr.insalyon.mxyns.collinsa.physics.collisions;
 
+import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -22,7 +24,7 @@ public class Collider {
      * Crée un Collider et lui associe une simulation (Physics)
      * @param physics simulation à associer
      */
-    Collider(Physics physics) {
+    public Collider(Physics physics) {
 
         this.physics = physics;
     }
@@ -66,6 +68,7 @@ public class Collider {
         Set<Integer> chunksId = getChunksContaining(e);
 
         for (int chunkId : chunksId)
+            if (chunkId >= 0 && chunkId < physics.getTotalChunkCount())
             nearby.addAll(physics.getChunks().get(chunkId).entities);
 
         nearby.remove(e);
@@ -91,5 +94,17 @@ public class Collider {
         this.physics = physics;
     }
 
+    /**
+     * Détermine s'il y a collision entre 'entity' et 'target'
+     * @param entity 1ère entité (source)
+     * @param target 2ème entité (cible)
+     */
+    public void checkForCollision(Entity entity, Entity target) {
 
+        // Broad phase
+        entity.setColor(entity.getAABB().intersects(target.getAABB()) ? Color.red : Color.green);
+        target.setColor(entity.getAABB().intersects(target.getAABB()) ? Color.red : Color.green);
+            // Narrow phase
+
+    }
 }

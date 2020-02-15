@@ -5,6 +5,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -15,7 +16,7 @@ public abstract class Entity {
     /**
      * Vec2 position de l'entité
      */
-    Vec2 pos;
+    protected Vec2 pos;
 
     /**
      * Vec2 vitesse de l'entité
@@ -29,6 +30,12 @@ public abstract class Entity {
     private Vec2 acc;
 
     /**
+     * Rectangle.Double (car en mètres) correspondant à l'AABB de l'entité
+     * TODO: replace by own AABB class
+     */
+    protected Rectangle.Double aabb;
+
+    /**
      * Couleur de l'entité
      */
     private Color color;
@@ -40,6 +47,7 @@ public abstract class Entity {
 
         vel = Vec2.zero();
         acc = Vec2.zero();
+        aabb = new Rectangle2D.Double(0, 0, 0, 0);
         color = Color.black;
     }
 
@@ -77,11 +85,21 @@ public abstract class Entity {
      */
     public abstract double getMaximumSize();
 
+
     /**
-     * Méthode abstraite renvoyant la AABB (Axis Aligned Bounding Box) de l'entité
+     * Méthode renvoyant la AABB (Axis Aligned Bounding Box) de l'entité
      * @return AABB de l'entité sous forme de Rectangle
      */
-    public abstract Rectangle2D.Double getAABB();
+    public Rectangle.Double getAABB() {
+
+        return aabb;
+    }
+
+    /**
+     * Méthode abstraite mettant à jour la AABB (Axis Aligned Bounding Box) de l'entité
+     */
+    public abstract void updateAABB();
+
 
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
@@ -90,6 +108,8 @@ public abstract class Entity {
 
         vel.add(acc, elapsed * 1e-3f);
         pos.add(vel, elapsed * 1e-3f);
+
+        updateAABB();
     }
 
     /**
