@@ -62,10 +62,10 @@ public class Collinsa {
         Physics physics = getPhysics();
         Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
         Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200,100);
-        Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 100, Collinsa.getPhysics().getHeight() / 2 - 130, 200,100);
-        //rect1.setAngVel(0.002f);
+        Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 150, Collinsa.getPhysics().getHeight() / 2 - 130, 200,100);
+        rect1.setAngVel(0.002f);
         rect2.setRot(0.2f);
-        //rect2.setVel(new Vec2f(0, 20));
+        rect2.setVel(new Vec2f(0, 20));
 
         Circle circle1 = new Circle(rect1.getPos().x - 500, rect1.getPos().y, 20);
         Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y - 30, 20);

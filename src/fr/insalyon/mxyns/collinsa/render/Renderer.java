@@ -23,7 +23,6 @@ import java.awt.geom.Rectangle2D;
  */
 public class Renderer {
 
-
     /**
      * Thread dédié au rendu des images
      * N'est pas final car on associe le Physics après l'instanciation du Renderer
@@ -214,7 +213,7 @@ public class Renderer {
     public void renderRect(Rect rect, Graphics2D g) {
 
         g.setColor(rect.getColor());
-        g.rotate(-rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
+        g.rotate(rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
         g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.size.x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.size.y * 0.5f - camera.getPos().y), factor * rect.size.x, factor * rect.size.y));
     }
 
