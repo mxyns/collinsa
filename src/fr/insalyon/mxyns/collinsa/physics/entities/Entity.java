@@ -1,12 +1,11 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
+import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Représente une Entité (un objet ou un élément de la simulation) de manière générale
@@ -14,26 +13,39 @@ import java.awt.geom.Rectangle2D;
 public abstract class Entity {
 
     /**
-     * Vec2 position de l'entité
+     * Vec2f position de l'entité
      */
-    protected Vec2 pos;
+    protected Vec2f pos;
 
     /**
-     * Vec2 vitesse de l'entité
+     * Vec2f vitesse de l'entité
      */
-    private Vec2 vel;
-
-
-    /**
-     * Vec2 acceleration de l'entité
-     */
-    private Vec2 acc;
+    private Vec2f vel;
 
     /**
-     * Rectangle.Double (car en mètres) correspondant à l'AABB de l'entité
-     * TODO: replace by own AABB class
+     * Vec2f acceleration de l'entité
      */
-    protected Rectangle.Double aabb;
+    private Vec2f acc;
+
+    /**
+     * float angle de l'entité (rotation autour de son centre)
+     */
+    private float rot;
+
+    /**
+     * Vitesse angulaire de l'entité (rotation autour de son centre)
+     */
+    private float angVel;
+
+    /**
+     * Accélération angulaire de l'entité
+     */
+    private float angAcc;
+
+    /**
+     * AABB (dims. en mètres) correspondant à l'AABB de l'entité
+     */
+    protected AABB aabb;
 
     /**
      * Couleur de l'entité
@@ -45,9 +57,9 @@ public abstract class Entity {
      */
     private Entity() {
 
-        vel = Vec2.zero();
-        acc = Vec2.zero();
-        aabb = new Rectangle2D.Double(0, 0, 0, 0);
+        vel = Vec2f.zero();
+        acc = Vec2f.zero();
+        aabb = new AABB(0, 0, 0, 0);
         color = Color.black;
     }
 
@@ -55,7 +67,7 @@ public abstract class Entity {
      * Constructeur avec vecteur position
      * @param pos vecteur position
      */
-    public Entity(Vec2 pos) {
+    public Entity(Vec2f pos) {
 
         this();
         this.pos = pos.copy();
@@ -69,7 +81,7 @@ public abstract class Entity {
     public Entity(double x, double y) {
 
         this();
-        this.pos = new Vec2(x, y);
+        this.pos = new Vec2f((float)x, (float)y);
     }
 
     /**
@@ -90,7 +102,7 @@ public abstract class Entity {
      * Méthode renvoyant la AABB (Axis Aligned Bounding Box) de l'entité
      * @return AABB de l'entité sous forme de Rectangle
      */
-    public Rectangle.Double getAABB() {
+    public AABB getAABB() {
 
         return aabb;
     }
@@ -109,6 +121,9 @@ public abstract class Entity {
         vel.add(acc, elapsed * 1e-3f);
         pos.add(vel, elapsed * 1e-3f);
 
+        angVel += angAcc * elapsed;
+        rot += angVel * elapsed;
+
         updateAABB();
     }
 
@@ -119,6 +134,11 @@ public abstract class Entity {
 
         vel.add(acc, elapsed * 1e-9f);
         pos.add(vel, elapsed * 1e-9f);
+
+        angVel += angAcc * elapsed;
+        rot += angVel * elapsed;
+
+        updateAABB();
     }
 
 
@@ -126,7 +146,7 @@ public abstract class Entity {
      * Renvoie le vecteur position de l'entité
      * @return vecteur position
      */
-    public Vec2 getPos() {
+    public Vec2f getPos() {
 
         return pos;
     }
@@ -134,7 +154,7 @@ public abstract class Entity {
     /**
      * Redéfinit le vecteur position de l'entité
      */
-    public void setPos(Vec2 pos) {
+    public void setPos(Vec2f pos) {
 
         this.pos = pos;
     }
@@ -151,7 +171,7 @@ public abstract class Entity {
      * Renvoie le vecteur vitesse de l'entité
      * @return vecteur vitesse
      */
-    public Vec2 getVel() {
+    public Vec2f getVel() {
 
         return vel;
     }
@@ -159,7 +179,7 @@ public abstract class Entity {
     /**
      * Redéfinit le vecteur vitesse de l'entité
      */
-    public void setVel(Vec2 vel) {
+    public void setVel(Vec2f vel) {
 
         this.vel = vel;
     }
@@ -168,7 +188,7 @@ public abstract class Entity {
      * Renvoie le vecteur accélération de l'entité
      * @return vecteur accélération
      */
-    public Vec2 getAcc() {
+    public Vec2f getAcc() {
 
         return acc;
     }
@@ -176,7 +196,7 @@ public abstract class Entity {
     /**
      * Redéfinit le vecteur accélération de l'entité
      */
-    public void setAcc(Vec2 acc) {
+    public void setAcc(Vec2f acc) {
 
         this.acc = acc;
     }
@@ -199,4 +219,34 @@ public abstract class Entity {
         this.color = color;
     }
 
+
+    public float getRot() {
+
+        return rot;
+    }
+
+    public void setRot(float rot) {
+
+        this.rot = rot;
+    }
+
+    public float getAngVel() {
+
+        return angVel;
+    }
+
+    public void setAngVel(float angVel) {
+
+        this.angVel = angVel;
+    }
+
+    public float getAngAcc() {
+
+        return angAcc;
+    }
+
+    public void setAngAcc(float angAcc) {
+
+        this.angAcc = angAcc;
+    }
 }

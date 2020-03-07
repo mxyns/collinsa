@@ -1,7 +1,8 @@
 package fr.insalyon.mxyns.collinsa.render;
 
 import fr.insalyon.mxyns.collinsa.physics.Chunk;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import javax.swing.JPanel;
 import java.awt.Dimension;
@@ -15,7 +16,7 @@ public class Camera {
     /**
      * La caméra appartient au monde donc toutes les dimensions doivent être en mètres
      */
-    private Vec2 pos;
+    private Vec2f pos;
     private double width, height;
 
     /**
@@ -25,7 +26,7 @@ public class Camera {
 
     public Camera() {
 
-        this.pos = new Vec2(0, 0);
+        this.pos = new Vec2f(0, 0);
         this.width = 0;
         this.height = 0;
         this.ratio = 1;
@@ -68,9 +69,9 @@ public class Camera {
 
     /**
      * Renvoie la position actuelle de la Camera dans le monde
-     * @return Vec2 position (en mètres)
+     * @return Vec2f position (en mètres)
      */
-    public Vec2 getPos() {
+    public Vec2f getPos() {
 
         return pos;
     }
@@ -87,9 +88,9 @@ public class Camera {
 
     /**
      * Définit la position du coin supérieur-gauche de la Camera dans le monde
-     * @param pos Vec2 contenant les coordonnées en mètres de la Camera
+     * @param pos Vec2f contenant les coordonnées en mètres de la Camera
      */
-    void setPos(Vec2 pos) {
+    void setPos(Vec2f pos) {
 
         this.pos = pos;
     }
@@ -98,7 +99,7 @@ public class Camera {
      * Déplace la camera dans une certaine direction
      * @param dir direction de mouvement, la norme du vecteur est la longueur du déplacement
      */
-    void move(Vec2 dir) {
+    void move(Vec2f dir) {
 
         this.pos.add(dir);
     }
@@ -181,6 +182,6 @@ public class Camera {
 
     public String toString() {
 
-        return "Camera[" + pos + ", "+new Vec2(width,height)+ ", ratio=" + ratio + "]";
+        return "Camera[" + pos + ", " + new Vec2d(width, height) + ", ratio=" + ratio + "]";
     }
 }

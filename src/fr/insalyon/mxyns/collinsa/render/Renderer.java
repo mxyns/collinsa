@@ -3,6 +3,7 @@ package fr.insalyon.mxyns.collinsa.render;
 import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Chunk;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
@@ -13,11 +14,9 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-
-//TODO: utiliser un BufferStrategy pour supprimer le scintillement et rendre le rendu plus fluide
 
 /**
  * Renderer s'occupe de créer un visuel correspondant à l'état de la Sandbox visible par sa Camera et à l'afficher sur son panel de destination
@@ -73,8 +72,13 @@ public class Renderer {
     private Color chunkBoundsColor = Color.black;
 
     /**
-     * Destination de rendu du Renderer. On la stocke pour sauvegarder la matrice de passage Monde -> Panel et limiter les calculs (quand les matrices seront implémentées)
-     * Peut être remplacé par une Dimension pour généraliser le Renderer à tous les types de surface d'affichage
+     * Couleur des bordures de Chunks (si dessinées)
+     */
+    private Color AABBBoundsColor = Color.yellow;
+
+    /**
+     * Taille de la destination de rendu du Renderer. On la stocke pour sauvegarder la matrice de passage Monde -> Panel et limiter les calculs (quand les matrices seront implémentées)
+     * Dimension pour généraliser le Renderer à tous les types de surface d'affichage
      */
     JPanel destination;
 
@@ -138,7 +142,7 @@ public class Renderer {
     public void renderSandbox(Physics physics, Graphics2D g) {
 
         //TODO: appliquer de l'antialiasing sur Graphics2D
-
+        
         for (Chunk chunk : physics.getChunks())
             if(shouldRenderChunk(chunk))
                 renderChunk(chunk, g);
@@ -170,11 +174,16 @@ public class Renderer {
      */
     private void renderChunk(Chunk chunk, Graphics2D g) {
 
+        AffineTransform transform = g.getTransform();
+
         for (Entity entity : chunk.entities) {
+
             entity.render(this, g);
-            
+            g.setTransform(transform);
+
             if (renderEntitiesAABB) {
-                Rectangle.Double aabb = entity.getAABB();
+                AABB aabb = entity.getAABB();
+                g.setColor(AABBBoundsColor);
                 g.drawRect((int) ((aabb.x - camera.getPos().x) * factor), (int) ((aabb.y - camera.getPos().y) * factor), (int) (aabb.getWidth() * factor), (int) (aabb.getHeight() * factor));
             }
         }
@@ -205,6 +214,7 @@ public class Renderer {
     public void renderRect(Rect rect, Graphics2D g) {
 
         g.setColor(rect.getColor());
+        g.rotate(-rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
         g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.size.x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.size.y * 0.5f - camera.getPos().y), factor * rect.size.x, factor * rect.size.y));
     }
 
@@ -351,4 +361,23 @@ public class Renderer {
 
         this.chunkBoundsColor = chunkBoundsColor;
     }
+
+    /**
+     * Renvoie la couleur définie pour les AABBs des entités
+     * @return AABBBoundsColor la couleur des AABBs
+     */
+    public Color getAABBBoundsColor() {
+
+        return AABBBoundsColor;
+    }
+
+    /**
+     * Redéfinit la couleur définie pour les AABBs des entités
+     * @param AABBBoundsColor la nouvelle couleur des AABBs
+     */
+    public void setAABBBoundsColor(Color AABBBoundsColor) {
+
+        this.AABBBoundsColor = AABBBoundsColor;
+    }
+
 }

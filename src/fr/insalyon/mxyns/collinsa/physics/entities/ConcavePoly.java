@@ -1,7 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
 import fr.insalyon.mxyns.collinsa.render.Renderer;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
 
@@ -10,7 +10,7 @@ import java.awt.Graphics2D;
  */
 public class ConcavePoly extends Polygon {
 
-    public ConcavePoly(Vec2 pos) {
+    public ConcavePoly(Vec2f pos) {
 
         super(pos);
     }

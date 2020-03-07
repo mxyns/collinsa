@@ -1,17 +1,18 @@
 package fr.insalyon.mxyns.collinsa.physics.collisions;
 
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
 /**
  * Moteur de collisions, détecte et calcule les conséquences des collisions entre objets
- *
  */
 public class Collider {
 
@@ -21,42 +22,54 @@ public class Collider {
     private Physics physics;
 
     /**
+     * Liste des dernières collisions détectées
+     */
+    private final LinkedHashSet<Collision> collisions;
+
+    /**
      * Crée un Collider et lui associe une simulation (Physics)
+     *
      * @param physics simulation à associer
      */
     public Collider(Physics physics) {
 
         this.physics = physics;
+        this.collisions = new LinkedHashSet<>();
     }
 
     /**
      * Trouve tous les chunks contenant une entité
+     *
      * @param e entité pour laquelle trouver dans les chunks
+     *
      * @return Set of Chunk ids
      */
     public Set<Integer> getChunksContaining(Entity e) {
 
-        Rectangle.Double aabb = e.getAABB();
+        AABB aabb = e.getAABB();
         Set<Integer> chunksToAddEntityTo = new TreeSet<>();
 
         //TopLeft
         chunksToAddEntityTo.add(physics.getPositionHash(aabb.x, aabb.y));
 
         //TopRight
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x + aabb.width, aabb.y));
+        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x + aabb.w, aabb.y));
 
         //BottomRight
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x + aabb.width, aabb.y + aabb.height));
+        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x + aabb.w, aabb.y + aabb.h));
 
         //BottomLeft
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x, aabb.y + aabb.height));
+        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x, aabb.y + aabb.h));
 
         return chunksToAddEntityTo;
     }
 
     /**
-     * Trouve toutes les entités proches (proches <=> avec lesquelles une collision est envisageable <=> dans un chunk voisin de celui de 'e') de l'entité 'e'
+     * Trouve toutes les entités proches (proches <=> avec lesquelles une collision est envisageable <=> dans un chunk
+     * voisin de celui de 'e') de l'entité 'e'
+     *
      * @param e entité pour laquelle il faut trouver les entités voisines
+     *
      * @return Liste d'entités proches de 'e'
      */
     public LinkedHashSet<Entity> getNearbyEntities(Entity e) {
@@ -69,7 +82,7 @@ public class Collider {
 
         for (int chunkId : chunksId)
             if (chunkId >= 0 && chunkId < physics.getTotalChunkCount())
-            nearby.addAll(physics.getChunks().get(chunkId).entities);
+                nearby.addAll(physics.getChunks().get(chunkId).entities);
 
         nearby.remove(e);
 
@@ -78,6 +91,7 @@ public class Collider {
 
     /**
      * Renvoie la simulation associée
+     *
      * @return physics
      */
     public Physics getPhysics() {
@@ -87,6 +101,7 @@ public class Collider {
 
     /**
      * Redéfinit la simulation associée
+     *
      * @param physics nouvelle simulation à associer
      */
     public void setPhysics(Physics physics) {
@@ -96,15 +111,70 @@ public class Collider {
 
     /**
      * Détermine s'il y a collision entre 'entity' et 'target'
+     *
      * @param entity 1ère entité (source)
      * @param target 2ème entité (cible)
      */
     public void checkForCollision(Entity entity, Entity target) {
 
         // Broad phase
-        entity.setColor(entity.getAABB().intersects(target.getAABB()) ? Color.red : Color.green);
-        target.setColor(entity.getAABB().intersects(target.getAABB()) ? Color.red : Color.green);
-            // Narrow phase
+        if (!entity.getAABB().intersects(target.getAABB())) {
+            entity.setColor(Color.green);
+            target.setColor(Color.green);
 
+        } else {
+
+            entity.setColor(Color.pink);
+            target.setColor(Color.pink);
+
+            // Narrow phase
+            if (entity instanceof Circle && target instanceof Circle)
+                checkForCircleCircleCollision((Circle) entity, (Circle) target);
+            else if (entity instanceof Rect && target instanceof Rect)
+                checkForRectRectCollision((Rect) entity, (Rect) target);
+            else if (entity instanceof Circle && target instanceof Rect)
+                checkForCircleRectCollision((Circle) entity, (Rect) target);
+            else if (entity instanceof Rect && target instanceof Circle)
+                checkForCircleRectCollision((Circle) target, (Rect) entity);
+        }
+
+    }
+
+    public void checkForCircleCircleCollision(Circle entity, Circle target) {
+
+        if (entity.getPos().sqrdDist(target.getPos()) <= Math.pow(entity.r + target.r, 2))
+            logCollision(entity, target);
+    }
+
+    private void checkForRectRectCollision(Rect entity, Rect target) {
+
+        System.out.println("check rect rect");
+
+
+        if (Geometry.rectOnRectSAT(entity, target)) {
+            System.out.println("check rect rect");
+            logCollision(entity, target);
+        }
+
+    }
+
+    public void checkForCircleRectCollision(Circle circle, Rect rect) {
+
+        if(true)
+            logCollision(circle, rect);
+    }
+
+    public void checkForCircleSegmentCollision(Circle entity, Circle target) {
+
+        if (true)
+            logCollision(entity, target);
+    }
+
+    public void logCollision(Entity firstEntity, Entity secondEntity) {
+
+        collisions.add(new Collision(firstEntity, secondEntity));
+
+        firstEntity.setColor(Color.red);
+        secondEntity.setColor(Color.red);
     }
 }

@@ -7,7 +7,7 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -47,15 +47,47 @@ public class Collinsa {
             getRenderer().setRenderScale(5);
 
             // On pose un zoom caméra inital de x1.0
-            getRenderer().getCameraController().setCameraZoom(0.2f);
-            getRenderer().setRenderChunksBounds(false);
+            getRenderer().getCameraController().setCameraZoom(0.18f);
+            getRenderer().setRenderChunksBounds(true);
             getRenderer().setRenderEntitiesAABB(true);
 
         // Physics settings
-        getPhysics().setRealtime(true);
+        getPhysics().setRealtime(false);
 
         // On pose le framerate voulu
         INSTANCE.setFramerate(60);
+
+
+        //Création d'élements / entitées à ajouter à la simulation
+        Physics physics = getPhysics();
+        Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
+        Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200,100);
+        Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 100, Collinsa.getPhysics().getHeight() / 2 - 130, 200,100);
+        //rect1.setAngVel(0.002f);
+        rect2.setRot(0.2f);
+        //rect2.setVel(new Vec2f(0, 20));
+
+        Circle circle1 = new Circle(rect1.getPos().x - 500, rect1.getPos().y, 20);
+        Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y - 30, 20);
+        circle2.setVel(new Vec2f(0, 10));
+
+        physics.addEntity(circle1);
+        physics.addEntity(circle2);
+
+        for (int i = 0; i < 3; ++i){
+
+            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 20);
+
+            circle.setColor(new Color((int)(Math.random() * 256), (int)(Math.random() * 256), (int)(Math.random() * 256)));
+            // On teste une accélération vers le bas type gravité = 10g
+            circle.setAcc(new Vec2f(0, 98.1f));
+            physics.addEntity(circle);
+        }
+        // On ajoute les entités au moteur physique
+        physics.addEntity(rect);
+        physics.addEntity(rect1);
+        physics.addEntity(rect2);
+
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
@@ -76,7 +108,7 @@ public class Collinsa {
         renderer = new Renderer();
 
         // On crée une instance de moteur physique vide, elle se remplit de Chunks et crée un thread de calcul à son initialisation
-        physics = new Physics(width, height, 25, 25);
+        physics = new Physics(width, height, 10, 10);
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
         mainFrame = new MainFrame(1440, (int)(1440 / screenRatio));
@@ -88,31 +120,6 @@ public class Collinsa {
         System.out.println("World: " + physics);
         System.out.println("Renderer: " + renderer);
         System.out.println("    Camera : " + renderer.getCameraController());
-
-        //Création d'élements / entitées à ajouter à la simulation
-        Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
-        Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight()/2, 100,20);
-
-
-        for (int i = 0; i < 300; ++i){
-
-            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 5);
-
-            circle.setColor(new Color((int)(Math.random() * 256),(int)(Math.random() * 256),(int)(Math.random() * 256)));
-            // On teste une accélération vers le bas type gravité = 10g
-            circle.setAcc(new Vec2(0, 10 * 9.81));
-            physics.addEntity(circle);
-        }
-        // On ajoute les entités au moteur physique
-        physics.addEntity(rect);
-        physics.addEntity(rect1);
-
-        // Fait dans main() à présent
-            // On démarre le moteur physique
-                // physics.begin();
-
-            // On démarre le moteur de rendu
-                // renderer.begin();
     }
 
     /**

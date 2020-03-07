@@ -1,10 +1,10 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 public abstract class Polygon extends Entity{
 
-    public Polygon(Vec2 pos) {
+    public Polygon(Vec2f pos) {
 
         super(pos);
     }

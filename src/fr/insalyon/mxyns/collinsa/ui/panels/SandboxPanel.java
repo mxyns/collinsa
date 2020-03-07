@@ -44,8 +44,8 @@ public class SandboxPanel extends JPanel implements FocusListener {
     @Override
     public void paint(Graphics g) {
 
+        //TODO: GraphicsStrategy somehow
         super.paint(g);
-
         renderer.renderSandbox(Collinsa.getPhysics(), (Graphics2D)g);
     }
 

@@ -4,7 +4,7 @@ import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.util.ArrayList;
 
@@ -40,12 +40,12 @@ public class Physics {
     /**
      * Permet de stocker la taille des Chunks sans avoir à accéder au Set des chunks à chaque fois
      */
-    private Vec2 chunkSize = Vec2.zero();
+    private Vec2f chunkSize = Vec2f.zero();
 
     /**
      * Permet de stocker le nombre de Chunks sans avoir à accéder au Set des chunks à chaque fois
      */
-    private Vec2 chunkCount = Vec2.zero();
+    private Vec2f chunkCount = Vec2f.zero();
 
     /**
      * Permet de stocker le nombre total de Chunks sans avoir à accéder au Set des chunks ni à multiplier chunkCount.x par chunkCount.y à chaque fois
@@ -145,8 +145,6 @@ public class Physics {
         for (int a : collider.getChunksContaining(e))
             if (a >= 0 && a < totalChunkCount)
                 chunks.get(a).entities.add(e);
-
-
     }
 
     /**
@@ -215,7 +213,7 @@ public class Physics {
      * Crée un hash unique de Chunk permettant de trouver à quel Chunk appartient le point
      * @return unique hash integer
      */
-    public int getPositionHash(Vec2 vec) {
+    public int getPositionHash(Vec2f vec) {
 
         return (int)(vec.x / chunkSize.x) + (int)chunkCount.x * (int)(vec.y / chunkSize.y);
     }
@@ -314,18 +312,18 @@ public class Physics {
 
     /**
      * Renvoie la taille actuelle des chunks
-     * @return Vec2 contenant la largeur d'un chunk en x et la hauteur en y
+     * @return Vec2f contenant la largeur d'un chunk en x et la hauteur en y
      */
-    public Vec2 getChunkSize() {
+    public Vec2f getChunkSize() {
 
         return chunkSize;
     }
 
     /**
      * Renvoie le nombre actuel de chunks contenus dans un vecteur
-     * @return Vec2 contenant le nb de chunks en x et le nb de chunks en y
+     * @return Vec2f contenant le nb de chunks en x et le nb de chunks en y
      */
-    public Vec2 getChunkCount() {
+    public Vec2f getChunkCount() {
 
         return chunkCount;
     }

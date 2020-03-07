@@ -1,7 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
 import fr.insalyon.mxyns.collinsa.render.Renderer;
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
 
@@ -10,9 +10,9 @@ import java.awt.Graphics2D;
  */
 public class Circle extends Entity {
 
-    public double r;
+    public float r;
 
-    public Circle(Vec2 pos, double r) {
+    public Circle(Vec2f pos, float r) {
 
         super(pos);
         this.r = r;
@@ -20,7 +20,7 @@ public class Circle extends Entity {
         updateAABB();
     }
 
-    public Circle(double x, double y, double r) {
+    public Circle(double x, double y, float r) {
 
         super(x, y);
         this.r = r;
@@ -50,9 +50,7 @@ public class Circle extends Entity {
 
         this.aabb.x = pos.x - r;
         this.aabb.y = pos.y - r;
-        this.aabb.width = 2 * r;
-
-        //noinspection SuspiciousNameCombination, permet d'éviter de faire 2 fois le calcul
-        this.aabb.height = this.aabb.width;
+        this.aabb.w = 2 * r;
+        this.aabb.h = this.aabb.w;
     }
 }

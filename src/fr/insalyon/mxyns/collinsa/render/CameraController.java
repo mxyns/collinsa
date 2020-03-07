@@ -1,6 +1,6 @@
 package fr.insalyon.mxyns.collinsa.render;
 
-import fr.insalyon.mxyns.collinsa.utils.geo.Vec2;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -63,9 +63,9 @@ public class CameraController extends MouseAdapter implements KeyListener {
      * @param keys touches enfoncées
      * @return Vecteur direction unitaire
      */
-    public static Vec2 getDirection(Set<Integer> keys) {
+    public static Vec2f getDirection(Set<Integer> keys) {
 
-        Vec2 direction = Vec2.zero();
+        Vec2f direction = Vec2f.zero();
         for (Integer key : keys) {
             if (key == KeyEvent.VK_LEFT)
                 direction.subX(1);
@@ -146,7 +146,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      * @param dir vecteur directeur unitaire de la direction
      * @param dist distance de déplacement
      */
-    public void moveCameraFocus(Vec2 dir, float dist) {
+    public void moveCameraFocus(Vec2f dir, float dist) {
 
         camera.move(dir.mult(dist));
     }
@@ -187,14 +187,6 @@ public class CameraController extends MouseAdapter implements KeyListener {
         this.camera.setHeight(renderer.destination.getHeight() / (renderer.scale * zoom));
 
         //TODO move camera so that center of focus doesn't move
-        /*
-          void centerScale(float m) {
-
-            move(w*(1-m)/2, h*(1-m)/2);
-            mult(m); -> just multiply width & height by m
-         }
-         processing code
-         */
 
         renderer.factor = zoom * renderer.scale;
     }
@@ -220,9 +212,9 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
     /**
      * Renvoie le vecteur position de la caméra
-     * @return Vec2 camera position
+     * @return Vec2f camera position
      */
-    public Vec2 getCameraPosition() {
+    public Vec2f getCameraPosition() {
 
         return camera.getPos();
     }
@@ -290,9 +282,9 @@ public class CameraController extends MouseAdapter implements KeyListener {
         // UnitsToScroll: units count scrolled on wheel -> negative if mouse wheel up
 
         if (e.getWheelRotation() < 0)
-            zoomIn(-(float)e.getUnitsToScroll() * 0.1f / e.getScrollAmount());
+            zoomIn(-(float)e.getUnitsToScroll() * 0.05f / e.getScrollAmount());
         else
-            zoomOut((float) e.getUnitsToScroll() * 0.1f / e.getScrollAmount());
+            zoomOut((float) e.getUnitsToScroll() * 0.05f / e.getScrollAmount());
 
         if (doesForceRender)
             renderer.forceRender();
