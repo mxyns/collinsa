@@ -149,8 +149,7 @@ public class Collider {
     private void checkForRectRectCollision(Rect entity, Rect target) {
 
         System.out.println("check rect rect");
-
-
+        
         if (Geometry.rectOnRectSAT(entity, target)) {
             System.out.println("check rect rect");
             logCollision(entity, target);

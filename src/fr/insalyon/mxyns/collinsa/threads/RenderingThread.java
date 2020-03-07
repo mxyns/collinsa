@@ -6,7 +6,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 
 /**
- * Thread dédié au rendu (à la mise à jour de l'affichage)
+ * Thread dédié au rendu (à la création d'images à afficher)
  */
 public class RenderingThread extends ClockedThread {
 
@@ -23,7 +23,7 @@ public class RenderingThread extends ClockedThread {
 
     /**
      * Nombre d'images par secondes visé par le Thread, s'il y arrive, il se fixe autour.
-     * Short car jamais plus quand que 32,767 fps
+     * Short car jamais plus grand que 32,767 fps
      */
     private short framerate;
 
@@ -80,14 +80,14 @@ public class RenderingThread extends ClockedThread {
     }
 
     /**
-     * Rendu, mise à jour de l'affichage.
+     * Rendu, création d'une image.
      * On recalcule de delay nécessaire pour essayer d'avoir au minimum le framerate voulu
      * @param elapsedTime temps écoulé depuis le dernier affichage
      */
     @Override
     public void tick(long elapsedTime) {
 
-        renderNoCheck();
+        renderNoClock();
         regulateDelay(baseDelay, elapsedTime);
     }
 
@@ -106,16 +106,16 @@ public class RenderingThread extends ClockedThread {
     private void render() {
 
         if (!isInterrupted())
-            renderer.getDestination().repaint();
+            renderer.render(physics);
     }
 
     /**
-     * Force le rendu, que le Thread soit actif ou non, n'informe pas la Clock du rendu lorsqu'il est extérieur.
+     * Force le rendu, que le Thread soit actif ou non, n'informe pas la Clock du rendu lorsque la méthode est appelée de l'extérieur.
      * La frame n'est donc pas comptée dans les frames rendues lors de la dernière seconde
      */
-    private void renderNoCheck() {
+    private void renderNoClock() {
 
-        renderer.getDestination().repaint();
+        renderer.render(physics);
     }
 
     /**
@@ -123,7 +123,7 @@ public class RenderingThread extends ClockedThread {
      */
     public void forceRender() {
 
-        renderer.getDestination().repaint();
+        renderer.render(physics);
         clock.read();
     }
 

@@ -82,7 +82,6 @@ public class ClockedThread extends Thread {
         // Soit on prend le délai calculé, soit si il est négatif on prend 0
         // Ensuite on choisit la plus petite valeur entre le délai de base et la valeur calculée car on préfère avoir plus de 60 que moins (on ne peut pas prédire combien de temps prendra le rendu de la prochaine frame donc autant prendre large)
         delay = Math.min(Math.max(0, avgDelay + delay - elapsed), avgDelay);
-
     }
 
     /**
@@ -103,6 +102,14 @@ public class ClockedThread extends Thread {
 
         clock.start();
         super.start();
+    }
+
+    /**
+     * Renvoie le délai actuel du Thread
+     */
+    public long getDelay() {
+
+        return delay;
     }
 
     /**

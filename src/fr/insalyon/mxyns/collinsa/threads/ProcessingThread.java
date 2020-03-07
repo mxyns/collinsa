@@ -23,7 +23,7 @@ public class ProcessingThread extends ClockedThread {
 
     /**
      * Nombre de tick par secondes à générer visé par le Thread, s'il y arrive, il se fixe autour.
-     * Short car jamais plus quand que 32,767 fps
+     * Short car jamais plus grand que 32,767 fps
      */
     private short refreshRate;
 
@@ -82,7 +82,7 @@ public class ProcessingThread extends ClockedThread {
 
                 // 1ère étape : mettre à jour les éléments
                 // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
-                if (entity.getPos().y <= physics.getHeight())
+                if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth())
                     entity.updateMillis(deltaTime);
             }
 

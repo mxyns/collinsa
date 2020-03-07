@@ -10,9 +10,8 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 
-import javax.swing.JPanel;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
@@ -22,6 +21,8 @@ import java.awt.geom.Rectangle2D;
  * Renderer s'occupe de créer un visuel correspondant à l'état de la Sandbox visible par sa Camera et à l'afficher sur son panel de destination
  */
 public class Renderer {
+
+    private GraphicsBuffer graphicsBuffer;
 
     /**
      * Thread dédié au rendu des images
@@ -74,12 +75,6 @@ public class Renderer {
      * Couleur des bordures de Chunks (si dessinées)
      */
     private Color AABBBoundsColor = Color.yellow;
-
-    /**
-     * Taille de la destination de rendu du Renderer. On la stocke pour sauvegarder la matrice de passage Monde -> Panel et limiter les calculs (quand les matrices seront implémentées)
-     * Dimension pour généraliser le Renderer à tous les types de surface d'affichage
-     */
-    JPanel destination;
 
     /**
      * Crée un Renderer vide inutilisable. Besoin de définir une destination de rendu.
@@ -135,13 +130,14 @@ public class Renderer {
     }
 
     /**
-     * Crée le rendu de la Sandbox et l'affiche sur le panel
-     * @param g L'objet Graphics2D associé au Panel permettant de dessiner dessus
+     * Crée le rendu de la Sandbox en utilisant un Graphics2D spécifique
+     * @param physics simulation à rendre
+     * @param g L'objet Graphics2D permettant de dessiner sur le composant
      */
     public void renderSandbox(Physics physics, Graphics2D g) {
 
         //TODO: appliquer de l'antialiasing sur Graphics2D
-        
+
         for (Chunk chunk : physics.getChunks())
             if(shouldRenderChunk(chunk))
                 renderChunk(chunk, g);
@@ -152,8 +148,19 @@ public class Renderer {
             g.drawRect((int) (camera.getPos().x * -factor), (int) ((camera.getPos().y) * -factor), (int) (physics.getWidth() * factor), (int) (physics.getHeight() * factor));
         }
 
-        g.drawString("FPSP:"+(Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
-        g.drawString("FPSR:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
+        g.drawString("FPS-Proc.:"+(Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
+        g.drawString("FPS-Rend.:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
+        g.drawString("FPS-Disp.:"+(Collinsa.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed : 0), 5, 41);
+    }
+
+    /**
+     * Crée le rendu de la Sandbox directement dans le buffer
+     */
+    public void render(Physics physics) {
+
+        graphicsBuffer.resetBackBuffer();
+        renderSandbox(physics, graphicsBuffer.getGraphics2D());
+        graphicsBuffer.flip();
     }
 
     /**
@@ -215,29 +222,59 @@ public class Renderer {
         g.setColor(rect.getColor());
         g.rotate(rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
         g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.size.x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.size.y * 0.5f - camera.getPos().y), factor * rect.size.x, factor * rect.size.y));
+
+        g.rotate(-rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
+        for (int i = 0; i < 4; ++i)
+            g.drawString("corner #"+i, factor*(rect.getCorners()[i].x - camera.getPos().x), factor*(rect.getCorners()[i].y - camera.getPos().y));
     }
 
     /**
      * Renvoie le panel de destination du renderer
      * @return panel de rendu
      */
-    public Component getDestination() {
+    public Dimension getDestinationSize() {
 
-        return destination;
+        return graphicsBuffer.getImageSize();
     }
 
     /**
-     * Définit la destination de rendu du Renderer
+     * Définit la taille de la destination de rendu du Renderer
      * @param destination JPanel sur lequel sera rendue l'image.
      */
     public void setDestination(SandboxPanel destination) {
 
-        this.destination = destination;
+        this.graphicsBuffer = new GraphicsBuffer(destination.getSize());
         cameraController.setCameraDisplayBoundsInPixels(destination.getSize());
 
-        // A faire soit même (pour éviter de le faire deux fois, ou pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
+        // A faire soit même (pour éviter de le faire deux fois, et pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
         //destination.setRenderer(this);
     }
+    /**
+     * Définit la taille de la destination de rendu du Renderer
+     * @param size Taille de la destination de rendu
+     */
+    public void setDestination(Dimension size) {
+
+        this.graphicsBuffer = new GraphicsBuffer(size);
+        cameraController.setCameraDisplayBoundsInPixels(size);
+
+        // A faire soit même (pour éviter de le faire deux fois, et pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
+        //destination.setRenderer(this);
+    }
+    /**
+     * Définit la taille de la destination de rendu du Renderer
+     * @param width largeur de la destination de rendu
+     * @param height hauteur de la destination de rendu
+     */
+    public void setDestination(int width, int height) {
+
+        this.graphicsBuffer = new GraphicsBuffer(width, height);
+        cameraController.setCameraDisplayBoundsInPixels(width, height);
+
+        // A faire soit même (pour éviter de le faire deux fois, et pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
+        //destination.setRenderer(this);
+    }
+
 
     /**
      * Renvoie l'échelle de rendu en px par mètres
@@ -379,4 +416,8 @@ public class Renderer {
         this.AABBBoundsColor = AABBBoundsColor;
     }
 
+    public GraphicsBuffer getGraphicsBuffer() {
+
+        return this.graphicsBuffer;
+    }
 }

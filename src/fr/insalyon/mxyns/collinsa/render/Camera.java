@@ -59,6 +59,7 @@ public class Camera {
      * @param chunk chunk à tester
      * @return true si le chunk est visible
      */
+    //TODO: check this, seems bugged when dezooming
     boolean sees(Chunk chunk) {
 
         return pos.x < chunk.bounds.x + chunk.bounds.width &&

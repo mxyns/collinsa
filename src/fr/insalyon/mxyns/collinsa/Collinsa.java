@@ -71,22 +71,19 @@ public class Collinsa {
         Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y - 30, 20);
         circle2.setVel(new Vec2f(0, 10));
 
-        physics.addEntity(circle1);
-        physics.addEntity(circle2);
+        for (int i = 0; i < 1000; ++i){
 
-        for (int i = 0; i < 3; ++i){
-
-            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 20);
+            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 5);
 
             circle.setColor(new Color((int)(Math.random() * 256), (int)(Math.random() * 256), (int)(Math.random() * 256)));
             // On teste une accélération vers le bas type gravité = 10g
-            circle.setAcc(new Vec2f(0, 98.1f));
+            circle.setAcc(new Vec2f((float)(Math.random() * 100) - 50, (float)(Math.random() * 100) - 50));
             physics.addEntity(circle);
         }
         // On ajoute les entités au moteur physique
-        physics.addEntity(rect);
-        physics.addEntity(rect1);
         physics.addEntity(rect2);
+        physics.addEntity(circle1);
+        physics.addEntity(circle2);
 
 
         // Démarre le programme (Simulation & Rendu)
@@ -108,12 +105,12 @@ public class Collinsa {
         renderer = new Renderer();
 
         // On crée une instance de moteur physique vide, elle se remplit de Chunks et crée un thread de calcul à son initialisation
-        physics = new Physics(width, height, 10, 10);
+        physics = new Physics(width, height, 15, 15);
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
         mainFrame = new MainFrame(1440, (int)(1440 / screenRatio));
 
-        // Maintenant que le panel est prêt à être utilisé (défini et affiché à l'écran), on peut mettre en préparer le renderer au rendu. Le panel est par la même occasion notifié du "changement" de renderer.
+        // Maintenant que le panel est prêt à être utilisé (défini et affiché à l'écran), on peut préparer le renderer au rendu. Le panel est par la même occasion notifié du "changement" de renderer.
         setRenderer(renderer);
 
         // Affichage des infos du programme
@@ -129,6 +126,14 @@ public class Collinsa {
 
         physics.begin();
         renderer.begin();
+
+        // On patiente histoire d'être sûr qu'une image ait bien été rendue.
+        try {
+            Thread.sleep(renderer.getRenderingThread().getDelay());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        mainFrame.getSandboxPanel().beginRefresh();
     }
 
     /**
@@ -153,6 +158,7 @@ public class Collinsa {
 
         physics.stop();
         renderer.stop();
+        mainFrame.getSandboxPanel().stopRefresh();
     }
 
     /**
@@ -192,17 +198,14 @@ public class Collinsa {
         // On informe le panel qu'il devra utiliser renderer pour récupérer le rendu dans sa méthode paint
         getMainFrame().getSandboxPanel().setRenderer(renderer);
 
-        // Ce sera toujours le cas ici puisque on utilise cette méthode uniquement une fois juste après l'instanciation du Renderer
+        // Ce sera toujours le cas ici puisqu'on utilise cette méthode uniquement une fois juste après l'instanciation du Renderer
         // Mais dans certains cas il serait possible de changer de Renderer périodiquement par exemple si on veut plusieurs caméra mais avec des échelles de rendu différents (pas faisable seulement en interchangeant les caméras)
         if (renderer.getRenderingThread() == null)
             renderer.setRenderingThread(new RenderingThread(getPhysics(), new MillisClock(), renderer, 60));
 
-        // Si on a changé de Renderer, on coupe son Thread de rendu car il est inutile est consomme des ressources et du temps de calcul
+        // Si on a changé de Renderer, on coupe son Thread de rendu car il est inutile et consomme des ressources et du temps de calcul
         if (renderer != getRenderer())
             getRenderer().stop();
-
-        // On informe le Rendering Thread du Renderer à utiliser pour le rendu
-        renderer.getRenderingThread().setRenderer(renderer);
 
         // On redéfinit le Renderer actuel
         this.renderer = renderer;
@@ -224,6 +227,7 @@ public class Collinsa {
     public void setFramerate(int framerate) {
 
         getRenderer().getRenderingThread().setFramerate(framerate);
+        getMainFrame().getSandboxPanel().getRefreshingThread().setRefreshRate(framerate);
     }
 
     /**

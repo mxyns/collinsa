@@ -30,7 +30,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
     final private Renderer renderer;
 
     /**
-     * Détermine si un mouvement de caméra par l'utilisateur doit forcer le rendu (augmente donc le nombre de FPS-R temporairement).
+     * Détermine si un mouvement de caméra par l'utilisateur doit forcer le rendu (augmente donc le nombre de FPS-Rend. temporairement).
      */
     public boolean doesForceRender;
 
@@ -84,13 +84,31 @@ public class CameraController extends MouseAdapter implements KeyListener {
     }
 
     /**
+     * Renvoie true si le CameraController force le rendu à chaque déplacement / zoom de caméra
+     * @return doesForceRender
+     */
+    public boolean doesForceRender() {
+
+        return doesForceRender;
+    }
+
+    /**
+     * Redéfinit doesForceRender
+     * @param doesForceRender true si le CameraController doit forcer le rendu à chaque mouvement / zoom de caméra.
+     */
+    public void setDoesForceRender(boolean doesForceRender) {
+
+        this.doesForceRender = doesForceRender;
+    }
+
+    /**
      * The ratio is conserved so we only need height, we use height bc the ratio w/h ratio is stored and mult. is faster than div.
      * @param height camera height in meters
      */
     public void setCameraDisplayBounds(int height) {
 
         this.camera.setHeight(height);
-        renderer.factor = (float)renderer.destination.getHeight() / height;
+        renderer.factor = (float)renderer.getDestinationSize().getHeight() / height;
     }
 
     /**
@@ -100,6 +118,16 @@ public class CameraController extends MouseAdapter implements KeyListener {
     public void setCameraDisplayBoundsInPixels(Dimension sizeInPixels) {
 
         Dimension sizeInMeters = new Dimension((int)(sizeInPixels.width * renderer.scale), (int)(sizeInPixels.height * renderer.scale));
+        setCameraDisplayBounds(sizeInMeters);
+    }
+    /**
+     * Définit la taille de la caméra en pixels
+     * @param width largeur de la caméra en pixels
+     * @param height largeur de la caméra en pixels
+     */
+    public void setCameraDisplayBoundsInPixels(int width, int height) {
+
+        Dimension sizeInMeters = new Dimension((int)(width * renderer.scale), (int)(height * renderer.scale));
         setCameraDisplayBounds(sizeInMeters);
     }
 
@@ -170,7 +198,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public float getCameraZoom() {
 
-        return (float)(renderer.destination.getWidth() / (renderer.scale * camera.getWidth()));
+        return (float)(renderer.getDestinationSize().getWidth() / (renderer.scale * camera.getWidth()));
     }
 
     /**
@@ -184,7 +212,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         if (zoom <= 0) return;
 
-        this.camera.setHeight(renderer.destination.getHeight() / (renderer.scale * zoom));
+        this.camera.setHeight(renderer.getDestinationSize().getHeight() / (renderer.scale * zoom));
 
         //TODO move camera so that center of focus doesn't move
 
@@ -288,7 +316,6 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         if (doesForceRender)
             renderer.forceRender();
-
     }
 
     public String toString() {
