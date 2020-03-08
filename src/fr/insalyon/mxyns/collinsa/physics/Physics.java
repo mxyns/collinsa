@@ -148,6 +148,15 @@ public class Physics {
     }
 
     /**
+     * Supprime une entité du monde
+     * @param entity entité à supprimer
+     */
+    public void removeEntity(Entity entity) {
+
+        entities.remove(entity);
+    }
+
+    /**
      * Replace une entité dans les Chunk auxquels il appartient
      * @param entity entité à replacer
      */

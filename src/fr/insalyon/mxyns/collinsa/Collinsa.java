@@ -71,7 +71,12 @@ public class Collinsa {
         Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y - 30, 20);
         circle2.setVel(new Vec2f(0, 10));
 
-        for (int i = 0; i < 1000; ++i){
+        Circle circle3 = new Circle(300, 600, 20);
+        Circle circle4 = new Circle(20, 595, 5);
+        circle4.setVel(new Vec2f(30, 0));
+        circle3.setVel(new Vec2f(-10, 0));
+
+        for (int i = 0; i < 0; ++i){
 
             Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 5);
 
@@ -84,6 +89,8 @@ public class Collinsa {
         physics.addEntity(rect2);
         physics.addEntity(circle1);
         physics.addEntity(circle2);
+        physics.addEntity(circle3);
+        physics.addEntity(circle4);
 
 
         // Démarre le programme (Simulation & Rendu)

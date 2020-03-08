@@ -172,8 +172,15 @@ public class Collider {
     public void logCollision(Entity firstEntity, Entity secondEntity) {
 
         collisions.add(new Collision(firstEntity, secondEntity));
+    }
 
-        firstEntity.setColor(Color.red);
-        secondEntity.setColor(Color.red);
+    public LinkedHashSet<Collision> getRegisteredCollision() {
+
+        return this.collisions;
+    }
+
+    public void clearCollisions() {
+
+        this.collisions.clear();
     }
 }

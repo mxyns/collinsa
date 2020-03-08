@@ -4,7 +4,10 @@ import fr.insalyon.mxyns.collinsa.clocks.Clock;
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+
+import java.awt.Color;
 
 /**
  * Thread dédié à la mise à jour de la simulation.
@@ -92,9 +95,15 @@ public class ProcessingThread extends ClockedThread {
                     collider.checkForCollision(entity, target);
 
         // 3ème étape : résolution des collisions détectées
+        for (Collision coll : collider.getRegisteredCollision()) {
+            coll.getSource().setColor(Color.red);
+            coll.getTarget().setColor(Color.red);
+        }
 
+        System.out.println("detected " + collider.getRegisteredCollision().size() + " collisions");
             // 4ème étape : on remet à jour les Chunks
             physics.clearChunks();
+            collider.clearCollisions();
             physics.spatialHashing();
 
             // 5ème on régule le délai

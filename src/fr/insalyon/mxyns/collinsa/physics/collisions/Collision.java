@@ -12,6 +12,16 @@ public class Collision {
         this.target = target;
     }
 
+    public Entity getSource() {
+
+        return this.source;
+    }
+
+    public Entity getTarget() {
+
+        return this.target;
+    }
+
     @Override
     public boolean equals(Object obj) {
 
