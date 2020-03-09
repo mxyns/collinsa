@@ -102,7 +102,7 @@ public class Physics {
 
         this.width = width;
         this.height = height;
-        this.isRealtime = false;
+        this.isRealtime = isRealtime;
         this.fixedDeltaTime = fixedDeltaTime;
 
         processingThread = new ProcessingThread(this, new MillisClock(), refreshRate);

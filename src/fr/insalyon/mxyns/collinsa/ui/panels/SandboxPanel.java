@@ -58,7 +58,9 @@ public class SandboxPanel extends JPanel implements FocusListener {
         super.paint(g);
 
         // On dessine la dernière image générée accessible dans le buffer
-        g.drawImage(renderer.getGraphicsBuffer().getImage(),0 , 0, null);
+        if (renderer != null)
+            g.drawImage(renderer.getGraphicsBuffer().getImage(),0 , 0, null);
+
         this.getBorder().paintBorder(this, g, 0, 0, getWidth(), getHeight());
     }
 

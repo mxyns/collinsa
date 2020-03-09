@@ -1,5 +1,6 @@
 package fr.insalyon.mxyns.collinsa.render;
 
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Dimension;
@@ -105,22 +106,43 @@ public class CameraController extends MouseAdapter implements KeyListener {
      * The ratio is conserved so we only need height, we use height bc the ratio w/h ratio is stored and mult. is faster than div.
      * @param height camera height in meters
      */
-    public void setCameraDisplayBounds(int height) {
+    public void setCameraDisplayBounds(double height) {
 
         this.camera.setHeight(height);
-        renderer.factor = renderer.getDestinationSize().getHeight() / height;
+        renderer.setRenderFactor(renderer.getDestinationSize().getHeight() / height);
+    }
+
+    /**
+     * The ratio is conserved so we only need height, we use height bc the ratio w/h ratio is stored and mult. is faster than div.
+     * @param width camera width in meters
+     * @param height camera height in meters
+     */
+    public void setCameraDisplayBounds(double width, double height) {
+
+        this.camera.setSize(width, height);
+        setCameraDisplayBounds(height);
+    }
+
+    /**
+     * Définit la taille de la caméra en mètres
+     * @param size dimension de la caméra en mètres représentée par un Vec2d
+     */
+    public void setCameraDisplayBounds(Vec2d size) {
+
+        this.camera.setSize(size);
+        setCameraDisplayBounds(size.y);
     }
 
     /**
      * Définit la taille de la caméra en pixels
      * @param sizeInPixels dimension de la caméra en pixels
-     * FIXME do not use int but float because there is no reason to use ints for meters.
      */
     public void setCameraDisplayBoundsInPixels(Dimension sizeInPixels) {
 
-        Dimension sizeInMeters = new Dimension((int)(sizeInPixels.width / renderer.scale), (int)(sizeInPixels.height / renderer.scale));
+        Vec2d sizeInMeters = new Vec2d(sizeInPixels.width / renderer.getRenderScale(), sizeInPixels.height / renderer.getRenderScale());
         setCameraDisplayBounds(sizeInMeters);
     }
+
     /**
      * Définit la taille de la caméra en pixels
      * @param width largeur de la caméra en pixels
@@ -128,18 +150,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraDisplayBoundsInPixels(int width, int height) {
 
-        Dimension sizeInMeters = new Dimension((int)(width / renderer.scale), (int)(height / renderer.scale));
-        setCameraDisplayBounds(sizeInMeters);
-    }
-
-    /**
-     * Définit la taille de la caméra en mètres
-     * @param size dimension de la caméra en mètres
-     */
-    public void setCameraDisplayBounds(Dimension size) {
-
-        this.camera.setSize(size);
-        setCameraDisplayBounds(size.height);
+        setCameraDisplayBounds(width / renderer.getRenderScale(), height / renderer.getRenderScale());
     }
 
     /**
@@ -209,7 +220,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public float getCameraZoom() {
 
-        return (float)(renderer.getDestinationSize().getWidth() / (renderer.scale * camera.getWidth()));
+        return (float)(renderer.getDestinationSize().getWidth() / (renderer.getRenderScale() * camera.getWidth()));
     }
 
     /**
@@ -223,11 +234,11 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         if (zoom <= 0) return;
 
-        this.camera.setHeight(renderer.getDestinationSize().getHeight() / (renderer.scale * zoom));
+        this.camera.setHeight(renderer.getDestinationSize().getHeight() / (renderer.getRenderScale() * zoom));
 
         //TODO move camera so that center of focus doesn't move
 
-        renderer.factor = zoom * renderer.scale;
+        renderer.setRenderFactor(zoom * renderer.getRenderScale());
     }
 
     /**
@@ -306,7 +317,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        moveCameraFocus((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderer.factor), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderer.factor));
+        moveCameraFocus((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderer.getRenderFactor()), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderer.getRenderFactor()));
 
         dragOrigin = e.getPoint();
 

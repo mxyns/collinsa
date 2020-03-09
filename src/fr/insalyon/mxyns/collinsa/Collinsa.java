@@ -12,8 +12,9 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 import java.awt.Color;
 import java.awt.Toolkit;
 
-//TODO:
+// TODO:
 //  - CollisionListener Interface if user wants to add specific actions on object
+//  - Layering to ignore collisions between some objects / objects types
 
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme
@@ -32,7 +33,7 @@ public class Collinsa {
     private Renderer renderer;
     final private MainFrame mainFrame;
 
-        private final static double screenRatio = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+    private final static double screenRatio = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 
     /**
      * Crée une unique instance du programme.
@@ -40,16 +41,18 @@ public class Collinsa {
     public static void main(String[] args) {
 
         // Crée l'INSTANCE unique du programme (Collinsa)
-        INSTANCE = new Collinsa(1440, (int)(1440 / screenRatio));
+        INSTANCE = new Collinsa(1440, (int) (1440 / screenRatio));
 
         // Renderer settings
-            // On pose une échelle d'affichage de 1 px/m
-            //getRenderer().setRenderScale(1);
+        // On pose une échelle d'affichage de 1 px/m
+        //getRenderer().setRenderScale(1);
 
-            // On pose un zoom caméra inital de x1.0
-            //getRenderer().getCameraController().setCameraZoom(1f);
-            getRenderer().setRenderChunksBounds(true);
-            getRenderer().setRenderEntitiesAABB(true);
+        // On pose un zoom caméra inital de x1.0
+        //getRenderer().getCameraController().setCameraZoom(1f);
+        getRenderer().setRenderChunksBounds(true);
+        getRenderer().setRenderEntitiesAABB(true);
+        getRenderer().setRenderCoordinateSystem(true);
+        getRenderer().setAABBBoundsColor(Color.BLACK);
 
         // Physics settings
         getPhysics().setRealtime(false);
@@ -63,10 +66,10 @@ public class Collinsa {
         Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
 
         // Test rotating rect-rect collisions
-        Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200,100);
-        Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 150, Collinsa.getPhysics().getHeight() / 2 - 130, 200,100);
-        rect1.setAngVel(0.002f);
-        rect2.setAngVel(-0.002f);
+        Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200, 100);
+        Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 150, Collinsa.getPhysics().getHeight() / 2 - 130, 200, 100);
+        rect1.setAngVel(3.5f);
+        rect2.setAngVel(-2f);
         rect2.setRot(0.2f);
         rect2.setVel(new Vec2f(0, 20));
 
@@ -82,18 +85,25 @@ public class Collinsa {
         circle3.setVel(new Vec2f(-10, 0));
 
         // Test rotated rect-circle collision
-        Rect rect3 = new Rect(Collinsa.getPhysics().getWidth() / 2 + 300, Collinsa.getPhysics().getHeight() / 2, 150,50);
-        rect3.setAngVel(0.0009f);
+        Rect rect3 = new Rect(Collinsa.getPhysics().getWidth() / 2 + 300, Collinsa.getPhysics().getHeight() / 2, 150, 50);
+        rect3.setAngVel(0.9f);
         Circle circle5 = new Circle(rect3.getPos().x + 60, rect3.getPos().y - 50, 15);
         //circle5.setVel(rect2.getVel().copy().mult(3));
 
-        for (int i = 0; i < 0; ++i){
+        /*Circle caillou = new Circle(new Vec2f(10, 400), 10);
+            caillou.setVel(new Vec2f(300, -100));
+            caillou.setAcc(new Vec2f(0, 300));
 
-            Circle circle = new Circle((int)(Math.random() * getPhysics().getWidth()), (int)(Math.random() * getPhysics().getHeight()), 5);
+        physics.addEntity(caillou);*/
 
-            circle.setColor(new Color((int)(Math.random() * 256), (int)(Math.random() * 256), (int)(Math.random() * 256)));
+        for (int i = 0; i < 0; ++i) {
+
+            Circle circle = new Circle((int) (Math.random() * getPhysics().getWidth()), (int) (Math.random() * getPhysics().getHeight()), 5);
+
+            circle.setColor(new Color((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256)));
+
             // On teste une accélération vers le bas type gravité = 10g
-            circle.setAcc(new Vec2f((float)(Math.random() * 100) - 50, (float)(Math.random() * 100) - 50));
+            circle.setAcc(new Vec2f((float) (Math.random() * 100) - 50, (float) (Math.random() * 100) - 50));
             physics.addEntity(circle);
         }
 
@@ -107,15 +117,33 @@ public class Collinsa {
         physics.addEntity(circle4);
         physics.addEntity(circle5);
 
+        Rect test = new Rect(0, 0, 300, 300);
+        test.setRot(0.2f);
+
+        physics.addEntity(test);
+
+        // new Interface("qdzdzqd", 1200, 800);
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
+
+        /*while (true) {
+
+            Circle c = new Circle(caillou.getPos(), 5);
+            physics.addEntity(c);
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }*/
     }
 
     /**
      * Instancie Collinsa, un moteur physique et un moteur de rendu. La width et la height sont données en mètres
      *
-     * @param width largeur en mètres de la simulation
+     * @param width  largeur en mètres de la simulation
      * @param height hauteur en mètres de la simulation
      */
     private Collinsa(int width, int height) {
@@ -130,7 +158,7 @@ public class Collinsa {
         physics = new Physics(width, height, 5, 5);
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
-        mainFrame = new MainFrame(1440, (int)(1440 / screenRatio));
+        mainFrame = new MainFrame(1440, (int) (1440 / screenRatio));
 
         // Maintenant que le panel est prêt à être utilisé (défini et affiché à l'écran), on peut préparer le renderer au rendu. Le panel est par la même occasion notifié du "changement" de renderer.
         setRenderer(renderer);
@@ -159,6 +187,7 @@ public class Collinsa {
 
     /**
      * Démarre le programme (Simulation & Rendu) après un certain temps
+     *
      * @param delay temps avant démarrage
      */
     public void startIn(long delay) {
@@ -184,6 +213,7 @@ public class Collinsa {
 
     /**
      * Stoppe le programme (Simulation & Rendu) après un certain temps
+     *
      * @param delay temps avant arrêt
      */
     public void stopIn(long delay) {
@@ -199,6 +229,7 @@ public class Collinsa {
 
     /**
      * Mets en pause le programme (Simulation & Rendu)
+     *
      * @param delay durée de pause
      */
     public void pause(long delay) throws InterruptedException {
@@ -208,11 +239,13 @@ public class Collinsa {
     }
 
     /**
-     * (re-)Défini le Renderer utilisé par le programme, doit être appelée au moins une fois après l'initialisation du Renderer, de Physics et de MainFrame
+     * (re-)Défini le Renderer utilisé par le programme, doit être appelée au moins une fois après l'initialisation du
+     * Renderer, de Physics et de MainFrame
+     *
      * @param renderer nouveau renderer utilisé
      */
     private void setRenderer(Renderer renderer) {
-        
+
         // On informe le renderer qu'il devra créer son rendu à partir des dimensions du sandboxPanel
         renderer.setDestination(mainFrame.getSandboxPanel());
 
@@ -234,6 +267,7 @@ public class Collinsa {
 
     /**
      * Redéfini le framerate voulu
+     *
      * @param framerate framerate voulu
      */
     public void setFramerate(short framerate) {
@@ -243,6 +277,7 @@ public class Collinsa {
 
     /**
      * Redéfini le framerate voulu
+     *
      * @param framerate framerate voulu
      */
     public void setFramerate(int framerate) {
@@ -253,6 +288,7 @@ public class Collinsa {
 
     /**
      * Redéfini le refreshRate (pour le calcul / ProcessingThread) voulu
+     *
      * @param refreshRate refreshRate voulu
      */
     public void setRefreshRate(short refreshRate) {
@@ -262,6 +298,7 @@ public class Collinsa {
 
     /**
      * Redéfini le refreshRate (pour le calcul / ProcessingThread) voulu
+     *
      * @param refreshRate refreshRate voulu
      */
     public void setRefreshRate(int refreshRate) {
@@ -270,9 +307,9 @@ public class Collinsa {
     }
 
 
-
     /**
      * Renvoie la Frame principale appartenant à l'unique instance créée
+     *
      * @return INSTANCE.mainFrame
      */
     public static MainFrame getMainFrame() {
@@ -282,6 +319,7 @@ public class Collinsa {
 
     /**
      * Renvoie le Moteur de rendu (Renderer) appartenant à l'unique instance créée
+     *
      * @return INSTANCE.mainFrame
      */
     public static Renderer getRenderer() {
@@ -291,6 +329,7 @@ public class Collinsa {
 
     /**
      * Renvoie la Simulation (Physics) appartenant à l'unique instance créée
+     *
      * @return INSTANCE.mainFrame
      */
     public static Physics getPhysics() {

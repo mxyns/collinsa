@@ -325,6 +325,18 @@ public class Vec2d {
 
         return dx*dx+dy*dy;
     }
+    /**
+     * Calcule la distance entre deux Vec2d au carré si on les considère comme représentant des points
+     * @param other autre vecteur
+     * @return distance à l'autre vecteur
+     */
+    public double sqrdDist(Vec2d other) {
+
+        double dx = x-other.x;
+        double dy = y-other.y;
+
+        return dx*dx+dy*dy;
+    }
 
     /**
      * Donne le vecteur nul

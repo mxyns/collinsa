@@ -115,20 +115,22 @@ public abstract class Entity {
 
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
+     * @param elapsed temps en ms
      */
     public void updateMillis(long elapsed) {
 
         vel.add(acc, elapsed * 1e-3f);
         pos.add(vel, elapsed * 1e-3f);
 
-        angVel += angAcc * elapsed;
-        rot += angVel * elapsed;
+        angVel += angAcc * elapsed * 1e-3f;
+        rot += angVel * elapsed * 1e-3f;
 
         updateAABB();
     }
 
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
+     * @param elapsed temps en ns
      */
     public void updateNano(long elapsed) {
 

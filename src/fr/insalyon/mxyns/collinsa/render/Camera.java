@@ -5,13 +5,12 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import javax.swing.JPanel;
-import java.awt.Dimension;
 
 /**
  * Une camera permettant le rendu de la scene, elle a toujours le même ratio que le JPanel sur lequel elle est rendue
  * Elle est associée à son JPanel par un Renderer. C'est lui qui la contrôle, les autres classes peuvent seulement lire les paramètres de la Camera.
  */
-public class Camera {
+class Camera {
 
     /**
      * La caméra appartient au monde donc toutes les dimensions doivent être en mètres
@@ -35,7 +34,7 @@ public class Camera {
      * Crée une caméra à partir de dimensions en mètres, doivent avoir le même rapport largeur/hauteur que le Panel sur lequel elle est dessinée.
      * @param size dimensions de la caméra en mètres
      */
-    public Camera(Dimension size) {
+    public Camera(Vec2d size) {
 
         this();
         setSize(size);
@@ -48,8 +47,7 @@ public class Camera {
     public Camera(JPanel panel, float scale) {
 
         this();
-        Dimension dim = new Dimension((int)(panel.getSize().getWidth() / scale) , (int)(panel.getSize().getHeight() / scale));
-        setSize(dim);
+        setSize(new Vec2d(panel.getSize().getWidth() / scale, panel.getSize().getHeight() / scale));
     }
 
 
@@ -164,10 +162,21 @@ public class Camera {
      * Initialise la taille et le ratio w/h caméra (peut être fait après son instanciation)
      * @param size dimensions de la caméra en mètres
      */
-    void setSize(Dimension size) {
+    void setSize(Vec2d size) {
 
-        this.width = size.getWidth();
-        this.height = size.getHeight();
+        this.width = size.x;
+        this.height = size.y;
+        this.ratio = width/height;
+    }
+    /**
+     * Initialise la taille et le ratio w/h caméra (peut être fait après son instanciation)
+     * @param width largeur de la caméra en mètres
+     * @param height hauteur de la caméra en mètres
+     */
+    void setSize(double width, double height) {
+
+        this.width = width;
+        this.height = height;
         this.ratio = width/height;
     }
 

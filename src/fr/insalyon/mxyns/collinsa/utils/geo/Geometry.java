@@ -20,9 +20,9 @@ public class Geometry {
         Vec2f pos = rect.getPos();
 
         return new Vec2f[] {
-                             pos.copy().sub(v1).sub(v2),
-                             pos.copy().sub(v1).add(v2),
                              pos.copy().add(v1).add(v2),
+                             pos.copy().sub(v1).add(v2),
+                             pos.copy().sub(v1).sub(v2),
                              pos.copy().add(v1).sub(v2),
                              };
     }
@@ -117,10 +117,10 @@ public class Geometry {
         else
             closestY = unrotatedCircleY;
 
-        double dist = dist(unrotatedCircleX, unrotatedCircleY, closestX, closestY);
+        double dist = sqrdDist(unrotatedCircleX, unrotatedCircleY, closestX, closestY);
 
 
-        return dist < circle.r;
+        return dist < circle.r*circle.r;
     }
 
     public static boolean circleIntersectRectByClamping(Circle circle, Rect rect) {
@@ -130,9 +130,9 @@ public class Geometry {
 
         Vec2d unrotatedCirclePos = rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot());
         Vec2d clampedPosition = clampPointToRect(unrotatedCirclePos, rect);
-        double dist = unrotatedCirclePos.dist(clampedPosition);
+        double dist = unrotatedCirclePos.sqrdDist(clampedPosition);
 
-        return dist < circle.r;
+        return dist < circle.r*circle.r;
     }
 
     /**
@@ -200,6 +200,12 @@ public class Geometry {
         return new Vec2d(Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x,
                          Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y);
     }
+    @SuppressWarnings("DuplicatedCode")
+    public static Vec2f rotatePointAboutCenter(float x, float y, Vec2f center, float angle) {
+
+        return new Vec2f((float)(Math.cos(angle) * (x - center.x) - Math.sin(angle) * (y - center.y) + center.x),
+                         (float)(Math.sin(angle) * (x - center.x) + Math.cos(angle) * (y - center.y) + center.y));
+    }
 
     public static double clamp(double value, double min, double max) {
 
@@ -223,11 +229,11 @@ public class Geometry {
 
     public static float sqrdDist(float x1, float y1, float x2, float y2) {
 
-        return (float) (Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        return (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1);
     }
     public static double sqrdDist(double x1, double y1, double x2, double y2) {
 
-        return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+        return (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1);
     }
 
     public static float dist(float x1, float y1, float x2, float y2) {

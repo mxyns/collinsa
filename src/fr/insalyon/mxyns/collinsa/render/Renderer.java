@@ -34,7 +34,7 @@ public class Renderer {
      * Rectangle renderBounds est un rectangle délimitant la zone de l'espace à rendre (tout objet en dehors de cette zone est toujours mis à jour mais n'est pas affiché)
      * Il est toujours proportionnel à la taille du Panel et donc de la Frame
      */
-    final private Camera camera;
+    private Camera camera;
 
     /**
      * Le controleur qui permet de controller la Camera (déplacement, zoom/redimensionnement, etc.)
@@ -44,12 +44,12 @@ public class Renderer {
     /**
      * Scale est l'échelle de rendu en pixels / m, toutes les valeurs dans le programme sont en SI donc les distances en m.
      */
-    float scale = 1.0f /* pixels / m */;
+    private float scale = 1.0f /* pixels / m */;
 
     /**
      * Factor est le multiplicateur de rendu, prenant en compte l'échelle et le zoom de la camera
      **/
-    double factor = 1.0f;
+    private double factor = 1.0f;
 
     /**
      * Détermine si le Renderer dessine les contours des Chunks
@@ -65,6 +65,11 @@ public class Renderer {
      * Détermine si le Renderer dessine les bords du monde
      */
     private boolean renderWorldBounds = true;
+
+    /**
+     * Détermine si le Renderer dessine le repère utilisé.
+     */
+    private boolean renderCoordinateSystem = false;
 
     /**
      * Couleur des bordures de Chunks (si dessinées)
@@ -138,16 +143,31 @@ public class Renderer {
 
         //TODO: appliquer de l'antialiasing sur Graphics2D
 
+        // On fait le rendu de tous les Chunk visibles
         for (Chunk chunk : physics.getChunks())
             if(shouldRenderChunk(chunk))
                 renderChunk(chunk, g);
 
         g.setColor(Color.black);
 
+        // On affiche les limites du monde si voulu (renderWorldBounds = true)
         if (renderWorldBounds) {
-            g.drawRect((int) (camera.getPos().x * -factor), (int) ((camera.getPos().y) * -factor), (int) (physics.getWidth() * factor), (int) (physics.getHeight() * factor));
+            g.drawRect(0, 0, (int) (factor * (physics.getWidth() - camera.getPos().x)), (int) (factor * (physics.getHeight() - camera.getPos().x)));
         }
 
+        // On affiche le système de coordonnées du monde si voulu (renderCoordinateSystem = true)
+        if (renderCoordinateSystem) {
+
+            int axesSize = (int) (0.1 * Math.min(physics.getWidth(), physics.getHeight()));
+
+            g.setColor(Color.red);
+            g.drawLine(0, 0, axesSize, 0);
+            g.setColor(Color.green);
+            g.drawLine(0, 0, 0, axesSize);
+        }
+
+        // On affiche les différents compteurs de FPS
+        g.setColor(Color.black);
         g.drawString("FPS-Proc.:"+(Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
         g.drawString("FPS-Rend.:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
         g.drawString("FPS-Disp.:"+(Collinsa.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed != 0 ? 1000 / Collinsa.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed : 0), 5, 41);
@@ -200,7 +220,6 @@ public class Renderer {
             g.drawString(String.valueOf(Collinsa.getPhysics().getPositionHash(chunk.bounds.x, chunk.bounds.y)), (int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y + Collinsa.getPhysics().getChunkSize().y) * factor));
         }
     }
-
     /**
      * Rendu d'un cercle via le Graphics2D.
      * @param circle cercle à rendre
@@ -243,11 +262,7 @@ public class Renderer {
      */
     public void setDestination(SandboxPanel destination) {
 
-        this.graphicsBuffer = new GraphicsBuffer(destination.getSize());
-        cameraController.setCameraDisplayBoundsInPixels(destination.getSize());
-
-        // A faire soit même (pour éviter de le faire deux fois, et pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
-        //destination.setRenderer(this);
+        setDestination(destination.getSize().width, destination.getSize().height);
     }
     /**
      * Définit la taille de la destination de rendu du Renderer
@@ -255,11 +270,7 @@ public class Renderer {
      */
     public void setDestination(Dimension size) {
 
-        this.graphicsBuffer = new GraphicsBuffer(size);
-        cameraController.setCameraDisplayBoundsInPixels(size);
-
-        // A faire soit même (pour éviter de le faire deux fois, et pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
-        //destination.setRenderer(this);
+        setDestination(size.width, size.height);
     }
     /**
      * Définit la taille de la destination de rendu du Renderer
@@ -294,8 +305,18 @@ public class Renderer {
      */
     public void setRenderScale(float scale) {
 
-        this.factor = this.factor * scale / this.scale;
+        setRenderFactor(this.factor * scale / this.scale);
         this.scale = scale;
+    }
+
+    public double getRenderFactor() {
+
+        return this.factor;
+    }
+
+    void setRenderFactor(double newFactor) {
+
+        this.factor = newFactor;
     }
 
     /**
@@ -377,6 +398,17 @@ public class Renderer {
     public void setRenderWorldBounds(boolean renderWorldBounds) {
 
         this.renderWorldBounds = renderWorldBounds;
+    }
+
+
+    public boolean doesRenderCoordinateSystem() {
+
+        return renderCoordinateSystem;
+    }
+
+    public void setRenderCoordinateSystem(boolean renderCoordinateSystem) {
+
+        this.renderCoordinateSystem = renderCoordinateSystem;
     }
 
     /**

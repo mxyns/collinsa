@@ -166,6 +166,7 @@ public class Collider {
 
     public void logCollision(Entity firstEntity, Entity secondEntity) {
 
+        // TODO check if contained before instantiating a new Collision objects
         collisions.add(new Collision(firstEntity, secondEntity));
     }
 
