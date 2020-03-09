@@ -26,7 +26,7 @@ public class Collinsa {
     private static Collinsa INSTANCE;
 
     /**
-     * Instances du moteur physique, de  rendu, et de la Frame
+     * Instances du moteur physique, de rendu, et de la Frame
      */
     private Physics physics;
     private Renderer renderer;
@@ -44,10 +44,10 @@ public class Collinsa {
 
         // Renderer settings
             // On pose une échelle d'affichage de 1 px/m
-            getRenderer().setRenderScale(5);
+            //getRenderer().setRenderScale(1);
 
             // On pose un zoom caméra inital de x1.0
-            getRenderer().getCameraController().setCameraZoom(0.18f);
+            //getRenderer().getCameraController().setCameraZoom(1f);
             getRenderer().setRenderChunksBounds(true);
             getRenderer().setRenderEntitiesAABB(true);
 
@@ -61,20 +61,31 @@ public class Collinsa {
         //Création d'élements / entitées à ajouter à la simulation
         Physics physics = getPhysics();
         Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
+
+        // Test rotating rect-rect collisions
         Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200,100);
         Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 150, Collinsa.getPhysics().getHeight() / 2 - 130, 200,100);
         rect1.setAngVel(0.002f);
+        rect2.setAngVel(-0.002f);
         rect2.setRot(0.2f);
         rect2.setVel(new Vec2f(0, 20));
 
+        // Test not aligned circle-circle collision
         Circle circle1 = new Circle(rect1.getPos().x - 500, rect1.getPos().y, 20);
         Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y - 30, 20);
         circle2.setVel(new Vec2f(0, 10));
 
+        // Test moving circle-circle
         Circle circle3 = new Circle(300, 600, 20);
         Circle circle4 = new Circle(20, 595, 5);
         circle4.setVel(new Vec2f(30, 0));
         circle3.setVel(new Vec2f(-10, 0));
+
+        // Test rotated rect-circle collision
+        Rect rect3 = new Rect(Collinsa.getPhysics().getWidth() / 2 + 300, Collinsa.getPhysics().getHeight() / 2, 150,50);
+        rect3.setAngVel(0.0009f);
+        Circle circle5 = new Circle(rect3.getPos().x + 60, rect3.getPos().y - 50, 15);
+        //circle5.setVel(rect2.getVel().copy().mult(3));
 
         for (int i = 0; i < 0; ++i){
 
@@ -85,12 +96,16 @@ public class Collinsa {
             circle.setAcc(new Vec2f((float)(Math.random() * 100) - 50, (float)(Math.random() * 100) - 50));
             physics.addEntity(circle);
         }
+
         // On ajoute les entités au moteur physique
+        physics.addEntity(rect1);
         physics.addEntity(rect2);
+        physics.addEntity(rect3);
         physics.addEntity(circle1);
         physics.addEntity(circle2);
         physics.addEntity(circle3);
         physics.addEntity(circle4);
+        physics.addEntity(circle5);
 
 
         // Démarre le programme (Simulation & Rendu)
@@ -112,7 +127,7 @@ public class Collinsa {
         renderer = new Renderer();
 
         // On crée une instance de moteur physique vide, elle se remplit de Chunks et crée un thread de calcul à son initialisation
-        physics = new Physics(width, height, 15, 15);
+        physics = new Physics(width, height, 5, 5);
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
         mainFrame = new MainFrame(1440, (int)(1440 / screenRatio));
@@ -123,7 +138,6 @@ public class Collinsa {
         // Affichage des infos du programme
         System.out.println("World: " + physics);
         System.out.println("Renderer: " + renderer);
-        System.out.println("    Camera : " + renderer.getCameraController());
     }
 
     /**

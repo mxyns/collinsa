@@ -44,12 +44,12 @@ public class Renderer {
     /**
      * Scale est l'échelle de rendu en pixels / m, toutes les valeurs dans le programme sont en SI donc les distances en m.
      */
-    float scale = 2f /* pixels / m */;
+    float scale = 1.0f /* pixels / m */;
 
     /**
      * Factor est le multiplicateur de rendu, prenant en compte l'échelle et le zoom de la camera
      **/
-    float factor = 1.0f;
+    double factor = 1.0f;
 
     /**
      * Détermine si le Renderer dessine les contours des Chunks
@@ -225,7 +225,7 @@ public class Renderer {
 
         g.rotate(-rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
         for (int i = 0; i < 4; ++i)
-            g.drawString("corner #"+i, factor*(rect.getCorners()[i].x - camera.getPos().x), factor*(rect.getCorners()[i].y - camera.getPos().y));
+            g.drawString("corner #"+i, (float)factor*(rect.getCorners()[i].x - camera.getPos().x), (float)factor*(rect.getCorners()[i].y - camera.getPos().y));
     }
 
     /**
@@ -419,5 +419,12 @@ public class Renderer {
     public GraphicsBuffer getGraphicsBuffer() {
 
         return this.graphicsBuffer;
+    }
+
+    public String toString() {
+
+        return "Renderer[renderSize=(" + this.getDestinationSize().getWidth() + ", " + this.getDestinationSize().getHeight() + "), renderFactor=" + this.factor + ",\n   CameraController=" + getCameraController()
+
+            + "]";
     }
 }

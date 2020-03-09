@@ -69,6 +69,19 @@ public class Vec2d {
 
         return this;
     }
+    /**
+     * Ajout de valeurs au coordonnées x et y
+     * @param x valeur à ajouter à la coordonnée x
+     * @param y valeur à ajouter à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2d add(double x, double y) {
+
+        this.x += x;
+        this.y += y;
+
+        return this;
+    }
 
     /**
      * Ajout de valeur à la coordonnée x
@@ -120,6 +133,19 @@ public class Vec2d {
 
         return this;
     }
+    /**
+     * Retrait de valeurs au coordonnées x et y
+     * @param x valeur à retirer à la coordonnée x
+     * @param y valeur à retirer à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2d sub(double x, double y) {
+
+        this.x -= x;
+        this.y -= y;
+
+        return this;
+    }
 
     /**
      * Retrait de valeur à la coordonnée x
@@ -158,6 +184,20 @@ public class Vec2d {
 
         return this;
     }
+    /**
+     * Multiplication du vecteur courant par un facteur différent sur x et y
+     * @param multX facteur multiplicateur de x
+     * @param multY facteur multiplicateur de y
+     * @return vecteur courant modifié
+     */
+    public Vec2d mult(double multX, double multY) {
+
+        this.x *= multX;
+        this.y *= multY;
+
+        return this;
+    }
+
 
     /**
      * Produit scalaire d'un Vec2d avec le vecteur courant
@@ -254,6 +294,18 @@ public class Vec2d {
      * @return distance à l'autre vecteur
      */
     public double dist(Vec2d other) {
+
+        double dx = x-other.x;
+        double dy = y-other.y;
+
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+    /**
+     * Calcule la distance entre deux Vec2d si on les considère comme représentant des points
+     * @param other autre vecteur
+     * @return distance à l'autre vecteur
+     */
+    public double dist(Vec2f other) {
 
         double dx = x-other.x;
         double dy = y-other.y;

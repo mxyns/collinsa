@@ -148,18 +148,13 @@ public class Collider {
 
     private void checkForRectRectCollision(Rect entity, Rect target) {
 
-        System.out.println("check rect rect");
-        
-        if (Geometry.rectOnRectSAT(entity, target)) {
-            System.out.println("check rect rect");
+        if (Geometry.rectOnRectSAT(entity, target))
             logCollision(entity, target);
-        }
-
     }
 
     public void checkForCircleRectCollision(Circle circle, Rect rect) {
 
-        if(true)
+        if(Geometry.circleIntersectRectByClamping(circle, rect))
             logCollision(circle, rect);
     }
 

@@ -55,6 +55,33 @@ public class Vec2f {
 
         return this;
     }
+    /**
+     * Ajout de valeurs au coordonnées x et y
+     * @param x valeur à ajouter à la coordonnée x
+     * @param y valeur à ajouter à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2f add(float x, float y) {
+
+        this.x += x;
+        this.y += y;
+
+        return this;
+    }
+    /**
+     * Ajout de valeurs au coordonnées x et y
+     * @param x valeur à ajouter à la coordonnée x
+     * @param y valeur à ajouter à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2f add(double x, double y) {
+
+        this.x += x;
+        this.y += y;
+
+        return this;
+    }
+
 
     /**
      * Ajout de valeur à la coordonnée x
@@ -106,6 +133,19 @@ public class Vec2f {
 
         return this;
     }
+    /**
+     * Retrait de valeurs au coordonnées x et y
+     * @param x valeur à retirer à la coordonnée x
+     * @param y valeur à retirer à la coordonnée y
+     * @return vecteur courant modifié
+     */
+    public Vec2f sub(float x, float y) {
+
+        this.x -= x;
+        this.y -= y;
+
+        return this;
+    }
 
     /**
      * Retrait de valeur à la coordonnée x
@@ -144,6 +184,33 @@ public class Vec2f {
 
         return this;
     }
+    /**
+     * Multiplication du vecteur courant par un facteur différent sur x et y
+     * @param multX facteur multiplicateur de x
+     * @param multY facteur multiplicateur de y
+     * @return vecteur courant modifié
+     */
+    public Vec2f mult(float multX, float multY) {
+
+        this.x *= multX;
+        this.y *= multY;
+
+        return this;
+    }
+    /**
+     * Multiplication du vecteur courant par un facteur différent sur x et y
+     * @param multX facteur multiplicateur de x
+     * @param multY facteur multiplicateur de y
+     * @return vecteur courant modifié
+     */
+    public Vec2f mult(double multX, double multY) {
+
+        this.x *= multX;
+        this.y *= multY;
+
+        return this;
+    }
+
 
     /**
      * Produit scalaire d'un Vec2d avec le vecteur courant

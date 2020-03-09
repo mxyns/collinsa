@@ -114,6 +114,15 @@ public class Camera {
 
         this.pos.add(x, y);
     }
+    /**
+     * Déplace la camera dans une certaine direction
+     * @param x déplacement selon x
+     * @param y déplacement selon y
+     */
+    void move(float x , float y) {
+
+        this.pos.add(x, y);
+    }
 
     /**
      * Définit la position x du coin supérieur-gauche de la Camera dans le monde.

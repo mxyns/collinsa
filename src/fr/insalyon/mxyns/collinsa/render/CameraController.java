@@ -108,16 +108,17 @@ public class CameraController extends MouseAdapter implements KeyListener {
     public void setCameraDisplayBounds(int height) {
 
         this.camera.setHeight(height);
-        renderer.factor = (float)renderer.getDestinationSize().getHeight() / height;
+        renderer.factor = renderer.getDestinationSize().getHeight() / height;
     }
 
     /**
      * Définit la taille de la caméra en pixels
      * @param sizeInPixels dimension de la caméra en pixels
+     * FIXME do not use int but float because there is no reason to use ints for meters.
      */
     public void setCameraDisplayBoundsInPixels(Dimension sizeInPixels) {
 
-        Dimension sizeInMeters = new Dimension((int)(sizeInPixels.width * renderer.scale), (int)(sizeInPixels.height * renderer.scale));
+        Dimension sizeInMeters = new Dimension((int)(sizeInPixels.width / renderer.scale), (int)(sizeInPixels.height / renderer.scale));
         setCameraDisplayBounds(sizeInMeters);
     }
     /**
@@ -127,7 +128,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraDisplayBoundsInPixels(int width, int height) {
 
-        Dimension sizeInMeters = new Dimension((int)(width * renderer.scale), (int)(height * renderer.scale));
+        Dimension sizeInMeters = new Dimension((int)(width / renderer.scale), (int)(height / renderer.scale));
         setCameraDisplayBounds(sizeInMeters);
     }
 
@@ -138,7 +139,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
     public void setCameraDisplayBounds(Dimension size) {
 
         this.camera.setSize(size);
-        setCameraDisplayBounds((int)size.getWidth());
+        setCameraDisplayBounds(size.height);
     }
 
     /**
@@ -188,6 +189,16 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         camera.move(x, y);
     }
+    /**
+     * Translate la Camera d'un vecteur (x, y)
+     * @param x distance de déplacement sur x
+     * @param y distance de déplacement sur y
+     */
+    public void moveCameraFocus(float x, float y) {
+
+        camera.move(x, y);
+    }
+
 
     /**
      * Renvoie le zoom de la caméra
@@ -295,7 +306,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        moveCameraFocus((int)((dragOrigin.getX() - e.getPoint().getX())  / renderer.factor), (int)((dragOrigin.getY() - e.getPoint().getY()) / renderer.factor));
+        moveCameraFocus((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderer.factor), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderer.factor));
 
         dragOrigin = e.getPoint();
 

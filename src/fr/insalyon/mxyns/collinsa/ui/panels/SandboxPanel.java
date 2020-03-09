@@ -42,7 +42,6 @@ public class SandboxPanel extends JPanel implements FocusListener {
         // Bordure quand il n'a pas le focus
         setBorder(BorderFactory.createLineBorder(Color.black, 2));
 
-
         addFocusListener(this);
     }
     public SandboxPanel(Renderer renderer) {
@@ -60,6 +59,7 @@ public class SandboxPanel extends JPanel implements FocusListener {
 
         // On dessine la dernière image générée accessible dans le buffer
         g.drawImage(renderer.getGraphicsBuffer().getImage(),0 , 0, null);
+        this.getBorder().paintBorder(this, g, 0, 0, getWidth(), getHeight());
     }
 
     /**

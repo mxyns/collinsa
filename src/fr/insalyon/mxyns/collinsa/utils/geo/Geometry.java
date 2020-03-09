@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.utils.geo;
 
 
+import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 
 /**
@@ -52,6 +53,94 @@ public class Geometry {
         return maxVec;
     }
 
+    // FIXME: not working
+    public static boolean circleIntersectRect(Circle circle, Rect rect) {
+
+        //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
+        //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
+
+        double cos = Math.cos(rect.getRot());
+        double sin = Math.sin(-rect.getRot());
+
+        Vec2d rPos = rect.getPos().toDouble();
+        Vec2d unrotatedCirclePos = circle.getPos().toDouble();
+            unrotatedCirclePos.sub(rPos.x, rPos.y)
+                              .mult(cos, sin)
+                              .add(-sin * (circle.getPos().y - rPos.x), cos * (circle.getPos().y - rPos.x))
+                              .add(rPos.x, rPos.y);
+
+        // temporary variables to set edges for testing
+
+        double rx = rPos.x - rect.getSize().x * 0.5;
+        double ry = rPos.y - rect.getSize().y * 0.5;
+        double testX = unrotatedCirclePos.x;
+        double testY = unrotatedCirclePos.y;
+
+        // which edge is closest?
+        if (unrotatedCirclePos.x < rx)         testX = rx;      // test left edge
+        else if (unrotatedCirclePos.x > rx+rect.getSize().x) testX = rx+rect.getSize().x;   // right edge
+        if (unrotatedCirclePos.y < ry)         testY = ry;      // top edge
+        else if (unrotatedCirclePos.y > ry+rect.getSize().y) testY = ry+rect.getSize().y;   // bottom edge
+
+
+        double dist = dist(unrotatedCirclePos.x, unrotatedCirclePos.y, testX, testY);
+
+        // if the distance is less than the radius, collision!
+        return (sqrdDist(unrotatedCirclePos.x, unrotatedCirclePos.y, testX, testY) <= circle.r*circle.r);
+    }
+    // FIXME: not working
+    public static boolean circleIntersectRect_2(Circle circle, Rect rect) {
+
+        //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
+        //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
+
+        Vec2d unrotatedCirclePos = rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot());
+        double unrotatedCircleX = unrotatedCirclePos.x;
+        double unrotatedCircleY  = unrotatedCirclePos.y;
+
+        // Closest point in the rectangle to the center of circle rotated backwards(unrotated)
+        double closestX, closestY;
+
+        // Find the unrotated closest x point from center of unrotated circle
+        if (unrotatedCircleX  < rect.getPos().x)
+            closestX = rect.getPos().x;
+        else if (unrotatedCircleX  > rect.getPos().x + rect.getSize().x)
+            closestX = rect.getPos().x + rect.getSize().x;
+        else
+            closestX = unrotatedCircleX ;
+
+        // Find the unrotated closest y point from center of unrotated circle
+        if (unrotatedCircleY < rect.getPos().y)
+            closestY = rect.getPos().y;
+        else if (unrotatedCircleY > rect.getPos().y + rect.getSize().y)
+            closestY = rect.getPos().y + rect.getSize().y;
+        else
+            closestY = unrotatedCircleY;
+
+        double dist = dist(unrotatedCircleX, unrotatedCircleY, closestX, closestY);
+
+
+        return dist < circle.r;
+    }
+
+    public static boolean circleIntersectRectByClamping(Circle circle, Rect rect) {
+
+        //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
+        //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
+
+        Vec2d unrotatedCirclePos = rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot());
+        Vec2d clampedPosition = clampPointToRect(unrotatedCirclePos, rect);
+        double dist = unrotatedCirclePos.dist(clampedPosition);
+
+        return dist < circle.r;
+    }
+
+    /**
+     * Separating Axis Theorem spécifique à des rectangles
+     * @param rectA 1er rectangle
+     * @param rectB 2eme rectangle
+     * @return true si les rectangles sont en collision
+     */
     public static boolean rectOnRectSAT(Rect rectA, Rect rectB) {
 
         Vec2f[] cornersA = rectA.getCorners();
@@ -98,13 +187,55 @@ public class Geometry {
         return new Vec2f(min, max);
     }
 
+
+    @SuppressWarnings("DuplicatedCode")
+    public static Vec2d rotatePointAboutCenter(Vec2d point, Vec2d center, float angle) {
+
+        return new Vec2d(Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x,
+                         Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y);
+    }
+    @SuppressWarnings("DuplicatedCode")
+    public static Vec2d rotatePointAboutCenter(Vec2f point, Vec2f center, float angle) {
+
+        return new Vec2d(Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x,
+                         Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y);
+    }
+
+    public static double clamp(double value, double min, double max) {
+
+        return Math.max(min, Math.min(max, value));
+    }
+    public static float clamp(float value, float min, float max) {
+
+        return Math.max(min, Math.min(max, value));
+    }
+
+    public static Vec2d clampPointToRect(Vec2d point, Rect rect) {
+
+        return new Vec2d(clamp(point.x, rect.getPos().x - rect.getSize().x * 0.5, rect.getPos().x + rect.getSize().x * 0.5),
+                         clamp(point.y, rect.getPos().y - rect.getSize().y * 0.5, rect.getPos().y + rect.getSize().y * 0.5));
+    }
+    public static Vec2d clampPointToRect(double x, double y, Rect rect) {
+
+        return new Vec2d(clamp(x, rect.getPos().x - rect.getSize().x * 0.5, rect.getPos().x + rect.getSize().x * 0.5),
+                         clamp(y, rect.getPos().y - rect.getSize().y * 0.5, rect.getPos().y + rect.getSize().y * 0.5));
+    }
+
     public static float sqrdDist(float x1, float y1, float x2, float y2) {
 
-        return (float) (Math.pow(x2 - x1, 2) + Math.pow(x2 - x1, 2));
+        return (float) (Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
+    public static double sqrdDist(double x1, double y1, double x2, double y2) {
+
+        return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+    }
+
     public static float dist(float x1, float y1, float x2, float y2) {
 
         return (float) Math.sqrt(sqrdDist(x1, y1, x2, y2));
     }
+    public static float dist(double x1, double y1, double x2, double y2) {
 
+        return (float) Math.sqrt(sqrdDist(x1, y1, x2, y2));
+    }
 }
