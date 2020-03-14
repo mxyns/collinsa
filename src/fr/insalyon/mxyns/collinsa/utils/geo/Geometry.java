@@ -9,6 +9,11 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
  */
 public class Geometry {
 
+    /**
+     * Détermine la position des coins d'un rectangle orienté
+     * @param rect rectangle dont il faut calculer la position des coins
+     * @return Vec2f[] tableau de vecteurs position des coins
+     */
     public static Vec2f[] getRectangleCorners(Rect rect) {
 
         Vec2f v1 = new Vec2f((float)Math.cos(rect.getRot()), (float)Math.sin(rect.getRot()));
@@ -20,13 +25,18 @@ public class Geometry {
         Vec2f pos = rect.getPos();
 
         return new Vec2f[] {
-                             pos.copy().add(v1).add(v2),
-                             pos.copy().sub(v1).add(v2),
-                             pos.copy().sub(v1).sub(v2),
-                             pos.copy().add(v1).sub(v2),
+            pos.copy().sub(v1).sub(v2),
+            pos.copy().sub(v1).add(v2),
+            pos.copy().add(v1).add(v2),
+            pos.copy().add(v1).sub(v2),
                              };
     }
 
+    /**
+     * Renvoie un vecteur contenant la valeur minimale de x et la valeur minimale de y des vecteurs 'vecs'
+     * @param vecs vecteurs à analyser
+     * @return Vec2f( min(x_i), min(y_i) )
+     */
     public static Vec2f getMinPos(Vec2f... vecs) {
 
         Vec2f minVec = vecs[0].copy();
@@ -40,6 +50,11 @@ public class Geometry {
         return minVec;
     }
 
+    /**
+     * Renvoie un vecteur contenant la valeur maximale de x et la valeur maximale de y des vecteurs 'vecs'
+     * @param vecs vecteurs à analyser
+     * @return Vec2f( max(x_i), max(y_i) )
+     */
     public static Vec2f getMaxPos(Vec2f... vecs) {
 
         Vec2f maxVec = vecs[0].copy();
@@ -53,86 +68,24 @@ public class Geometry {
         return maxVec;
     }
 
-    // FIXME: not working
-    public static boolean circleIntersectRect(Circle circle, Rect rect) {
-
-        //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
-        //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
-
-        double cos = Math.cos(rect.getRot());
-        double sin = Math.sin(-rect.getRot());
-
-        Vec2d rPos = rect.getPos().toDouble();
-        Vec2d unrotatedCirclePos = circle.getPos().toDouble();
-            unrotatedCirclePos.sub(rPos.x, rPos.y)
-                              .mult(cos, sin)
-                              .add(-sin * (circle.getPos().y - rPos.x), cos * (circle.getPos().y - rPos.x))
-                              .add(rPos.x, rPos.y);
-
-        // temporary variables to set edges for testing
-
-        double rx = rPos.x - rect.getSize().x * 0.5;
-        double ry = rPos.y - rect.getSize().y * 0.5;
-        double testX = unrotatedCirclePos.x;
-        double testY = unrotatedCirclePos.y;
-
-        // which edge is closest?
-        if (unrotatedCirclePos.x < rx)         testX = rx;      // test left edge
-        else if (unrotatedCirclePos.x > rx+rect.getSize().x) testX = rx+rect.getSize().x;   // right edge
-        if (unrotatedCirclePos.y < ry)         testY = ry;      // top edge
-        else if (unrotatedCirclePos.y > ry+rect.getSize().y) testY = ry+rect.getSize().y;   // bottom edge
-
-
-        double dist = dist(unrotatedCirclePos.x, unrotatedCirclePos.y, testX, testY);
-
-        // if the distance is less than the radius, collision!
-        return (sqrdDist(unrotatedCirclePos.x, unrotatedCirclePos.y, testX, testY) <= circle.r*circle.r);
-    }
-    // FIXME: not working
-    public static boolean circleIntersectRect_2(Circle circle, Rect rect) {
-
-        //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
-        //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
-
-        Vec2d unrotatedCirclePos = rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot());
-        double unrotatedCircleX = unrotatedCirclePos.x;
-        double unrotatedCircleY  = unrotatedCirclePos.y;
-
-        // Closest point in the rectangle to the center of circle rotated backwards(unrotated)
-        double closestX, closestY;
-
-        // Find the unrotated closest x point from center of unrotated circle
-        if (unrotatedCircleX  < rect.getPos().x)
-            closestX = rect.getPos().x;
-        else if (unrotatedCircleX  > rect.getPos().x + rect.getSize().x)
-            closestX = rect.getPos().x + rect.getSize().x;
-        else
-            closestX = unrotatedCircleX ;
-
-        // Find the unrotated closest y point from center of unrotated circle
-        if (unrotatedCircleY < rect.getPos().y)
-            closestY = rect.getPos().y;
-        else if (unrotatedCircleY > rect.getPos().y + rect.getSize().y)
-            closestY = rect.getPos().y + rect.getSize().y;
-        else
-            closestY = unrotatedCircleY;
-
-        double dist = sqrdDist(unrotatedCircleX, unrotatedCircleY, closestX, closestY);
-
-
-        return dist < circle.r*circle.r;
-    }
-
+    /**
+     * Détermine si un cercle et un rectangle orienté sont en collision par 'clamping'
+     *
+     * @param circle cercle avec lequel il faut vérifier l'intersection
+     * @param rect rectangle avec lequel il faut vérifier l'intersection
+     * @return true si le cercle et le rectangle sont en intersection
+     */
     public static boolean circleIntersectRectByClamping(Circle circle, Rect rect) {
 
-        //p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
-        //p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
-
+        // On tourne le centre du cercle de -angleDuRectangle.
+        // Après ça c'est comme si essayait de déterminer une intersection en un cercle et un rectangle avec ses côtés alignés aux axes du repère
         Vec2d unrotatedCirclePos = rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot());
-        Vec2d clampedPosition = clampPointToRect(unrotatedCirclePos, rect);
-        double dist = unrotatedCirclePos.sqrdDist(clampedPosition);
 
-        return dist < circle.r*circle.r;
+        // Position du centre du cercle après 'clamping' (on trouve la position sur les arêtes du rectangle la plus proche du centre du cercle, un peu comme une projection sur les arêtes)
+        Vec2d clampedPosition = clampPointToRect(unrotatedCirclePos, rect);
+
+        // Si ce vecteur est plus petit que le rayon du cercle, alors le cercle et le rectangle sont en intersection
+        return unrotatedCirclePos.sqrdDist(clampedPosition) < circle.r*circle.r;
     }
 
     /**
@@ -157,21 +110,39 @@ public class Geometry {
             && projectionOverlap(axis4, cornersA, cornersB);
     }
 
+    /**
+     * Détermine si deux ensembles de points projetés sur un axe sont en intersection
+     * Utilisé pour le rectOnRectSAT
+     *
+     * @param axis axe de projection
+     * @param cornersA ensemble de points A
+     * @param cornersB ensemble de points B
+     * @return true si les intervalles des projections des ensembles de points sur l'axe sont en intersection
+     */
     private static boolean projectionOverlap(Vec2f axis, Vec2f[] cornersA, Vec2f[] cornersB) {
 
-        // (min, max)
+        // Intervalle de l'ensemble A après projection (min, max)
         Vec2f extremasA = projectPoints(axis, cornersA);
+
+        // Intervalle de l'ensemble B après projection (min, max)
         Vec2f extremasB = projectPoints(axis, cornersB);
 
+        // Condition d'intersection de deux intervalles
         return !(extremasA.y < extremasB.x || extremasB.y < extremasA.x);
     }
 
-    private static Vec2f projectPoints(Vec2f axis, Vec2f[] cornersA) {
+    /**
+     * Projette des points sur un axe et conserve les valeurs min et max du résultat de la projection
+     * @param axis axe de projection
+     * @param points points à projeter
+     * @return Vec2f(min, max)
+     */
+    private static Vec2f projectPoints(Vec2f axis, Vec2f[] points) {
 
         float v;
         Float min = null, max = null;
 
-        for (Vec2f corner : cornersA) {
+        for (Vec2f corner : points) {
 
             v = corner.dot(axis);
             if (min == null) {
@@ -181,13 +152,23 @@ public class Geometry {
                 min = Math.min(min, v);
                 max = Math.max(max, v);
             }
-
         }
 
         return new Vec2f(min, max);
     }
 
 
+    /**
+     * Ces méthodes font tourner un point (P) autour d'un autre (O) selon la formule :
+     *
+     * p'x = cos(theta) * (px-ox) - sin(theta) * (py-oy) + ox
+     * p'y = sin(theta) * (px-ox) + cos(theta) * (py-oy) + oy
+     *
+     * @param point point à tourner
+     * @param center centre de rotation
+     * @param angle angle de rotation
+     * @return point tourné d'un angle 'angle' autour du point 'center'
+     */
     @SuppressWarnings("DuplicatedCode")
     public static Vec2d rotatePointAboutCenter(Vec2d point, Vec2d center, float angle) {
 
@@ -207,6 +188,13 @@ public class Geometry {
                          (float)(Math.sin(angle) * (x - center.x) + Math.cos(angle) * (y - center.y) + center.y));
     }
 
+    /**
+     * Limite une valeur dans un intervalle (équivalent de constrain en Arduino / Processing)
+     * @param value valeur à contraindre
+     * @param min minimum de l'intervalle
+     * @param max maximum de l'intervalle
+     * @return valeur contrainte à l'intervalle
+     */
     public static double clamp(double value, double min, double max) {
 
         return Math.max(min, Math.min(max, value));
@@ -216,6 +204,12 @@ public class Geometry {
         return Math.max(min, Math.min(max, value));
     }
 
+    /**
+     * Clamp un point sur un rectangle
+     * @param point point à 'clamper'
+     * @param rect rectangle sur lequel 'clamper' le point
+     * @return position du point 'clampé'
+     */
     public static Vec2d clampPointToRect(Vec2d point, Rect rect) {
 
         return new Vec2d(clamp(point.x, rect.getPos().x - rect.getSize().x * 0.5, rect.getPos().x + rect.getSize().x * 0.5),
@@ -227,6 +221,15 @@ public class Geometry {
                          clamp(y, rect.getPos().y - rect.getSize().y * 0.5, rect.getPos().y + rect.getSize().y * 0.5));
     }
 
+    /**
+     * Calcul d'une distance au carré entre les points (x1, y1) et (x2, y2)
+     * @param x1 position x du premier point
+     * @param y1 position y du premier point
+     * @param x2 position x du deuxième point
+     * @param y2 position y du deuxième point
+     *
+     * @return distance au carré entre les deux points
+     */
     public static float sqrdDist(float x1, float y1, float x2, float y2) {
 
         return (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1);
@@ -236,6 +239,15 @@ public class Geometry {
         return (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1);
     }
 
+    /**
+     * Calcul d'une distance entre les points (x1, y1) et (x2, y2)
+     * @param x1 position x du premier point
+     * @param y1 position y du premier point
+     * @param x2 position x du deuxième point
+     * @param y2 position y du deuxième point
+     *
+     * @return distance entre les deux points
+     */
     public static float dist(float x1, float y1, float x2, float y2) {
 
         return (float) Math.sqrt(sqrdDist(x1, y1, x2, y2));

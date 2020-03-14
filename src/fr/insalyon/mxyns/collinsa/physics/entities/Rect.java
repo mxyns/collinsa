@@ -50,21 +50,23 @@ public class Rect extends Entity {
         updateAABB();
     }
 
+    /**
+     * Renvoie le vecteur (w, h) représentant la taille du Rect
+     * @return size
+     */
     public Vec2f getSize() {
 
         return size;
     }
 
+    /**
+     * Renvoie le tableau contenant la position des 4 coins du Rect
+     * @return corners
+     */
     public Vec2f[] getCorners() {
 
         return corners;
     }
-
-    public void setCorners(Vec2f[] corners) {
-
-        this.corners = corners;
-    }
-
 
     public String toString() {
 
@@ -95,6 +97,4 @@ public class Rect extends Entity {
         this.aabb.w = maxCorner.x - minCorner.x;
         this.aabb.h = maxCorner.y - minCorner.y;
     }
-
-
 }

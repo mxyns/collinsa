@@ -308,12 +308,18 @@ public class CameraController extends MouseAdapter implements KeyListener {
     // Pas très conventionnel de ne pas mettre l'attribut en tête de classe mais il n'a de rapport qu'avec cette méthode
     private Point dragOrigin;
 
+    /**
+     * Enregistre le point de départ du drag (cliqué-déplacé) de la souris
+     */
     @Override
     public void mousePressed(MouseEvent e) {
 
         dragOrigin = e.getPoint();
     }
 
+    /**
+     * Déplace la caméra en fonction de la position de la souris lors d'un drag
+     */
     @Override
     public void mouseDragged(MouseEvent e) {
 
@@ -325,6 +331,9 @@ public class CameraController extends MouseAdapter implements KeyListener {
             renderer.forceRender();
     }
 
+    /**
+     * Zoom la caméra quand l'utilisateur fait tourner la molette de la souris
+     */
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
 

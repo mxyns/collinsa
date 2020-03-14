@@ -51,7 +51,6 @@ class Camera {
     }
 
 
-
     /**
      * Vérifie si le chunk est visible ou non
      * @param chunk chunk à tester

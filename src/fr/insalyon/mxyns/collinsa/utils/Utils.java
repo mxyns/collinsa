@@ -2,6 +2,11 @@ package fr.insalyon.mxyns.collinsa.utils;
 
 public class Utils {
 
+    /**
+     * Renvoie le minimum des valeurs données
+     * @param values valeurs v_i
+     * @return min(v_i)
+     */
     public static float min(float... values) {
 
         float min = values[0];
@@ -12,6 +17,11 @@ public class Utils {
         return min;
     }
 
+    /**
+     * Renvoie le maximum des valeurs données
+     * @param values valeurs v_i
+     * @return max(v_i)
+     */
     public static float max(float... values) {
 
         float max = values[0];

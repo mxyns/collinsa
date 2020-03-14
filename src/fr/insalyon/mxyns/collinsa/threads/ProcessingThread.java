@@ -73,6 +73,7 @@ public class ProcessingThread extends ClockedThread {
      *      Mise à jour des positions, détection de collisions, résolution des collisions, etc...
      * @param elapsedTime temps écoulé (c-à-d le temps dont il faut que la simulation avance)
      */
+    // Déclarer deltaTime en dehors de tick permet de l'utiliser ailleurs et de ne pas avoir à re-allouer la mémoire nécessaire à un long
     private long deltaTime;
     @Override
     public void tick(long elapsedTime) {
@@ -95,10 +96,20 @@ public class ProcessingThread extends ClockedThread {
                     collider.checkForCollision(entity, target);
 
         // 3ème étape : résolution des collisions détectées
-        for (Collision coll : collider.getRegisteredCollision()) {
-            coll.getSource().setColor(Color.red);
-            coll.getTarget().setColor(Color.red);
-        }
+        if (collider.preciseResolution) {
+
+            // TODO: do some fancy collision time calculations and resolve collisions by time order accounting for simultaneous collisions when time difference is lower than a threshold
+
+        } else // Résout les collisions dans leur ordre de détection qui est aléatoire, rapide mais n'est pas déterministe
+            for (Collision coll : collider.getRegisteredCollision()) {
+
+                if (collider.displayCollisionColor) {
+                    coll.getSource().setColor(Color.red);
+                    coll.getTarget().setColor(Color.red);
+                }
+
+                coll.resolve();
+            }
 
         //System.out.println("detected " + collider.getRegisteredCollision().size() + " collisions");
 

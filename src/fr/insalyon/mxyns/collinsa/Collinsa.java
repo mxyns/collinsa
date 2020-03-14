@@ -33,6 +33,10 @@ public class Collinsa {
     private Renderer renderer;
     final private MainFrame mainFrame;
 
+    /**
+     * Ratio largeur/hauteur de l'écran de l'utilisateur.
+     * Utilisé pour générer des Frames avec le même ratio.
+     */
     private final static double screenRatio = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 
     /**
@@ -49,8 +53,8 @@ public class Collinsa {
 
         // On pose un zoom caméra inital de x1.0
         //getRenderer().getCameraController().setCameraZoom(1f);
-        getRenderer().setRenderChunksBounds(true);
-        getRenderer().setRenderEntitiesAABB(true);
+        getRenderer().setRenderChunksBounds(false);
+        getRenderer().setRenderEntitiesAABB(false);
         getRenderer().setRenderCoordinateSystem(true);
         getRenderer().setAABBBoundsColor(Color.BLACK);
 
@@ -96,7 +100,7 @@ public class Collinsa {
 
         physics.addEntity(caillou);*/
 
-        for (int i = 0; i < 0; ++i) {
+        for (int i = 0; i < 300; ++i) {
 
             Circle circle = new Circle((int) (Math.random() * getPhysics().getWidth()), (int) (Math.random() * getPhysics().getHeight()), 5);
 
@@ -108,7 +112,7 @@ public class Collinsa {
         }
 
         // On ajoute les entités au moteur physique
-        physics.addEntity(rect1);
+        /*physics.addEntity(rect1);
         physics.addEntity(rect2);
         physics.addEntity(rect3);
         physics.addEntity(circle1);
@@ -120,7 +124,7 @@ public class Collinsa {
         Rect test = new Rect(0, 0, 300, 300);
         test.setRot(0.2f);
 
-        physics.addEntity(test);
+        physics.addEntity(test);*/
 
         // new Interface("qdzdzqd", 1200, 800);
 

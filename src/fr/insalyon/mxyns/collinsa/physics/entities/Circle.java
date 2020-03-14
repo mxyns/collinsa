@@ -10,8 +10,16 @@ import java.awt.Graphics2D;
  */
 public class Circle extends Entity {
 
+    /**
+     * Rayon du cercle en mètres
+     */
     public float r;
 
+    /**
+     * Crée un cercle à partir d'un vecteur position et d'un rayon
+     * @param pos vecteur position du centre du cercle
+     * @param r rayon du cercle
+     */
     public Circle(Vec2f pos, float r) {
 
         super(pos);
@@ -20,17 +28,18 @@ public class Circle extends Entity {
         updateAABB();
     }
 
+     /**
+     * Crée un cercle à partir des coordonnées (x, y) du centre du cercle et d'un rayon
+     * @param x coordonnée x du centre du cercle
+     * @param y coordonnée y du centre du cercle
+     * @param r rayon du cercle
+     */
     public Circle(double x, double y, float r) {
 
         super(x, y);
         this.r = r;
 
         updateAABB();
-    }
-
-    public String toString() {
-
-        return "Circle["+pos+", "+r+"]";
     }
 
     @Override
@@ -52,5 +61,10 @@ public class Circle extends Entity {
         this.aabb.y = pos.y - r;
         this.aabb.w = 2 * r;
         this.aabb.h = this.aabb.w;
+    }
+
+    public String toString() {
+
+        return "Circle["+pos+", "+r+"]";
     }
 }

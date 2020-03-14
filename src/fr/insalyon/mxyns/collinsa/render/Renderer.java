@@ -13,6 +13,7 @@ import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -141,7 +142,8 @@ public class Renderer {
      */
     public void renderSandbox(Physics physics, Graphics2D g) {
 
-        //TODO: appliquer de l'antialiasing sur Graphics2D
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // On fait le rendu de tous les Chunk visibles
         for (Chunk chunk : physics.getChunks())
@@ -152,7 +154,7 @@ public class Renderer {
 
         // On affiche les limites du monde si voulu (renderWorldBounds = true)
         if (renderWorldBounds) {
-            g.drawRect(0, 0, (int) (factor * (physics.getWidth() - camera.getPos().x)), (int) (factor * (physics.getHeight() - camera.getPos().x)));
+            g.drawRect((int)(-camera.getPos().x * factor),(int)(-camera.getPos().y * factor), (int) (factor * physics.getWidth()), (int) (factor * physics.getHeight()));
         }
 
         // On affiche le système de coordonnées du monde si voulu (renderCoordinateSystem = true)
@@ -180,6 +182,7 @@ public class Renderer {
 
         graphicsBuffer.resetBackBuffer();
         renderSandbox(physics, graphicsBuffer.getGraphics2D());
+
         graphicsBuffer.flip();
     }
 
@@ -309,11 +312,20 @@ public class Renderer {
         this.scale = scale;
     }
 
+    /**
+     * Renvoie le facteur de rendu du Renderer
+     * @return factor
+     */
     public double getRenderFactor() {
 
         return this.factor;
     }
 
+    /**
+     * Redéfinit le facteur de rendu du Renderer
+     * @param newFactor nouveau facteur de rendu
+     * A ne pas modifier manuellement !! (D'où l'accès package)
+     */
     void setRenderFactor(double newFactor) {
 
         this.factor = newFactor;
@@ -400,12 +412,19 @@ public class Renderer {
         this.renderWorldBounds = renderWorldBounds;
     }
 
-
+    /**
+     * Renvoie true si le Renderer dessine le système de coordonnées
+     * @return renderCoordinateSystem
+     */
     public boolean doesRenderCoordinateSystem() {
 
         return renderCoordinateSystem;
     }
 
+    /**
+     * Redéfinit renderCoordinateSystem, qui détermine si le Renderer dessiner le système de coordonnées
+     * @param renderCoordinateSystem true si le Renderer doit dessiner le repère
+     */
     public void setRenderCoordinateSystem(boolean renderCoordinateSystem) {
 
         this.renderCoordinateSystem = renderCoordinateSystem;
@@ -419,7 +438,6 @@ public class Renderer {
 
         return chunkBoundsColor;
     }
-
 
     /**
      * Redéfinit la couleur définie pour les bordures de Chunk
@@ -448,6 +466,10 @@ public class Renderer {
         this.AABBBoundsColor = AABBBoundsColor;
     }
 
+    /**
+     * Renvoie le GraphicsBuffer du Renderer
+     * @return graphicsBuffer
+     */
     public GraphicsBuffer getGraphicsBuffer() {
 
         return this.graphicsBuffer;

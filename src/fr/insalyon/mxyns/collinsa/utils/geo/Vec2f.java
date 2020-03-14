@@ -284,9 +284,23 @@ public class Vec2f {
     // TODO: invsqrt method
     public Vec2f setMag(float mult) {
 
-        double  mag = Math.sqrt(x*x+y*y);
+        double mag = Math.sqrt(x*x+y*y);
         this.x *= mult/mag;
         this.y *= mult/mag;
+
+        return this;
+    }
+
+    /**
+     * Réoriente le vecteur dans la direction d'un autre vecteur, conserve la norme
+     * @param other nouveau vecteur directeur
+     * @return vecteur courant de nouvelle direction et de même norme
+     */
+    public Vec2f setDir(Vec2f other) {
+
+        float mag = mag();
+        this.set(other.x, other.y);
+        setMag(mag);
 
         return this;
     }
@@ -403,6 +417,10 @@ public class Vec2f {
         this.y = (float) y;
     }
 
+    /**
+     * Renvoie un Vec2d équivalent au Vec2f courant
+     * @return Vec2d avec les mêmes coordonées que le Vec2f courant
+     */
     public Vec2d toDouble() {
 
         return new Vec2d(x,y);

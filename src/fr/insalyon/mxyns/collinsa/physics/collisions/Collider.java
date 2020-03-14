@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 /**
  * Moteur de collisions, détecte et calcule les conséquences des collisions entre objets
@@ -20,6 +21,16 @@ public class Collider {
      * Simulation associée au Collider
      */
     private Physics physics;
+
+    /**
+     * Détermine si le Collider résout les collisions de manière précise, en calculant le moment exact de la collision et en prenant en compte les collisions simultanées
+     */
+    public boolean preciseResolution = false;
+
+    /**
+     * Détermine si le Collider change la couleur des objets en fonction de la détection / résolution de collisions (debug)
+     */
+    public boolean displayCollisionColor = false;
 
     /**
      * Liste des dernières collisions détectées
@@ -119,13 +130,18 @@ public class Collider {
 
         // Broad phase
         if (!entity.getAABB().intersects(target.getAABB())) {
-            entity.setColor(Color.green);
-            target.setColor(Color.green);
+
+            if (displayCollisionColor) {
+                entity.setColor(Color.green);
+                target.setColor(Color.green);
+            }
 
         } else {
 
-            entity.setColor(Color.pink);
-            target.setColor(Color.pink);
+            if (displayCollisionColor) {
+                entity.setColor(Color.pink);
+                target.setColor(Color.pink);
+            }
 
             // Narrow phase
             if (entity instanceof Circle && target instanceof Circle)
@@ -140,41 +156,69 @@ public class Collider {
 
     }
 
+    /**
+     * Méthode enregistrant une collision entre deux cercles si elle a bien lieu
+     * @param entity premier cercle pour la vérification
+     * @param target deuxième cercle pour la vérification
+     */
     public void checkForCircleCircleCollision(Circle entity, Circle target) {
 
         if (entity.getPos().sqrdDist(target.getPos()) <= Math.pow(entity.r + target.r, 2))
-            logCollision(entity, target);
+            logCollision(entity, target, physics::resolveCircleCircleCollision);
     }
 
+    /**
+     * Méthode enregistrant une collision entre deux rectangles si elle a bien lieu
+     * @param entity premier rectangle pour la vérification
+     * @param target deuxième rectangle pour la vérification
+     */
     private void checkForRectRectCollision(Rect entity, Rect target) {
 
         if (Geometry.rectOnRectSAT(entity, target))
-            logCollision(entity, target);
+            logCollision(entity, target, physics::resolveRectangleRectangleCollision);
     }
 
+    /**
+     * Méthode enregistrant une collision entre un rectangle et un cercle si elle a bien lieu
+     * @param circle premier rectangle pour la vérification
+     * @param rect deuxième rectangle pour la vérification
+     */
     public void checkForCircleRectCollision(Circle circle, Rect rect) {
 
         if(Geometry.circleIntersectRectByClamping(circle, rect))
-            logCollision(circle, rect);
+            logCollision(circle, rect, physics::resolveCircleRectangleCollision);
     }
 
     public void checkForCircleSegmentCollision(Circle entity, Circle target) {
 
         if (true)
-            logCollision(entity, target);
+            logCollision(entity, target, physics::resolveRectangleRectangleCollision);
     }
 
-    public void logCollision(Entity firstEntity, Entity secondEntity) {
+    /**
+     * Ajoute une collision au registre des collisions détectée lors du tick
+     * @param firstEntity première entité impliquée dans la collision
+     * @param secondEntity deuxième entité impliquée dans la collision
+     * @param resolvingFunction fonction qui sera utilisée pour la résolution de la collision
+     */
+    public void logCollision(Entity firstEntity, Entity secondEntity, Consumer<Collision> resolvingFunction) {
 
         // TODO check if contained before instantiating a new Collision objects
-        collisions.add(new Collision(firstEntity, secondEntity));
+        collisions.add(new Collision(firstEntity, secondEntity, resolvingFunction));
     }
 
+    /**
+     * Renvoie le registre des collisions détectées lors du tick
+     * @return
+     */
     public LinkedHashSet<Collision> getRegisteredCollision() {
 
         return this.collisions;
     }
 
+    /**
+     * Vide le registre des collisions
+     */
     public void clearCollisions() {
 
         this.collisions.clear();

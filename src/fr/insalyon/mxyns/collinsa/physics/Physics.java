@@ -2,6 +2,8 @@ package fr.insalyon.mxyns.collinsa.physics;
 
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
+import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
@@ -253,6 +255,32 @@ public class Physics {
 
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
     }
+
+    public void resolveCircleCircleCollision(Collision toResolve) {
+
+        Circle circleA = (Circle) toResolve.getSource();
+        Circle circleB = (Circle) toResolve.getTarget();
+
+        Vec2f repulseDirection = circleB.getPos().copy().sub(circleA.getPos());
+        float penetrationDepth = repulseDirection.mag() - circleA.r - circleB.r;
+        // mult factor :  1/mag * penetrationDepth/2 avec penetrationDepth = mag - a.r - b.r
+        repulseDirection.setMag(penetrationDepth*0.5f);
+
+        circleA.getPos().add(repulseDirection);
+        circleB.getPos().sub(repulseDirection);
+
+        circleA.getVel().setDir(repulseDirection);
+        circleB.getVel().setDir(repulseDirection.neg());
+    }
+    public void resolveCircleRectangleCollision(Collision toResolve) {
+
+
+    }
+    public void resolveRectangleRectangleCollision(Collision toResolve) {
+
+
+    }
+
 
     /**
      * Renvoie l'instance du moteur de collisions associé à cette instance du moteur physique

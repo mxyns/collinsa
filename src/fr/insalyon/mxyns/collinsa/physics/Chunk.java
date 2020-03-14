@@ -6,7 +6,7 @@ import java.awt.Rectangle;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Un chunk est une portion de la zone de calcul contenant une partie des entitées.
+ * Un chunk est une portion spatiale de la zone de calcul (le monde simulé) contenant une partie des entitées.
  * Permet de réduire le nombre de collision checks inutiles
  */
 public class Chunk {

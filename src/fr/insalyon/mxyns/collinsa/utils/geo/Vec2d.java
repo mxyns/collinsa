@@ -414,12 +414,15 @@ public class Vec2d {
         this.y = y;
     }
 
-
     public String toString() {
 
         return "(" + x + ", " + y + ")";
     }
 
+    /**
+     * Renvoie un Vec2f équivalent au Vec2d courant
+     * @return Vec2f avec les mêmes coordonées que le Vec2d courant
+     */
     public Vec2f toFloat() {
 
         return new Vec2f((float)x,(float)y);

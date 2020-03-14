@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
 import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
@@ -41,6 +42,11 @@ public abstract class Entity {
      * Accélération angulaire de l'entité
      */
     private float angAcc;
+
+    /**
+     * Type de collision, détermine si l'objet aura des collisions elastiques ou non avec les autres objets
+     */
+    CollisionType collisionType = CollisionType.ELASTIC;
 
     /**
      * AABB (dims. en mètres) correspondant à l'AABB de l'entité
@@ -97,7 +103,6 @@ public abstract class Entity {
      */
     public abstract double getMaximumSize();
 
-
     /**
      * Méthode renvoyant la AABB (Axis Aligned Bounding Box) de l'entité
      * @return AABB de l'entité sous forme de Rectangle
@@ -111,7 +116,6 @@ public abstract class Entity {
      * Méthode abstraite mettant à jour la AABB (Axis Aligned Bounding Box) de l'entité
      */
     public abstract void updateAABB();
-
 
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
@@ -142,7 +146,6 @@ public abstract class Entity {
 
         updateAABB();
     }
-
 
     /**
      * Renvoie le vecteur position de l'entité
@@ -221,32 +224,55 @@ public abstract class Entity {
         this.color = color;
     }
 
-
+    /**
+     * Renvoie l'angle de rotation de l'entité autour de son centre (pos)
+     * @return rot
+     */
     public float getRot() {
 
         return rot;
     }
 
+    /**
+     * Redéfinit l'angle de rotation de l'entité autour de son centre (pos)
+     * @param rot nouvel angle
+     */
     public void setRot(float rot) {
 
         this.rot = rot;
     }
 
+    /**
+     * Renvoie la vitesse angulaire de l'entité autour de son centre (pos)
+     * @return angVel
+     */
     public float getAngVel() {
 
         return angVel;
     }
 
+    /**
+     * Redéfinit la vitesse angulaire de l'entité autour de son centre (pos)
+     * @param angVel nouvelle vitesse angulaire
+     */
     public void setAngVel(float angVel) {
 
         this.angVel = angVel;
     }
 
+    /**
+     * Renvoie l'accélération angulaire de l'entité autour de son centre (pos)
+     * @return angAcc
+     */
     public float getAngAcc() {
 
         return angAcc;
     }
 
+    /**
+     * Redéfinit l'accélération angulaire de l'entité autour de son centre (pos)
+     * @param angAcc nouvelle accélération angulaire
+     */
     public void setAngAcc(float angAcc) {
 
         this.angAcc = angAcc;
