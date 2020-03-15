@@ -2,6 +2,7 @@ package fr.insalyon.mxyns.collinsa;
 
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
@@ -53,7 +54,7 @@ public class Collinsa {
 
         // On pose un zoom caméra inital de x1.0
         //getRenderer().getCameraController().setCameraZoom(1f);
-        getRenderer().setRenderChunksBounds(false);
+        getRenderer().setRenderChunksBounds(true);
         getRenderer().setRenderEntitiesAABB(false);
         getRenderer().setRenderCoordinateSystem(true);
         getRenderer().setAABBBoundsColor(Color.BLACK);
@@ -73,6 +74,7 @@ public class Collinsa {
         Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200, 100);
         Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 150, Collinsa.getPhysics().getHeight() / 2 - 130, 200, 100);
         rect1.setAngVel(3.5f);
+        rect1.setCollisionType(Collision.CollisionType.KINEMATIC);
         rect2.setAngVel(-2f);
         rect2.setRot(0.2f);
         rect2.setVel(new Vec2f(0, 20));
@@ -112,7 +114,7 @@ public class Collinsa {
         }
 
         // On ajoute les entités au moteur physique
-        /*physics.addEntity(rect1);
+        physics.addEntity(rect1);
         physics.addEntity(rect2);
         physics.addEntity(rect3);
         physics.addEntity(circle1);
@@ -124,24 +126,23 @@ public class Collinsa {
         Rect test = new Rect(0, 0, 300, 300);
         test.setRot(0.2f);
 
-        physics.addEntity(test);*/
+        physics.addEntity(test);
 
         // new Interface("qdzdzqd", 1200, 800);
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
 
-        /*while (true) {
+        while (true) {
 
-            Circle c = new Circle(caillou.getPos(), 5);
-            physics.addEntity(c);
+            System.out.println(rect2.getPos());
 
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
     }
 
     /**
@@ -159,7 +160,7 @@ public class Collinsa {
         renderer = new Renderer();
 
         // On crée une instance de moteur physique vide, elle se remplit de Chunks et crée un thread de calcul à son initialisation
-        physics = new Physics(width, height, 5, 5);
+        physics = new Physics(width, height, 3, 3);
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
         mainFrame = new MainFrame(1440, (int) (1440 / screenRatio));

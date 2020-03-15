@@ -316,6 +316,22 @@ public class Vec2f {
     }
 
     /**
+     * Tourne le vecteur courant d'un angle 'angle' orienté dans le sens direct
+     * @param angle angle de rotation
+     * @return vecteur courant tourné
+     */
+    public Vec2f rotate(float angle) {
+
+        float cos = (float)Math.cos(angle);
+        float sin = (float)Math.sin(angle);
+        float lx = x;
+        x = cos * x - sin*y;
+        y = sin * lx + cos*y;
+
+        return this;
+    }
+
+    /**
      * Calcule la distance entre deux Vec2d si on les considère comme représentant des points
      * @param other autre vecteur
      * @return distance à l'autre vecteur
@@ -327,7 +343,6 @@ public class Vec2f {
 
         return (float)Math.sqrt(dx*dx + dy*dy);
     }
-
 
     /**
      * Calcule la distance entre deux Vec2d au carré si on les considère comme représentant des points
@@ -424,6 +439,12 @@ public class Vec2f {
     public Vec2d toDouble() {
 
         return new Vec2d(x,y);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        return (o instanceof Vec2f && ((Vec2f)o).x == x && ((Vec2f)o).y == y) || (o instanceof Vec2d && (float)((Vec2d)o).x == x && (float)((Vec2d)o).y == y);
     }
 
     public String toString() {

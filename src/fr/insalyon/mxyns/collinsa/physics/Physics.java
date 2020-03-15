@@ -5,7 +5,9 @@ import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
+import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.util.ArrayList;
@@ -256,6 +258,9 @@ public class Physics {
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
     }
 
+    // TODO : manage mass, angularSpeed, material friction / restitution
+
+    // TODO : manage rotating circle's drag (friction)
     public void resolveCircleCircleCollision(Collision toResolve) {
 
         Circle circleA = (Circle) toResolve.getSource();
@@ -263,19 +268,46 @@ public class Physics {
 
         Vec2f repulseDirection = circleB.getPos().copy().sub(circleA.getPos());
         float penetrationDepth = repulseDirection.mag() - circleA.r - circleB.r;
-        // mult factor :  1/mag * penetrationDepth/2 avec penetrationDepth = mag - a.r - b.r
+
         repulseDirection.setMag(penetrationDepth*0.5f);
 
-        circleA.getPos().add(repulseDirection);
-        circleB.getPos().sub(repulseDirection);
+        if(!circleA.isKinematic()) {
+            circleA.getPos().add(repulseDirection);
+            circleA.getVel().setDir(repulseDirection);
+        }
 
-        circleA.getVel().setDir(repulseDirection);
-        circleB.getVel().setDir(repulseDirection.neg());
+        if (!circleB.isKinematic()) {
+            circleB.getPos().sub(repulseDirection);
+            circleB.getVel().setDir(repulseDirection.neg());
+        }
     }
     public void resolveCircleRectangleCollision(Collision toResolve) {
 
+        Circle circle = (Circle) toResolve.getSource();
+        Rect rect = (Rect) toResolve.getTarget();
 
+        Vec2f ucpos = Geometry.rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot()).toFloat();
+        Vec2f clampedPos = Geometry.clampPointToRect(ucpos.toDouble(), rect).toFloat();
+
+        Vec2f normal; float penetration;
+        if (clampedPos.sqrdDist(ucpos) == 0.0f) {
+            clampedPos = Geometry.clampPointInsideRect(ucpos.toDouble(), rect).toFloat();
+            normal = clampedPos.copy().sub(ucpos);
+            penetration = circle.r + clampedPos.dist(ucpos);
+        } else {
+            normal = ucpos.copy().sub(clampedPos);
+            penetration = circle.r - clampedPos.dist(ucpos);
+        }
+
+        Vec2f displacementVector = normal.rotate(rect.getRot()).setMag(Math.abs(penetration * 0.5f));
+
+        if (!circle.isKinematic())
+            circle.getPos().add(displacementVector);
+
+        if(!rect.isKinematic())
+            rect.getPos().add(displacementVector.neg());
     }
+
     public void resolveRectangleRectangleCollision(Collision toResolve) {
 
 

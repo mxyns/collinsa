@@ -46,7 +46,7 @@ public abstract class Entity {
     /**
      * Type de collision, détermine si l'objet aura des collisions elastiques ou non avec les autres objets
      */
-    CollisionType collisionType = CollisionType.ELASTIC;
+    private CollisionType collisionType = CollisionType.ELASTIC;
 
     /**
      * AABB (dims. en mètres) correspondant à l'AABB de l'entité
@@ -276,5 +276,32 @@ public abstract class Entity {
     public void setAngAcc(float angAcc) {
 
         this.angAcc = angAcc;
+    }
+
+    /**
+     * Renvoie true si l'entité est un objet cinématique. C'est à dire qu'il ne réagit pas aux collisions avec d'autres objets et son déplacement ne dépend que de sa vitesse & accélération
+     * @return true si l'entité est cinématique
+     */
+    public boolean isKinematic() {
+
+        return collisionType == CollisionType.KINEMATIC;
+    }
+
+    /**
+     * Renvoie le type de collision créé par cette entité
+     * @return collisionType
+     */
+    public CollisionType getCollisionType() {
+
+        return collisionType;
+    }
+
+    /**
+     * Redéfinit le type de collision que l'entité génèrera
+     * @param collisionType nouveau type de collision
+     */
+    public void setCollisionType(CollisionType collisionType) {
+
+        this.collisionType = collisionType;
     }
 }

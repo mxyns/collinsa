@@ -40,7 +40,10 @@ public class Collision {
      */
     public void resolve() {
 
-        resolvingFunction.accept(this);
+        // Une collision entre deux éléments cinématiques ne doit pas être résolue puisqu'ils ignorent les modifications de position/vitesse/accélération/... causées par les autres éléments
+        // On évite donc des calculs inutiles puisque les résultats ne seront pas utilisés. Par contre, on peut réagir à la détection de la collision (utilisation d'objets comme trigger box par exemple)
+        if (CollisionType.resultingType(source.getCollisionType(), target.getCollisionType()) != CollisionType.KINEMATIC)
+            resolvingFunction.accept(this);
     }
 
     /**
@@ -92,19 +95,23 @@ public class Collision {
 
         /**
          * Différents types de collisions
+         *  - ELASTIC : pas de perte d'énergie
+         *  - INELASTIC : perte d'énergie
+         *  - KINEMATIC : résiste à la collision
          */
-        ELASTIC, INELASTIC, /*KINEMATIC*/;
+        ELASTIC, INELASTIC, KINEMATIC;
 
         /**
          * Détermine le type de méthode de calcul à employer pour résoudre la collision entre deux types de collisions différents
+         * INELASTIC > ELASTIC > KINEMATIC
          * @param type1 type du premier objet impliqué dans la collision
          * @param type2 type du deuxième objet impliqué dans la collision
          * @return type de collision résultant
          */
-        public CollisionType resultingType(CollisionType type1, CollisionType type2) {
+        public static CollisionType resultingType(CollisionType type1, CollisionType type2) {
 
-            if (type1 == null) return type2;
-            if (type2 == null) return type1;
+            if (type1 == null || type1 == KINEMATIC) return type2;
+            if (type2 == null || type2 == KINEMATIC) return type1;
 
             if (type1 == type2)
                 return type1;

@@ -221,6 +221,31 @@ public class Geometry {
                          clamp(y, rect.getPos().y - rect.getSize().y * 0.5, rect.getPos().y + rect.getSize().y * 0.5));
     }
 
+    public static Vec2d clampPointInsideRect(Vec2d point, Rect rect) {
+
+        Vec2d[] possibilities = {
+            new Vec2d(point.x, rect.getPos().y - rect.size.y * 0.5),
+            new Vec2d(point.x, rect.getPos().y + rect.size.y*0.5),
+            new Vec2d(rect.getPos().x + rect.size.x*0.5, point.y),
+            new Vec2d(rect.getPos().x - rect.size.x*0.5, point.y)
+        };
+
+        return nearestPoint(point, possibilities);
+    }
+    public static Vec2d nearestPoint(Vec2d from, Vec2d... points) {
+
+        double dist = points[0].sqrdDist(from);
+        int index = 0;
+        double temp = 0;
+        for (int i = 0; i < points.length; ++i)
+            if ((temp = points[i].sqrdDist(from)) < dist) {
+                index = i;
+                dist = temp;
+            }
+
+        return points[index];
+    }
+
     /**
      * Calcul d'une distance au carré entre les points (x1, y1) et (x2, y2)
      * @param x1 position x du premier point
