@@ -261,58 +261,104 @@ public class Physics {
     // TODO : manage mass, angularSpeed, material friction / restitution
 
     // TODO : manage rotating circle's drag (friction)
-    public void resolveCircleCircleCollision(Collision toResolve) {
+    public static void resolveCircleCircleCollision(Collision toResolve) {
 
         Circle circleA = (Circle) toResolve.getSource();
         Circle circleB = (Circle) toResolve.getTarget();
+        float inv_massA = circleA.getInertia().getMassInv();
+        float inv_massB = circleB.getInertia().getMassInv();
 
-        Vec2f repulseDirection = circleB.getPos().copy().sub(circleA.getPos());
-        float penetrationDepth = repulseDirection.mag() - circleA.r - circleB.r;
+        // la normale de la collision
+        Vec2f normal = circleB.getPos().copy().sub(circleA.getPos());
 
-        repulseDirection.setMag(penetrationDepth*0.5f);
+        float penetrationDepth = circleA.r + circleB.r - normal.mag();
 
+        normal.normalize();
+
+        // la restitution est la plus petite des deux
+        float e = Math.min(circleA.getMaterial().restitution, circleB.getMaterial().restitution);
+
+        // intensité de l'impulsion
+        float i = -(1+e) * Math.abs(circleB.getVel().copy().sub(circleA.getVel()).dot(normal));
+              i /= (inv_massA + inv_massB);
+
+        // Vecteur de repositionnement
+        // TODO : displacement based on mass ratios
+        Vec2f displacementVector = normal.multOut(penetrationDepth*0.5f);
+
+        // Vecteur impulsion (modification vitesse)
+        normal.mult(i);
+
+        // TODO if object is kinematic, transfer energy to other object
+        // atm a kinematic object absorbs energy
         if(!circleA.isKinematic()) {
-            circleA.getPos().add(repulseDirection);
-            circleA.getVel().setDir(repulseDirection);
+            circleA.getPos().sub(displacementVector);
+            circleA.getVel().add(normal.x * inv_massA, normal.y * inv_massA);
         }
 
         if (!circleB.isKinematic()) {
-            circleB.getPos().sub(repulseDirection);
-            circleB.getVel().setDir(repulseDirection.neg());
+            circleB.getPos().add(displacementVector);
+            circleB.getVel().sub(normal.x * inv_massB, normal.y * inv_massB);
         }
     }
-    public void resolveCircleRectangleCollision(Collision toResolve) {
+
+    // TODO : circle drag / friction &
+    public static void resolveCircleRectangleCollision(Collision toResolve) {
 
         Circle circle = (Circle) toResolve.getSource();
         Rect rect = (Rect) toResolve.getTarget();
+        float circle_inv_mass = circle.getInertia().getMassInv();
+        float rect_inv_mass = rect.getInertia().getMassInv();
 
-        Vec2f ucpos = Geometry.rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot()).toFloat();
-        Vec2f clampedPos = Geometry.clampPointToRect(ucpos.toDouble(), rect).toFloat();
+        // Passage en coordonnées relatives au rectangle
+        Vec2f upos = Geometry.rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot()).toFloat();
+        Vec2f clampedPos = Geometry.clampPointToRect(upos.toDouble(), rect).toFloat();
 
         Vec2f normal; float penetration;
-        if (clampedPos.sqrdDist(ucpos) == 0.0f) {
-            clampedPos = Geometry.clampPointInsideRect(ucpos.toDouble(), rect).toFloat();
-            normal = clampedPos.copy().sub(ucpos);
-            penetration = circle.r + clampedPos.dist(ucpos);
+        if (clampedPos.sqrdDist(upos) == 0.0f) {
+            clampedPos = Geometry.clampPointInsideRect(upos.toDouble(), rect).toFloat();
+            normal = clampedPos.copy().sub(upos).normalize();
+            penetration = circle.r + clampedPos.dist(upos);
         } else {
-            normal = ucpos.copy().sub(clampedPos);
-            penetration = circle.r - clampedPos.dist(ucpos);
+            normal = upos.copy().sub(clampedPos).normalize();
+            penetration = circle.r - clampedPos.dist(upos);
         }
 
-        Vec2f displacementVector = normal.rotate(rect.getRot()).setMag(Math.abs(penetration * 0.5f));
+        // Pas besoin de vérifier si la pénétration est positive car si cette méthode est utilisée, c'est que les objets sont en collision
+        // donc que penetration > 0 est bien vraie
 
-        if (!circle.isKinematic())
+        // Retour aux coordonnées absolues, pas besoin de centre de rotation puisque normal est la différence de deux vecteurs "relatifs"
+        normal.rotate(rect.getRot());
+
+        // la restitution est la plus petite des deux
+        float e = Math.min(rect.getMaterial().restitution, circle.getMaterial().restitution);
+
+        // intensité de l'impulsion
+        float i = -(1+e) * Math.abs(rect.getVel().copy().sub(circle.getVel()).dot(normal));
+              i /= (rect_inv_mass + circle_inv_mass);
+
+        // Vecteur de repositionnement
+        // TODO: set 0.5f factor to 1 when one of the objects is kinematic to avoid sinking
+        Vec2f displacementVector = normal.multOut(penetration * 0.5f);
+
+        // Vecteur impulsion (modification vitesse)
+        normal.mult(i);
+
+        if (!circle.isKinematic()) {
             circle.getPos().add(displacementVector);
+            circle.getVel().sub(normal.x * circle_inv_mass, normal.y * circle_inv_mass);
+        }
 
-        if(!rect.isKinematic())
+        if(!rect.isKinematic()) {
             rect.getPos().add(displacementVector.neg());
+            rect.getVel().add(normal.x * rect_inv_mass, normal.y * rect_inv_mass);
+        }
     }
 
     public void resolveRectangleRectangleCollision(Collision toResolve) {
 
 
     }
-
 
     /**
      * Renvoie l'instance du moteur de collisions associé à cette instance du moteur physique

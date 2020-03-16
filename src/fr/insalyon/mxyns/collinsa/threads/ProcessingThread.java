@@ -86,8 +86,9 @@ public class ProcessingThread extends ClockedThread {
 
                 // 1ère étape : mettre à jour les éléments
                 // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
-                if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth())
+                if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
                     entity.updateMillis(deltaTime);
+                } else entity.setVel(0, 0); // to prevent big speed spikes on entities colliding with deactivated objects
             }
 
             for (Entity entity : physics.getEntities())

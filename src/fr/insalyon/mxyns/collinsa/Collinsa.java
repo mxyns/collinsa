@@ -16,6 +16,7 @@ import java.awt.Toolkit;
 // TODO:
 //  - CollisionListener Interface if user wants to add specific actions on object
 //  - Layering to ignore collisions between some objects / objects types
+//  - Deactivation of an object (can be activated by some trigger box collision with a custom CollisionListener)
 
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme
@@ -81,19 +82,22 @@ public class Collinsa {
 
         // Test not aligned circle-circle collision
         Circle circle1 = new Circle(rect1.getPos().x - 500, rect1.getPos().y, 20);
-        Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y - 30, 20);
-        circle2.setVel(new Vec2f(0, 10));
+        Circle circle2 = new Circle(circle1.getPos().x - 30, circle1.getPos().y + 30, 20);
+        circle2.setVel(new Vec2f(0, -10));
 
         // Test moving circle-circle
         Circle circle3 = new Circle(300, 600, 20);
-        Circle circle4 = new Circle(20, 595, 5);
-        circle4.setVel(new Vec2f(30, 0));
-        circle3.setVel(new Vec2f(-10, 0));
+        circle3.getInertia().setMass(1000);
+        Circle circle4 = new Circle(20, 600, 5);
+        circle4.setVel(new Vec2f(120, 0));
+        circle3.setVel(new Vec2f(0, 0));
 
-        // Test rotated rect-circle collision
-        Rect rect3 = new Rect(Collinsa.getPhysics().getWidth() / 2 + 300, Collinsa.getPhysics().getHeight() / 2, 150, 50);
-        rect3.setAngVel(0.9f);
-        Circle circle5 = new Circle(rect3.getPos().x + 60, rect3.getPos().y - 50, 15);
+        // Test rotated circle-rect collision
+        Rect rect3 = new Rect(Collinsa.getPhysics().getWidth() / 2 + 300, Collinsa.getPhysics().getHeight() / 2, 50, 150);
+        rect3.setRot(0);
+
+        rect3.setVel(new Vec2f(150, 0));
+        Circle circle5 = new Circle(rect3.getPos().x + 150, rect3.getPos().y - 50, 15);
         //circle5.setVel(rect2.getVel().copy().mult(3));
 
         /*Circle caillou = new Circle(new Vec2f(10, 400), 10);
@@ -102,14 +106,15 @@ public class Collinsa {
 
         physics.addEntity(caillou);*/
 
-        for (int i = 0; i < 300; ++i) {
+        for (int i = 0; i < 20; ++i) {
 
             Circle circle = new Circle((int) (Math.random() * getPhysics().getWidth()), (int) (Math.random() * getPhysics().getHeight()), 5);
 
+            // On redéfinit la couleur du matériau
             circle.setColor(new Color((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256)));
 
             // On teste une accélération vers le bas type gravité = 10g
-            circle.setAcc(new Vec2f((float) (Math.random() * 100) - 50, (float) (Math.random() * 100) - 50));
+            circle.setVel(new Vec2f((float) (Math.random() * 200) - 100, (float) (Math.random() * 200) - 100));
             physics.addEntity(circle);
         }
 
@@ -133,16 +138,14 @@ public class Collinsa {
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
 
-        while (true) {
-
-            System.out.println(rect2.getPos());
+        /*while (true) {
 
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     /**

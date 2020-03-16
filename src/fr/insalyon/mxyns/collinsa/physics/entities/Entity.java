@@ -1,5 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
+import fr.insalyon.mxyns.collinsa.physics.Inertia;
+import fr.insalyon.mxyns.collinsa.physics.Material;
 import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
@@ -51,7 +53,17 @@ public abstract class Entity {
     /**
      * AABB (dims. en mètres) correspondant à l'AABB de l'entité
      */
-    protected AABB aabb;
+    final protected AABB aabb;
+
+    /**
+     * Matériau de l'entité
+     */
+    private Material material;
+
+    /**
+     * Inertie de l'entité, contient ses informations de masse, et permet de calculer / stocker son moment d'inertie
+     */
+    final private Inertia inertia;
 
     /**
      * Couleur de l'entité
@@ -67,6 +79,8 @@ public abstract class Entity {
         acc = Vec2f.zero();
         aabb = new AABB(0, 0, 0, 0);
         color = Color.black;
+        inertia = new Inertia(this);
+        setMaterial(Material.DUMMY.copy());
     }
 
     /**
@@ -163,7 +177,6 @@ public abstract class Entity {
 
         this.pos = pos;
     }
-
     /**
      * Redéfinit le vecteur position de l'entité
      */
@@ -188,6 +201,15 @@ public abstract class Entity {
 
         this.vel = vel;
     }
+    /**
+     * Redéfinit le vecteur vitesse de l'entité
+     */
+    public void setVel(float x, float y) {
+
+        this.vel.x = x;
+        this.vel.y = y;
+    }
+
 
     /**
      * Renvoie le vecteur accélération de l'entité
@@ -204,6 +226,14 @@ public abstract class Entity {
     public void setAcc(Vec2f acc) {
 
         this.acc = acc;
+    }
+    /**
+     * Redéfinit le vecteur accélération de l'entité
+     */
+    public void setAcc(float x, float y) {
+
+        this.acc.x = x;
+        this.acc.y = y;
     }
 
     /**
@@ -303,5 +333,21 @@ public abstract class Entity {
     public void setCollisionType(CollisionType collisionType) {
 
         this.collisionType = collisionType;
+    }
+
+    public Material getMaterial() {
+
+        return material;
+    }
+
+    public void setMaterial(Material material) {
+
+        this.material = material;
+        this.color = material.getColor();
+    }
+
+    public Inertia getInertia() {
+
+        return inertia;
     }
 }

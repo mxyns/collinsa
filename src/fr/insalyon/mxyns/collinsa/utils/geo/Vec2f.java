@@ -210,7 +210,15 @@ public class Vec2f {
 
         return this;
     }
+    /**
+     * Création d'un vecteur à partir du vecteur courant et d'un facteur multiplicateur
+     * @param mult facteur multiplicateur
+     * @return copie du vecteur courant multiplié par 'mult'
+     */
+    public Vec2f multOut(float mult) {
 
+        return new Vec2f(x*mult, y*mult);
+    }
 
     /**
      * Produit scalaire d'un Vec2d avec le vecteur courant
@@ -329,6 +337,18 @@ public class Vec2f {
         y = sin * lx + cos*y;
 
         return this;
+    }
+    /**
+     * Tourne le vecteur courant d'un angle 'angle' orienté dans le sens direct
+     * @param angle angle de rotation
+     * @return vecteur courant tourné
+     */
+    public Vec2f rotateOut(float angle) {
+
+        float cos = (float)Math.cos(angle);
+        float sin = (float)Math.sin(angle);
+
+        return new Vec2f(cos * x - sin*y, sin * x + cos*y);
     }
 
     /**
