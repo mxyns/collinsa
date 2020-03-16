@@ -5,6 +5,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.presets.Preset;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
@@ -26,7 +27,7 @@ public class Collinsa {
     /**
      * Stocke l'unique instance du programme pour un accès statique
      */
-    private static Collinsa INSTANCE;
+    public static Collinsa INSTANCE;
 
     /**
      * Instances du moteur physique, de rendu, et de la Frame
@@ -49,31 +50,39 @@ public class Collinsa {
         // Crée l'INSTANCE unique du programme (Collinsa)
         INSTANCE = new Collinsa(1440, (int) (1440 / screenRatio));
 
-        // Renderer settings
-        // On pose une échelle d'affichage de 1 px/m
-        //getRenderer().setRenderScale(1);
+        // Paramètres par défaut
+            // Renderer settings
+            // On pose une échelle d'affichage de 1 px/m
+            //getRenderer().setRenderScale(1);
 
-        // On pose un zoom caméra inital de x1.0
-        //getRenderer().getCameraController().setCameraZoom(1f);
-        getRenderer().setRenderChunksBounds(true);
-        getRenderer().setRenderEntitiesAABB(false);
-        getRenderer().setRenderCoordinateSystem(true);
-        getRenderer().setAABBBoundsColor(Color.BLACK);
+            // On pose un zoom caméra inital de x1.0
+            //getRenderer().getCameraController().setCameraZoom(1f);
+            INSTANCE.getRenderer().setRenderChunksBounds(true);
+            INSTANCE.getRenderer().setRenderEntitiesAABB(false);
+            INSTANCE.getRenderer().setRenderCoordinateSystem(true);
+            INSTANCE.getRenderer().setAABBBoundsColor(Color.BLACK);
 
-        // Physics settings
-        getPhysics().setRealtime(false);
+            // Physics settings
+            INSTANCE.getPhysics().setRealtime(false);
 
-        // On pose le framerate voulu
-        INSTANCE.setFramerate(60);
+            // On pose le framerate voulu
+            INSTANCE.setFramerate(60);
+
+
+        // Si on a activé un preset dans les paramètres de lancement on l'execute et on n'execute pas le programme principal
+        if (args.length > 0 && args[0].equals("-s") && args.length > 1) {
+            Preset.EPreset.run(args[1], args, INSTANCE);
+            return;
+        }
 
 
         //Création d'élements / entitées à ajouter à la simulation
-        Physics physics = getPhysics();
+        Physics physics = INSTANCE.getPhysics();
         Rect rect = new Rect(physics.getChunkSize().x / 2, physics.getChunkSize().y / 2, 60, 100);
 
         // Test rotating rect-rect collisions
-        Rect rect1 = new Rect(Collinsa.getPhysics().getWidth() / 2, Collinsa.getPhysics().getHeight() / 2, 200, 100);
-        Rect rect2 = new Rect(Collinsa.getPhysics().getWidth() / 2 - 150, Collinsa.getPhysics().getHeight() / 2 - 130, 200, 100);
+        Rect rect1 = new Rect(Collinsa.INSTANCE.getPhysics().getWidth() / 2, Collinsa.INSTANCE.getPhysics().getHeight() / 2, 200, 100);
+        Rect rect2 = new Rect(Collinsa.INSTANCE.getPhysics().getWidth() / 2 - 150, Collinsa.INSTANCE.getPhysics().getHeight() / 2 - 130, 200, 100);
         rect1.setAngVel(3.5f);
         rect1.setCollisionType(Collision.CollisionType.KINEMATIC);
         rect2.setAngVel(-2f);
@@ -93,7 +102,7 @@ public class Collinsa {
         circle3.setVel(new Vec2f(0, 0));
 
         // Test rotated circle-rect collision
-        Rect rect3 = new Rect(Collinsa.getPhysics().getWidth() / 2 + 300, Collinsa.getPhysics().getHeight() / 2, 50, 150);
+        Rect rect3 = new Rect(Collinsa.INSTANCE.getPhysics().getWidth() / 2 + 300, Collinsa.INSTANCE.getPhysics().getHeight() / 2, 50, 150);
         rect3.setRot(0);
 
         rect3.setVel(new Vec2f(150, 0));
@@ -108,7 +117,7 @@ public class Collinsa {
 
         for (int i = 0; i < 20; ++i) {
 
-            Circle circle = new Circle((int) (Math.random() * getPhysics().getWidth()), (int) (Math.random() * getPhysics().getHeight()), 5);
+            Circle circle = new Circle((int) (Math.random() * INSTANCE.getPhysics().getWidth()), (int) (Math.random() * INSTANCE.getPhysics().getHeight()), 5);
 
             // On redéfinit la couleur du matériau
             circle.setColor(new Color((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256)));
@@ -263,7 +272,7 @@ public class Collinsa {
         // Ce sera toujours le cas ici puisqu'on utilise cette méthode uniquement une fois juste après l'instanciation du Renderer
         // Mais dans certains cas il serait possible de changer de Renderer périodiquement par exemple si on veut plusieurs caméra mais avec des échelles de rendu différents (pas faisable seulement en interchangeant les caméras)
         if (renderer.getRenderingThread() == null)
-            renderer.setRenderingThread(new RenderingThread(getPhysics(), new MillisClock(), renderer, 60));
+            renderer.setRenderingThread(new RenderingThread(INSTANCE.getPhysics(), new MillisClock(), renderer, 60));
 
         // Si on a changé de Renderer, on coupe son Thread de rendu car il est inutile et consomme des ressources et du temps de calcul
         if (renderer != getRenderer())
@@ -301,7 +310,7 @@ public class Collinsa {
      */
     public void setRefreshRate(short refreshRate) {
 
-        getPhysics().getProcessingThread().setRefreshRate(refreshRate);
+        INSTANCE.getPhysics().getProcessingThread().setRefreshRate(refreshRate);
     }
 
     /**
@@ -311,7 +320,7 @@ public class Collinsa {
      */
     public void setRefreshRate(int refreshRate) {
 
-        getPhysics().getProcessingThread().setRefreshRate(refreshRate);
+        INSTANCE.getPhysics().getProcessingThread().setRefreshRate(refreshRate);
     }
 
 
@@ -320,7 +329,7 @@ public class Collinsa {
      *
      * @return INSTANCE.mainFrame
      */
-    public static MainFrame getMainFrame() {
+    public MainFrame getMainFrame() {
 
         return INSTANCE.mainFrame;
     }
@@ -330,7 +339,7 @@ public class Collinsa {
      *
      * @return INSTANCE.mainFrame
      */
-    public static Renderer getRenderer() {
+    public Renderer getRenderer() {
 
         return INSTANCE.renderer;
     }
@@ -340,7 +349,7 @@ public class Collinsa {
      *
      * @return INSTANCE.mainFrame
      */
-    public static Physics getPhysics() {
+    public Physics getPhysics() {
 
         return INSTANCE.physics;
     }

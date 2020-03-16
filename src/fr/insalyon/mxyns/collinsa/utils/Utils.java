@@ -31,4 +31,23 @@ public class Utils {
 
         return max;
     }
+
+    public static int lookForString(String toLookFor, String... array) {
+
+        for (int i = 0; i < array.length; ++i) {
+            if (array[i].toLowerCase().equals(toLookFor.toLowerCase()))
+                return i;
+        }
+
+        return -1;
+    }
+
+    public static String getArgValue(String arg, String[] args) {
+
+        int argIndex;
+        if ((argIndex = lookForString("-"+arg, args)) != -1 && argIndex+1 < args.length)
+            return args[argIndex+1];
+
+        return null;
+    }
 }

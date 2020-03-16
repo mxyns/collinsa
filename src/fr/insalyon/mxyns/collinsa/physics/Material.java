@@ -40,6 +40,16 @@ public class Material {
         return color;
     }
 
+    public float getRestitution() {
+
+        return restitution;
+    }
+
+    public void setRestitution(float restitution) {
+
+        this.restitution = restitution;
+    }
+
     /**
      * Renvoie une copie du matériau, permet de ne pas avoir tous les éléments d'un même matériau liés
      * @return copy of the current material
