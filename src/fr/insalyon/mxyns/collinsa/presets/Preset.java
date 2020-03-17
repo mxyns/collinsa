@@ -10,7 +10,21 @@ import java.awt.Color;
  */
 public abstract class Preset {
 
-    public abstract void run(String[] args, Collinsa collinsa);
+    /**
+     * Préparation du monde, à faire avant que la simulation soit lancée
+     * @param args arguments passés dans la commande de lancement
+     * @param collinsa instance de collinsa sur laquelle appliquer le preset
+     */
+    public abstract void setup(String[] args, Collinsa collinsa);
+
+    /**
+     * Méthode lancée après le lancement de la simulation.
+     * Généralement utilisée pour y mettre un while(true) {\/* do something *\/}, on peut aussi simplement y mettre une action à faire une seule fois.
+     * Cette méthode ne boucle pas par elle même, elle s'appelle 'loop' puisqu'elle sera majoritairement utilisée pour accueillir des boucles
+     * @param args arguments passés dans la commande de lancement
+     * @param collinsa instance de collinsa sur laquelle appliquer le preset
+     **/
+    public void loop(String[] args, Collinsa collinsa) {}
 
     public enum EPreset {
 
@@ -30,7 +44,7 @@ public abstract class Preset {
             for (EPreset preset : EPreset.values())
                 if (preset.name().toLowerCase().equals(name.toLowerCase())) {
                     System.out.println("=====- RUNNING PRESET " + preset.name() + " -=====");
-                    preset.presetInstance.run(args, collinsa);
+                    preset.presetInstance.setup(args, collinsa);
 
                     // apply other args
                     try {
@@ -79,6 +93,8 @@ public abstract class Preset {
                     }
 
                     collinsa.start();
+
+                    preset.presetInstance.loop(args, collinsa);
                 }
 
         }

@@ -12,7 +12,7 @@ import java.awt.Color;
 public class Preset_1 extends Preset {
 
     @Override
-    public void run(String[] args, Collinsa collinsa) {
+    public void setup(String[] args, Collinsa collinsa) {
 
         //Création d'élements / entitées à ajouter à la simulation
         Physics physics = collinsa.getPhysics();

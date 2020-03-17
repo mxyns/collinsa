@@ -11,6 +11,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Moteur physique s'occupant de la logique physique du jeu.
@@ -76,7 +77,8 @@ public class Physics {
      *
      * Suppression d'entité plutôt rare. Add, Get et Next sont systématiquement utilisés
      */
-    final private ArrayList<Entity> entities = new ArrayList<>();
+    // FIXME: change this slow bs
+    final private CopyOnWriteArrayList<Entity> entities = new CopyOnWriteArrayList<>();
 
     /**
      * Largeur et hauteur de la simulation en mètres
@@ -248,7 +250,6 @@ public class Physics {
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
     }
 
-
     /**
      * Crée un hash unique de Chunk permettant de trouver à quel Chunk appartient le point
      * @return unique hash integer
@@ -269,7 +270,7 @@ public class Physics {
         float inv_massB = circleB.getInertia().getMassInv();
 
         // la normale de la collision
-        Vec2f normal = circleB.getPos().copy().sub(circleA.getPos());
+        Vec2f normal = circleA.getPos().copy().sub(circleB.getPos());
 
         float penetrationDepth = circleA.r + circleB.r - normal.mag();
 
@@ -279,27 +280,41 @@ public class Physics {
         float e = Math.min(circleA.getMaterial().restitution, circleB.getMaterial().restitution);
 
         // intensité de l'impulsion
-        float i = -(1+e) * Math.abs(circleB.getVel().copy().sub(circleA.getVel()).dot(normal));
-              i /= (inv_massA + inv_massB);
+        float i_n = (1+e) * Math.abs(circleB.getVel().copy().sub(circleA.getVel()).dot(normal));
+              i_n /= (inv_massA + inv_massB);
 
         // Vecteur de repositionnement
         // TODO : displacement based on mass ratios
         Vec2f displacementVector = normal.multOut(penetrationDepth*0.5f);
 
-        // Vecteur impulsion (modification vitesse)
-        normal.mult(i);
-
         // TODO if object is kinematic, transfer energy to other object
         // atm a kinematic object absorbs energy
         if(!circleA.isKinematic()) {
-            circleA.getPos().sub(displacementVector);
-            circleA.getVel().add(normal.x * inv_massA, normal.y * inv_massA);
+            circleA.getPos().add(displacementVector);
+            circleA.getVel().add(normal.x * i_n * inv_massA, normal.y * i_n * inv_massA);
         }
 
         if (!circleB.isKinematic()) {
-            circleB.getPos().add(displacementVector);
-            circleB.getVel().sub(normal.x * inv_massB, normal.y * inv_massB);
+            circleB.getPos().sub(displacementVector);
+            circleB.getVel().sub(normal.x * i_n * inv_massB, normal.y * i_n * inv_massB);
         }
+
+        Vec2f relativeSpeed = Vec2f.zero().add(circleB.getVel()).sub(circleA.getVel());
+        Vec2f tangent = Vec2f.zero().add(relativeSpeed).sub(normal.multOut(relativeSpeed.dot(normal)));
+
+        if (tangent.isNull()) return;
+        tangent.normalize();
+
+        float i_t = relativeSpeed.dot(tangent) / (inv_massA + inv_massB);
+
+        Vec2f frictionImpulse;
+        if (Math.abs(i_t) < Math.abs(i_n) * Material.frictionAverage(circleA.getMaterial().staticFriction, circleB.getMaterial().staticFriction))
+            frictionImpulse = tangent.mult(i_t);
+        else
+            frictionImpulse = tangent.mult(i_n * Material.frictionAverage(circleA.getMaterial().dynamicFriction, circleB.getMaterial().dynamicFriction));
+
+        circleA.getVel().add(frictionImpulse.x * inv_massA, frictionImpulse.y * inv_massA);
+        circleA.getVel().sub(frictionImpulse.x * inv_massB, frictionImpulse.y * inv_massB);
     }
 
     // TODO : circle drag / friction &
@@ -324,6 +339,8 @@ public class Physics {
             penetration = circle.r - clampedPos.dist(upos);
         }
 
+        Vec2f relativeSpeed = circle.getVel().copy().sub(rect.getVel());
+
         // Pas besoin de vérifier si la pénétration est positive car si cette méthode est utilisée, c'est que les objets sont en collision
         // donc que penetration > 0 est bien vraie
 
@@ -333,26 +350,48 @@ public class Physics {
         // la restitution est la plus petite des deux
         float e = Math.min(rect.getMaterial().restitution, circle.getMaterial().restitution);
 
-        // intensité de l'impulsion
-        float i = -(1+e) * Math.abs(rect.getVel().copy().sub(circle.getVel()).dot(normal));
-              i /= (rect_inv_mass + circle_inv_mass);
+        // coefficient d'impulsion en fonction des masses et de la restitution
+        // impulsion normale = k * vitesseRelative.normale
+        float i_n = (1+e) * Math.abs(relativeSpeed.dot(normal) / (rect_inv_mass + circle_inv_mass));
 
         // Vecteur de repositionnement
         // TODO: set 0.5f factor to 1 when one of the objects is kinematic to avoid sinking
         Vec2f displacementVector = normal.multOut(penetration * 0.5f);
 
-        // Vecteur impulsion (modification vitesse)
-        normal.mult(i);
-
         if (!circle.isKinematic()) {
             circle.getPos().add(displacementVector);
-            circle.getVel().sub(normal.x * circle_inv_mass, normal.y * circle_inv_mass);
+            circle.getVel().add(normal.x * i_n * circle_inv_mass, normal.y * i_n * circle_inv_mass);
         }
 
         if(!rect.isKinematic()) {
-            rect.getPos().add(displacementVector.neg());
-            rect.getVel().add(normal.x * rect_inv_mass, normal.y * rect_inv_mass);
+            rect.getPos().sub(displacementVector);
+            rect.getVel().sub(normal.x * i_n * rect_inv_mass, normal.y * i_n * rect_inv_mass);
         }
+
+        // Vecteur tangent, on le calcule ici puisque 'normal' est tjr unitaire, on utilise plus relativeSpeed et on a calculé sa projection
+        relativeSpeed.nil().add(rect.getVel()).sub(circle.getVel());
+        Vec2f tangent = Vec2f.zero().add(relativeSpeed).sub(normal.multOut(relativeSpeed.dot(normal)));
+
+
+        // Si on n'a pas de tangente, on n'a pas de frottements (tangente = 0 si relativeSpeed∙normal = relativeSpeed)
+        // Autrement dit si la vitesse relative entre les deux objets est seulement sur la normale
+        if (tangent.isNull()) return;
+        tangent.normalize();
+
+        float i_t = relativeSpeed.dot(tangent);
+        i_t /= (circle_inv_mass + rect_inv_mass);
+
+        // Loi de Coulomb F_frottements <= µF_normale(contact)
+        Vec2f frictionImpulse;
+        if (Math.abs(i_t) < Math.abs(i_n) * Material.frictionAverage(circle.getMaterial().staticFriction, rect.getMaterial().staticFriction))
+            frictionImpulse = tangent.mult(i_t);
+        else
+            frictionImpulse = tangent.mult(i_n * Material.frictionAverage(circle.getMaterial().dynamicFriction, rect.getMaterial().dynamicFriction));
+
+        if (!circle.isKinematic())
+            circle.getVel().add(frictionImpulse.x * circle_inv_mass, frictionImpulse.y * circle_inv_mass);
+        if (!rect.isKinematic())
+            rect.getVel().sub(frictionImpulse.x * rect_inv_mass, frictionImpulse.y * rect_inv_mass);
     }
 
     public void resolveRectangleRectangleCollision(Collision toResolve) {
@@ -374,7 +413,7 @@ public class Physics {
      * Renvoie l'array list contenant toutes les entités de la simulation
      * @return l'array list contenant toutes les entités
      */
-    public ArrayList<Entity> getEntities() {
+    public CopyOnWriteArrayList<Entity> getEntities() {
 
         return entities;
     }

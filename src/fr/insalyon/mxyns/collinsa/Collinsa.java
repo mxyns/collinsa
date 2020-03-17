@@ -103,7 +103,7 @@ public class Collinsa {
 
         // Test rotated circle-rect collision
         Rect rect3 = new Rect(Collinsa.INSTANCE.getPhysics().getWidth() / 2 + 300, Collinsa.INSTANCE.getPhysics().getHeight() / 2, 50, 150);
-        rect3.setRot(0);
+        rect3.setRot(0.3f);
 
         rect3.setVel(new Vec2f(150, 0));
         Circle circle5 = new Circle(rect3.getPos().x + 150, rect3.getPos().y - 50, 15);
@@ -115,7 +115,7 @@ public class Collinsa {
 
         physics.addEntity(caillou);*/
 
-        for (int i = 0; i < 20; ++i) {
+        for (int i = 0; i < 0; ++i) {
 
             Circle circle = new Circle((int) (Math.random() * INSTANCE.getPhysics().getWidth()), (int) (Math.random() * INSTANCE.getPhysics().getHeight()), 5);
 

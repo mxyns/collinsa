@@ -14,7 +14,7 @@ import java.awt.Color;
 public class Preset_2 extends Preset {
 
     @Override
-    public void run(String[] args, Collinsa collinsa) {
+    public void setup(String[] args, Collinsa collinsa) {
 
         float e = Material.DUMMY.getRestitution(), m = 10;
         int n = 1000;
@@ -24,6 +24,8 @@ public class Preset_2 extends Preset {
                 e = Float.parseFloat(Utils.getArgValue("e", args));
             if (Utils.lookForString("-n", args) != -1)
                 n = Integer.parseInt(Utils.getArgValue("n", args));
+            if (Utils.lookForString("-m", args) != -1)
+                m = Float.parseFloat(Utils.getArgValue("m", args));
         } catch (NumberFormatException | NullPointerException e1) {
             System.out.println("wrong parameters format");
         }
@@ -39,6 +41,8 @@ public class Preset_2 extends Preset {
 
             Circle circle = new Circle((int) (Math.random() * collinsa.getPhysics().getWidth()), (int) (Math.random() * collinsa.getPhysics().getHeight()), 5);
             circle.getMaterial().setRestitution(e);
+
+            circle.getInertia().setMass(m);
 
             // On redéfinit la couleur du matériau
             circle.setColor(new Color((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256)));

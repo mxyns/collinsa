@@ -220,6 +220,14 @@ public class Vec2f {
         return new Vec2f(x*mult, y*mult);
     }
 
+    public Vec2f div(float div) {
+
+        x /= div;
+        y /= div;
+
+        return this;
+    }
+
     /**
      * Produit scalaire d'un Vec2d avec le vecteur courant
      * @param other deuxième vecteur du produit scalaire
@@ -452,6 +460,14 @@ public class Vec2f {
         this.y = (float) y;
     }
 
+    public Vec2f nil() {
+
+        x = 0;
+        y = 0;
+
+        return this;
+    }
+
     /**
      * Renvoie un Vec2d équivalent au Vec2f courant
      * @return Vec2d avec les mêmes coordonées que le Vec2f courant
@@ -459,6 +475,11 @@ public class Vec2f {
     public Vec2d toDouble() {
 
         return new Vec2d(x,y);
+    }
+
+    public boolean isNull() {
+
+        return x == 0 && y == 0;
     }
 
     @Override
