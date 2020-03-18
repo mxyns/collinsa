@@ -210,7 +210,6 @@ public class CameraController extends MouseAdapter implements KeyListener {
         camera.move(x, y);
     }
 
-
     /**
      * Renvoie le zoom de la caméra
      * Le zoom c'est l'équivalent de la taille de ma caméra dans le monde. En effet, à échelle constante, si je veux zoomer je dois réduire la taille de ma caméra.
@@ -234,9 +233,13 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         if (zoom <= 0) return;
 
+        double oldHeight = camera.getHeight();
+
         this.camera.setHeight(renderer.getDestinationSize().getHeight() / (renderer.getRenderScale() * zoom));
 
-        //TODO move camera so that center of focus doesn't move
+        // Repositionnement de la caméra après zoom pour rester aligner avec le centre
+        oldHeight = (oldHeight - camera.getHeight()) * 0.5f;
+        this.moveCameraFocus((float)(oldHeight * camera.getRatio()), (float)oldHeight);
 
         renderer.setRenderFactor(zoom * renderer.getRenderScale());
     }

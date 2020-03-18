@@ -17,7 +17,6 @@ import java.awt.Toolkit;
 // TODO:
 //  - CollisionListener Interface if user wants to add specific actions on object
 //  - Layering to ignore collisions between some objects / objects types
-//  - Deactivation of an object (can be activated by some trigger box collision with a custom CollisionListener)
 
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme

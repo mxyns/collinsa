@@ -87,8 +87,10 @@ public class ProcessingThread extends ClockedThread {
                 // 1ère étape : mettre à jour les éléments
                 // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
                 if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
-                    entity.updateMillis(deltaTime);
-                } else entity.setVel(0, 0); // to prevent big speed spikes on entities colliding with deactivated objects
+                    if (entity.isActivated())
+                        entity.updateMillis(deltaTime);
+                } else
+                    physics.removeEntity(entity);
             }
 
             for (Entity entity : physics.getEntities())
@@ -110,6 +112,8 @@ public class ProcessingThread extends ClockedThread {
                 }
 
                 coll.resolve();
+
+                // trigger collision listeners
             }
 
         //System.out.println("detected " + collider.getRegisteredCollision().size() + " collisions");

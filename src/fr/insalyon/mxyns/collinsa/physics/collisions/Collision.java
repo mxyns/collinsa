@@ -23,6 +23,11 @@ public class Collision {
     Consumer<Collision> resolvingFunction;
 
     /**
+     * Type résultant de la collision, assigné au moment où resolve est appelée, utilisée dans les méthodes de résolutions de collisions
+     */
+    private CollisionType type;
+
+    /**
      * Instancie une Collision entre deux entités 'source' et 'target' qui sera résolue via la méthode resolvingFunction
      * @param source première entité impliquée dans la collision
      * @param target deuxième entité impliquée dans la collision
@@ -42,7 +47,7 @@ public class Collision {
 
         // Une collision entre deux éléments cinématiques ne doit pas être résolue puisqu'ils ignorent les modifications de position/vitesse/accélération/... causées par les autres éléments
         // On évite donc des calculs inutiles puisque les résultats ne seront pas utilisés. Par contre, on peut réagir à la détection de la collision (utilisation d'objets comme trigger box par exemple)
-        if (CollisionType.resultingType(source.getCollisionType(), target.getCollisionType()) != CollisionType.KINEMATIC)
+        if (source.isActivated() && target.isActivated() && (type = CollisionType.resultingType(source.getCollisionType(), target.getCollisionType())) != CollisionType.IGNORE)
             resolvingFunction.accept(this);
     }
 
@@ -62,6 +67,15 @@ public class Collision {
     public Entity getTarget() {
 
         return this.target;
+    }
+
+    /**
+     * Renvoie le type de collision, s'il n'a pas encore été calculé on le fait avant de le renvoyer
+     * @return type
+     */
+    public CollisionType getType() {
+
+        return type != null ? type : (type = CollisionType.resultingType(source.getCollisionType(), target.getCollisionType()));
     }
 
     /**
@@ -89,37 +103,37 @@ public class Collision {
     }
 
     /**
-     * Les différents types de collisions possibles, elastiques et non-elastiques
+     * Les différents types de collisions possibles : cinématiques ou classiques
      */
     public enum CollisionType {
 
         /**
          * Différents types de collisions
-         *  - ELASTIC : pas de perte d'énergie
-         *  - INELASTIC : perte d'énergie
-         *  - KINEMATIC : résiste à la collision
+         *  - CLASSIC : collision classique (elastique ou non-elastique selon les coefficients de restitution) avec tous les objets
+         *  - KINEMATIC : objets cinématiques, dirigés uniquement par vitesse/acc/etc. résistent à la collision et n'interagissent pas avec les autres objets de type KINEMATIC
+         *  - IGNORE : ignore totalement toutes collisions, et ne n'interagit avec aucune entité
          */
-        ELASTIC, INELASTIC, KINEMATIC;
+        CLASSIC, KINEMATIC, IGNORE;
 
         /**
          * Détermine le type de méthode de calcul à employer pour résoudre la collision entre deux types de collisions différents
-         * INELASTIC > ELASTIC > KINEMATIC
+         * IGNORE > KINEMATIC > CLASSIC
          * @param type1 type du premier objet impliqué dans la collision
          * @param type2 type du deuxième objet impliqué dans la collision
          * @return type de collision résultant
          */
         public static CollisionType resultingType(CollisionType type1, CollisionType type2) {
 
-            if (type1 == null || type1 == KINEMATIC) return type2;
-            if (type2 == null || type2 == KINEMATIC) return type1;
+            if (type1 == null || type2 == null || type1 == IGNORE || type2 == IGNORE)
+                return IGNORE;
 
-            if (type1 == type2)
-                return type1;
-            else if ((type1 == ELASTIC && type2 == INELASTIC) || (type1 == INELASTIC && type2 == ELASTIC)) {
-                return INELASTIC;
-            }
+            if (type1 == KINEMATIC || type2 == KINEMATIC)
+                if (type1 == type2)
+                    return IGNORE;
+                else
+                    return KINEMATIC;
 
-            return ELASTIC;
+            return CLASSIC;
         }
     }
 }

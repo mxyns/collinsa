@@ -286,6 +286,8 @@ public class Vec2f {
     public Vec2f normalize() {
 
         double mag = Math.sqrt(x*x + y*y);
+        if (mag == 0) return null;
+
         this.x /= mag;
         this.y /= mag;
 
@@ -330,7 +332,6 @@ public class Vec2f {
 
         return (float)Math.atan2(x*other.x + y*other.y, x*other.y - other.x*y);
     }
-
     /**
      * Tourne le vecteur courant d'un angle 'angle' orienté dans le sens direct
      * @param angle angle de rotation
@@ -346,6 +347,7 @@ public class Vec2f {
 
         return this;
     }
+
     /**
      * Tourne le vecteur courant d'un angle 'angle' orienté dans le sens direct
      * @param angle angle de rotation
@@ -422,7 +424,6 @@ public class Vec2f {
 
         this.x = x;
     }
-
     /**
      * Redéfini la coordonnée y du vecteur
      * @param y coordoonée y
@@ -431,6 +432,7 @@ public class Vec2f {
 
         this.y = y;
     }
+
     /**
      * Redéfini les coordonnées du vecteur
      * @param x coordoonée x

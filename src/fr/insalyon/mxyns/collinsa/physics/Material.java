@@ -13,6 +13,7 @@ public class Material {
 
     /**
      * Coefficient de restitution, représente l'élasticité ou la "bounciness" / rebond
+     * e = 1 <=> collision élastique
      */
     float restitution;
 

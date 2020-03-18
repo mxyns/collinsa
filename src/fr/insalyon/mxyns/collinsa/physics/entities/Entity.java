@@ -48,7 +48,7 @@ public abstract class Entity {
     /**
      * Type de collision, détermine si l'objet aura des collisions elastiques ou non avec les autres objets
      */
-    private CollisionType collisionType = CollisionType.ELASTIC;
+    private CollisionType collisionType = CollisionType.CLASSIC;
 
     /**
      * AABB (dims. en mètres) correspondant à l'AABB de l'entité
@@ -69,6 +69,11 @@ public abstract class Entity {
      * Couleur de l'entité
      */
     private Color color;
+
+    /**
+     * Défini si une entité est activée, si elle ne l'est pas, sa vitesse, position, etc. ne sont pas mis à jour et elle ignore les collisions
+     */
+    private boolean activated = true;
 
     /**
      * Constructeur global
@@ -349,5 +354,15 @@ public abstract class Entity {
     public Inertia getInertia() {
 
         return inertia;
+    }
+
+    public boolean isActivated() {
+
+        return activated;
+    }
+
+    public void setActivated(boolean activated) {
+
+        this.activated = activated;
     }
 }

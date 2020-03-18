@@ -259,9 +259,7 @@ public class Physics {
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
     }
 
-    // TODO : manage mass, angularSpeed, material friction / restitution
-
-    // TODO : manage rotating circle's drag (friction)
+    // TODO : manage mass, angularSpeed
     public static void resolveCircleCircleCollision(Collision toResolve) {
 
         Circle circleA = (Circle) toResolve.getSource();
@@ -274,7 +272,8 @@ public class Physics {
 
         float penetrationDepth = circleA.r + circleB.r - normal.mag();
 
-        normal.normalize();
+        if(normal.normalize() == null) // résout les pbs d'infini
+            return;
 
         // la restitution est la plus petite des deux
         float e = Math.min(circleA.getMaterial().restitution, circleB.getMaterial().restitution);
@@ -302,8 +301,8 @@ public class Physics {
         Vec2f relativeSpeed = Vec2f.zero().add(circleB.getVel()).sub(circleA.getVel());
         Vec2f tangent = Vec2f.zero().add(relativeSpeed).sub(normal.multOut(relativeSpeed.dot(normal)));
 
-        if (tangent.isNull()) return;
-        tangent.normalize();
+        if (tangent.normalize() == null)
+            return;
 
         float i_t = relativeSpeed.dot(tangent) / (inv_massA + inv_massB);
 
@@ -313,11 +312,12 @@ public class Physics {
         else
             frictionImpulse = tangent.mult(i_n * Material.frictionAverage(circleA.getMaterial().dynamicFriction, circleB.getMaterial().dynamicFriction));
 
-        circleA.getVel().add(frictionImpulse.x * inv_massA, frictionImpulse.y * inv_massA);
-        circleA.getVel().sub(frictionImpulse.x * inv_massB, frictionImpulse.y * inv_massB);
+        if (!circleA.isKinematic())
+            circleA.getVel().add(frictionImpulse.x * inv_massA, frictionImpulse.y * inv_massA);
+        if(!circleB.isKinematic())
+            circleB.getVel().sub(frictionImpulse.x * inv_massB, frictionImpulse.y * inv_massB);
     }
 
-    // TODO : circle drag / friction &
     public static void resolveCircleRectangleCollision(Collision toResolve) {
 
         Circle circle = (Circle) toResolve.getSource();
@@ -332,12 +332,14 @@ public class Physics {
         Vec2f normal; float penetration;
         if (clampedPos.sqrdDist(upos) == 0.0f) {
             clampedPos = Geometry.clampPointInsideRect(upos.toDouble(), rect).toFloat();
-            normal = clampedPos.copy().sub(upos).normalize();
+            normal = clampedPos.copy().sub(upos);
             penetration = circle.r + clampedPos.dist(upos);
         } else {
-            normal = upos.copy().sub(clampedPos).normalize();
+            normal = upos.copy().sub(clampedPos);
             penetration = circle.r - clampedPos.dist(upos);
         }
+        if(normal.normalize() == null) // résout les pbs d'infini
+            return;
 
         Vec2f relativeSpeed = circle.getVel().copy().sub(rect.getVel());
 
@@ -375,8 +377,8 @@ public class Physics {
 
         // Si on n'a pas de tangente, on n'a pas de frottements (tangente = 0 si relativeSpeed∙normal = relativeSpeed)
         // Autrement dit si la vitesse relative entre les deux objets est seulement sur la normale
-        if (tangent.isNull()) return;
-        tangent.normalize();
+        if (tangent.normalize() == null) // si la tangente est trop petite (car vitesse relative trop petite) pour être normalisée, on arrête tout pour ne pas avoir de vitesse/position infini ou NaN
+            return;
 
         float i_t = relativeSpeed.dot(tangent);
         i_t /= (circle_inv_mass + rect_inv_mass);
@@ -395,7 +397,6 @@ public class Physics {
     }
 
     public void resolveRectangleRectangleCollision(Collision toResolve) {
-
 
     }
 

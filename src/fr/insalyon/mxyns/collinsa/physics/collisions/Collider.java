@@ -72,6 +72,9 @@ public class Collider {
         //BottomLeft
         chunksToAddEntityTo.add(physics.getPositionHash(aabb.x, aabb.y + aabb.h));
 
+        // Center
+        chunksToAddEntityTo.add(physics.getPositionHash(e.getPos()));
+
         return chunksToAddEntityTo;
     }
 
@@ -88,6 +91,7 @@ public class Collider {
         //TODO: optimize list type
         // On ne veut pas de doublons, et on parcourera la liste sans accès aléatoire
         // LinkedHashSet est donc un bon candidat
+        // Il faut trouver une bonne fonction de hashing encore une fois. Sinon c'est pas rapide.
         LinkedHashSet<Entity> nearby = new LinkedHashSet<>();
         Set<Integer> chunksId = getChunksContaining(e);
 
@@ -129,7 +133,7 @@ public class Collider {
     public void checkForCollision(Entity entity, Entity target) {
 
         // Broad phase
-        if (!entity.getAABB().intersects(target.getAABB())) {
+        if (entity.getCollisionType() == Collision.CollisionType.IGNORE || target.getCollisionType() == Collision.CollisionType.IGNORE || !entity.getAABB().intersects(target.getAABB())) {
 
             if (displayCollisionColor) {
                 entity.setColor(Color.green);
@@ -209,7 +213,7 @@ public class Collider {
 
     /**
      * Renvoie le registre des collisions détectées lors du tick
-     * @return
+     * @return collisions
      */
     public LinkedHashSet<Collision> getRegisteredCollision() {
 
