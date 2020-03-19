@@ -85,7 +85,7 @@ public class Geometry {
         Vec2d clampedPosition = clampPointToRect(unrotatedCirclePos, rect);
 
         // Si ce vecteur est plus petit que le rayon du cercle, alors le cercle et le rectangle sont en intersection
-        return unrotatedCirclePos.sqrdDist(clampedPosition) < circle.r*circle.r;
+        return unrotatedCirclePos.sqrdDist(clampedPosition) < circle.getR() * circle.getR();
     }
 
     /**
@@ -224,10 +224,10 @@ public class Geometry {
     public static Vec2d clampPointInsideRect(Vec2d point, Rect rect) {
 
         Vec2d[] possibilities = {
-            new Vec2d(point.x, rect.getPos().y - rect.size.y * 0.5),
-            new Vec2d(point.x, rect.getPos().y + rect.size.y*0.5),
-            new Vec2d(rect.getPos().x + rect.size.x*0.5, point.y),
-            new Vec2d(rect.getPos().x - rect.size.x*0.5, point.y)
+            new Vec2d(point.x, rect.getPos().y - rect.getSize().y * 0.5),
+            new Vec2d(point.x, rect.getPos().y + rect.getSize().y * 0.5),
+            new Vec2d(rect.getPos().x + rect.getSize().x * 0.5, point.y),
+            new Vec2d(rect.getPos().x - rect.getSize().x * 0.5, point.y)
         };
 
         return nearestPoint(point, possibilities);

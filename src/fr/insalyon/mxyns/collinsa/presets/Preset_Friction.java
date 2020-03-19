@@ -56,6 +56,14 @@ public class Preset_Friction extends Preset {
         r_bouncy.setCollisionType(Collision.CollisionType.KINEMATIC);
         physics.addEntity(r_bouncy);
 
+        Rect smallMill = new Rect(175, 425, 100, 10);
+        smallMill.setMaterial(Material.DUMMY.copy());
+        smallMill.getInertia().setMass(100);
+        smallMill.setRot(.5f);
+        smallMill.setAngVel(-2f);
+        smallMill.setCollisionType(Collision.CollisionType.KINEMATIC);
+        physics.addEntity(smallMill);
+
         Rect r_cyan = new Rect(250, 500, 500, 30);
         r_cyan.setColor(Color.cyan);
         r_cyan.getInertia().setMass(cyanMass);
@@ -72,11 +80,11 @@ public class Preset_Friction extends Preset {
         mill.setActivated(true);
         physics.addEntity(mill);
 
-        Rect r_landing = new Rect(725, 725, 525, 15);
+        Rect r_landing = new Rect(725, 650, 525, 15);
         r_landing.setMaterial(Material.DUMMY.copy());
         r_landing.getMaterial().setStaticFriction(Material.DUMMY.getStaticFriction()/2);
         r_landing.getMaterial().setDynamicFriction(Material.DUMMY.getDynamicFriction()/2);
-        r_landing.setRot(.8f);
+        r_landing.setRot(.0f);
         r_landing.setCollisionType(Collision.CollisionType.KINEMATIC);
         r_landing.setColor(Color.black);
         physics.addEntity(r_landing);
@@ -98,7 +106,7 @@ public class Preset_Friction extends Preset {
             vx = (int) (15*Math.random()) + 1;
             vy = (int) (30*Math.random()) + 1;
 
-            vx*=2.5f;
+            vx*=5f;
             vy*=5;
 
             Circle circle = new Circle(x, y, (int) (2 * Math.random()) + 2);

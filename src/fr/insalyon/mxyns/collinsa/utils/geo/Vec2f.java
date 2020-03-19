@@ -248,6 +248,7 @@ public class Vec2f {
         return x*other.y - other.x*y;
     }
 
+
     /**
      * Multiplie le vecteur courant par -1 // Le rend égal à son opposé
      * @return vecteur courant modifié
@@ -479,9 +480,19 @@ public class Vec2f {
         return new Vec2d(x,y);
     }
 
-    public boolean isNull() {
+    public static float cross(Vec2f vecA, Vec2f vecB) {
 
-        return x == 0 && y == 0;
+        return vecA.x * vecB.y - vecB.x * vecA.y;
+    }
+
+    public static Vec2f cross(Vec2f vec, float s) {
+
+        return new Vec2f(vec.y*s, -s*vec.x);
+    }
+
+    public static Vec2f cross(float s, Vec2f vec) {
+
+        return new Vec2f(-vec.y*s, s*vec.x);
     }
 
     @Override

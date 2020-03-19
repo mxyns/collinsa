@@ -52,14 +52,13 @@ public class Collinsa {
         // Paramètres par défaut
             // Renderer settings
             // On pose une échelle d'affichage de 1 px/m
-            //getRenderer().setRenderScale(1);
+            INSTANCE.getRenderer().setRenderScale(1);
 
             // On pose un zoom caméra inital de x1.0
-            //getRenderer().getCameraController().setCameraZoom(1f);
-            INSTANCE.getRenderer().setRenderChunksBounds(true);
+            INSTANCE.getRenderer().getCameraController().setCameraZoom(1f);
+            INSTANCE.getRenderer().setRenderChunksBounds(false);
             INSTANCE.getRenderer().setRenderEntitiesAABB(false);
-            INSTANCE.getRenderer().setRenderCoordinateSystem(true);
-            INSTANCE.getRenderer().setAABBBoundsColor(Color.BLACK);
+            INSTANCE.getRenderer().setRenderCoordinateSystem(false);
 
             // Physics settings
             INSTANCE.getPhysics().setRealtime(false);
@@ -67,6 +66,7 @@ public class Collinsa {
             // On pose le framerate voulu
             INSTANCE.setFramerate(60);
 
+        // new Interface("qdzdzqd", 1200, 800);
 
         // Si on a activé un preset dans les paramètres de lancement on l'execute et on n'execute pas le programme principal
         if (args.length > 0 && args[0].equals("-s") && args.length > 1) {
@@ -140,8 +140,6 @@ public class Collinsa {
         test.setRot(0.2f);
 
         physics.addEntity(test);
-
-        // new Interface("qdzdzqd", 1200, 800);
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();

@@ -13,4 +13,13 @@ public abstract class Polygon extends Entity{
 
         super(x, y);
     }
+
+    @Override
+    public float computeJ() {
+
+        return 0;
+    }
+
+    @Override
+    public float getVolume() {return 0;}
 }

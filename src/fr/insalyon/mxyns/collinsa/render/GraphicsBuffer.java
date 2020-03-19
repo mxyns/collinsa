@@ -102,8 +102,9 @@ public class GraphicsBuffer {
      */
     public void resetBackBuffer() {
 
-        getGraphics().setColor(backgroundColor);
-        getGraphics().fillRect(0, 0, imageSize.width, imageSize.height);
+        Graphics graphics = getGraphics2D();
+        graphics.setColor(backgroundColor);
+        graphics.fillRect(0, 0, imageSize.width, imageSize.height);
     }
 
     /**
@@ -149,5 +150,15 @@ public class GraphicsBuffer {
     public Dimension getImageSize() {
 
         return imageSize;
+    }
+
+    public Color getBackgroundColor() {
+
+        return backgroundColor;
+    }
+
+    public void setBackgroundColor(Color backgroundColor) {
+
+        this.backgroundColor = backgroundColor;
     }
 }

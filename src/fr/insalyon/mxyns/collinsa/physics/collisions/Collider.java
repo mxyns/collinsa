@@ -167,7 +167,7 @@ public class Collider {
      */
     public void checkForCircleCircleCollision(Circle entity, Circle target) {
 
-        if (entity.getPos().sqrdDist(target.getPos()) <= Math.pow(entity.r + target.r, 2))
+        if (entity.getPos().sqrdDist(target.getPos()) <= Math.pow(entity.getR() + target.getR(), 2))
             logCollision(entity, target, Physics::resolveCircleCircleCollision);
     }
 

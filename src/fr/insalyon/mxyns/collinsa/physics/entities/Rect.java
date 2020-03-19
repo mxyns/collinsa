@@ -20,7 +20,7 @@ public class Rect extends Entity {
     /**
      * Vec2f contenant la taille du Rect : (width, height)
      */
-    public Vec2f size;
+    private Vec2f size;
 
     /**
      * Crée un rectangle à partir d'un vecteur position (centre), et un vecteur taille
@@ -32,6 +32,7 @@ public class Rect extends Entity {
         super(pos);
         this.size = size;
 
+        getInertia().update(this);
         updateAABB();
     }
 
@@ -47,6 +48,7 @@ public class Rect extends Entity {
         super(x, y);
         size = new Vec2f((float)w, (float)h);
 
+        getInertia().update(this);
         updateAABB();
     }
 
@@ -58,6 +60,15 @@ public class Rect extends Entity {
 
         return size;
     }
+    /**
+     * Change la taille du rectangle et met à jour son inertie en fonction des nouvelles dimensions
+     * @return size (w, h)
+     */
+    public void setSize(Vec2f size) {
+
+        this.size = size;
+        getInertia().update(this);
+    }
 
     /**
      * Renvoie le tableau contenant la position des 4 coins du Rect
@@ -68,15 +79,28 @@ public class Rect extends Entity {
         return corners;
     }
 
-    public String toString() {
-
-        return "Rect[center=" + pos + ", size=" + size + "]";
-    }
-
     @Override
     public void render(Renderer renderer, Graphics2D g) {
 
         renderer.renderRect(this, g);
+    }
+
+    @Override
+    public float computeJ() {
+
+        if (size != null)
+            return getInertia().getMass() * getSize().squaredMag() / 12;
+
+        return 0;
+    }
+
+    @Override
+    public float getVolume() {
+
+        if (size != null)
+            return size.x * size.y * 1;
+
+        return 0;
     }
 
     @Override
@@ -96,5 +120,10 @@ public class Rect extends Entity {
         this.aabb.y = minCorner.y;
         this.aabb.w = maxCorner.x - minCorner.x;
         this.aabb.h = maxCorner.y - minCorner.y;
+    }
+
+    public String toString() {
+
+        return "Rect[center=" + pos + ", size=" + size + "]";
     }
 }

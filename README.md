@@ -14,6 +14,8 @@ From `src` folder :
    - `--showChunks [false|true]` to display the chunks' bounds
    - `--chunkColor (String from java.awt.Color fields' names)` to change their color (works like aabbColor)
    - `--showWorldBounds [false|true]` to display the world's boundaries
+   - `--worldBoundsColor (String from java.awt.Color fields' names)` to change their color (works like aabbColor)
+   - `--bgColor (String from java.awt.Color fields' names)` to change the background's color (works like aabbColor)
    - `--scale (float)` to set the rendering scale in px/m 
    - `--realtime [false|true]` to define if the simulation must run in realtime or not (i.e. 1 sec IRL <=> 1 sec in simulation). requires higher `fpsp` rate
    - `--dt (int)` interval of time per timestep (if realtime = false)

@@ -13,7 +13,7 @@ public class Circle extends Entity {
     /**
      * Rayon du cercle en mètres
      */
-    public float r;
+    private float r;
 
     /**
      * Crée un cercle à partir d'un vecteur position et d'un rayon
@@ -37,8 +37,10 @@ public class Circle extends Entity {
     public Circle(double x, double y, float r) {
 
         super(x, y);
+
         this.r = r;
 
+        getInertia().update(this);
         updateAABB();
     }
 
@@ -46,6 +48,18 @@ public class Circle extends Entity {
     public void render(Renderer renderer, Graphics2D g) {
 
         renderer.renderCircle(this, g);
+    }
+
+    @Override
+    public float computeJ() {
+
+        return 0.5f * getInertia().getMass() * this.r * this.r;
+    }
+
+    @Override
+    public float getVolume() {
+
+        return (float) (Math.PI * this.r * this.r * 1);
     }
 
     @Override
@@ -61,6 +75,17 @@ public class Circle extends Entity {
         this.aabb.y = pos.y - r;
         this.aabb.w = 2 * r;
         this.aabb.h = this.aabb.w;
+    }
+
+    public float getR() {
+
+        return r;
+    }
+
+    public void setR(float r) {
+
+        this.r = r;
+        this.getInertia().update(this);
     }
 
     public String toString() {

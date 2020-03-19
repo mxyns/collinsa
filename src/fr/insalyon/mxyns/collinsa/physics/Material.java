@@ -7,9 +7,9 @@ import java.awt.Color;
  */
 public class Material {
 
-    public static Material DUMMY = new Material(0.7f, 0.2f, 0.1f, Color.blue);
-    public static Material STICKY = new Material(0.5f, 1f, 0.9f, new Color(120, 0, 0));
-    public static Material BOUNCY = new Material(3f, 0.05f, 0.025f, new Color(0, 120, 0));
+    public static Material DUMMY = new Material(1, 0.7f, 0.2f, 0.1f, Color.blue);
+    public static Material STICKY = new Material(1, 0.5f, 1f, 0.9f, new Color(120, 0, 0));
+    public static Material BOUNCY = new Material(1, 3f, 0.05f, 0.025f, new Color(0, 120, 0));
 
     /**
      * Coefficient de restitution, représente l'élasticité ou la "bounciness" / rebond
@@ -38,11 +38,12 @@ public class Material {
      */
     float density;
 
-    public Material(float restitution, float staticFriction, float dynamicFriction, Color color) {
+    public Material(float density, float restitution, float staticFriction, float dynamicFriction, Color color) {
 
         this.restitution = restitution;
         this.staticFriction = staticFriction;
         this.dynamicFriction = dynamicFriction;
+        this.density = density;
         this.color = color;
     }
 
@@ -53,6 +54,16 @@ public class Material {
     public Color getColor() {
 
         return color;
+    }
+
+    public float getDensity() {
+
+        return density;
+    }
+
+    public void setDensity(float density) {
+
+        this.density = density;
     }
 
     public float getRestitution() {
@@ -90,13 +101,12 @@ public class Material {
         this.dynamicFriction = dynamicFriction;
     }
 
-
     /**
      * Renvoie une copie du matériau, permet de ne pas avoir tous les éléments d'un même matériau liés
      * @return copy of the current material
      */
     public Material copy() {
 
-        return new Material(restitution, staticFriction, dynamicFriction, color);
+        return new Material(density, restitution, staticFriction, dynamicFriction, color);
     }
 }

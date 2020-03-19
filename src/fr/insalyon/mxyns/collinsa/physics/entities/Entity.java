@@ -84,7 +84,8 @@ public abstract class Entity {
         acc = Vec2f.zero();
         aabb = new AABB(0, 0, 0, 0);
         color = Color.black;
-        inertia = new Inertia(this);
+
+        inertia = new Inertia();
         setMaterial(Material.DUMMY.copy());
     }
 
@@ -122,14 +123,9 @@ public abstract class Entity {
      */
     public abstract double getMaximumSize();
 
-    /**
-     * Méthode renvoyant la AABB (Axis Aligned Bounding Box) de l'entité
-     * @return AABB de l'entité sous forme de Rectangle
-     */
-    public AABB getAABB() {
+    public abstract float computeJ();
 
-        return aabb;
-    }
+    public abstract float getVolume();
 
     /**
      * Méthode abstraite mettant à jour la AABB (Axis Aligned Bounding Box) de l'entité
@@ -164,6 +160,18 @@ public abstract class Entity {
         rot += angVel * elapsed;
 
         updateAABB();
+    }
+
+
+    // GETTERS & SETTERS
+
+    /**
+     * Méthode renvoyant la AABB (Axis Aligned Bounding Box) de l'entité
+     * @return AABB de l'entité sous forme de Rectangle
+     */
+    public AABB getAABB() {
+
+        return aabb;
     }
 
     /**
@@ -214,7 +222,6 @@ public abstract class Entity {
         this.vel.x = x;
         this.vel.y = y;
     }
-
 
     /**
      * Renvoie le vecteur accélération de l'entité
@@ -349,6 +356,7 @@ public abstract class Entity {
 
         this.material = material;
         this.color = material.getColor();
+        this.inertia.update(this);
     }
 
     public Inertia getInertia() {

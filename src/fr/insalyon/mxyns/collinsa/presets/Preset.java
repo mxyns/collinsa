@@ -30,7 +30,10 @@ public abstract class Preset {
 
         PRESET_1(new Preset_1()),
         PRESET_2(new Preset_2()),
-        Friction(new Preset_Friction());
+        Friction(new Preset_Friction()),
+        Angular_Velocity(new Preset_AngularVelocity()),
+        Wheel(new Preset_AngularVelocity()),
+        GazTest(new Preset_GazTest());
 
         private Preset presetInstance;
 
@@ -67,7 +70,7 @@ public abstract class Preset {
                         if (Utils.lookForString("--chunkColor", args) != -1) {
                             Color color = null;
                             try {
-                                color = (Color)Color.class.getField(Utils.getArgValue("-chunkColor", args).toUpperCase()).get(null);
+                                color = (Color)Color.class.getField(Utils.getArgValue("-chunkColor", args)).get(null);
                             } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
                                 e.printStackTrace();
                             }
@@ -88,6 +91,26 @@ public abstract class Preset {
                             collinsa.getRenderer().getRenderingThread().setFramerate(Integer.parseInt(Utils.getArgValue("-fpsr", args)));
                         if (Utils.lookForString("--fpsd", args) != -1)
                             collinsa.getMainFrame().getSandboxPanel().getRefreshingThread().setRefreshRate(Integer.parseInt(Utils.getArgValue("-fpsd", args)));
+                        if (Utils.lookForString("--bgColor", args) != -1) {
+                            Color color = null;
+                            try {
+                                color = (Color) Color.class.getField(Utils.getArgValue("-bgColor", args)).get(null);
+                            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+                                e.printStackTrace();
+                            }
+                            if (color != null)
+                                collinsa.getRenderer().getGraphicsBuffer().setBackgroundColor(color);
+                        }
+                        if (Utils.lookForString("--worldBoundsColor", args) != -1) {
+                            Color color = null;
+                            try {
+                                color = (Color) Color.class.getField(Utils.getArgValue("-worldBoundsColor", args)).get(null);
+                            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+                                e.printStackTrace();
+                            }
+                            if (color != null)
+                                collinsa.getRenderer().setWorldBoundsColor(color);
+                        }
                     } catch (NumberFormatException | NullPointerException e1) {
                         System.out.println("wrong parameters format");
                     }

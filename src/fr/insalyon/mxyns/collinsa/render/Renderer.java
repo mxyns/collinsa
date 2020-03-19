@@ -9,12 +9,10 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
 import static fr.insalyon.mxyns.collinsa.Collinsa.INSTANCE;
@@ -54,34 +52,14 @@ public class Renderer {
     private double factor = 1.0f;
 
     /**
-     * Détermine si le Renderer dessine les contours des Chunks
+     * Détermine si le Renderer dessine les contours des Chunks, les AABB, les bords du monde et le repère utilisé.
      */
-    private boolean renderChunksBounds = false;
+    private boolean renderChunksBounds = false, renderEntitiesAABB = false, renderWorldBounds = true, renderCoordinateSystem = false;
 
     /**
-     * Détermine si le Renderer dessine les AABB
+     * Couleur des bordures de Chunks (si dessinées), des bounding boxes des entités et des bords du monde
      */
-    private boolean renderEntitiesAABB = false;
-
-    /**
-     * Détermine si le Renderer dessine les bords du monde
-     */
-    private boolean renderWorldBounds = true;
-
-    /**
-     * Détermine si le Renderer dessine le repère utilisé.
-     */
-    private boolean renderCoordinateSystem = false;
-
-    /**
-     * Couleur des bordures de Chunks (si dessinées)
-     */
-    private Color chunkBoundsColor = Color.black;
-
-    /**
-     * Couleur des bordures de Chunks (si dessinées)
-     */
-    private Color AABBBoundsColor = Color.yellow;
+    private Color chunkBoundsColor = Color.black, AABBBoundsColor = Color.yellow, worldBoundsColor = Color.black;
 
     /**
      * Crée un Renderer vide inutilisable. Besoin de définir une destination de rendu.
@@ -151,10 +129,10 @@ public class Renderer {
             if(shouldRenderChunk(chunk))
                 renderChunk(chunk, g);
 
-        g.setColor(Color.black);
 
         // On affiche les limites du monde si voulu (renderWorldBounds = true)
         if (renderWorldBounds) {
+            g.setColor(worldBoundsColor);
             g.drawRect((int)(-camera.getPos().x * factor),(int)(-camera.getPos().y * factor), (int) (factor * physics.getWidth()), (int) (factor * physics.getHeight()));
         }
 
@@ -183,7 +161,6 @@ public class Renderer {
 
         graphicsBuffer.resetBackBuffer();
         renderSandbox(physics, graphicsBuffer.getGraphics2D());
-
         graphicsBuffer.flip();
     }
 
@@ -232,7 +209,10 @@ public class Renderer {
     public void renderCircle(Circle circle, Graphics2D g) {
 
         g.setColor(circle.getColor());
-        g.draw(new Ellipse2D.Double(factor * (circle.getPos().x - circle.r - camera.getPos().x), factor * (circle.getPos().y - circle.r - camera.getPos().y), 2 * factor * circle.r, 2 * factor *circle.r));
+        g.rotate(circle.getRot(), factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - camera.getPos().y));
+        g.draw(new Ellipse2D.Double(factor * (circle.getPos().x - circle.getR() - camera.getPos().x), factor * (circle.getPos().y - circle.getR() - camera.getPos().y), 2 * factor * circle.getR(), 2 * factor * circle.getR()));
+        g.draw(new Line2D.Double(factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - camera.getPos().y), factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - circle.getR() - camera.getPos().y)));
+        g.rotate(-circle.getRot(), factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - camera.getPos().y));
     }
 
     /**
@@ -244,7 +224,7 @@ public class Renderer {
 
         g.setColor(rect.getColor());
         g.rotate(rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
-        g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.size.x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.size.y * 0.5f - camera.getPos().y), factor * rect.size.x, factor * rect.size.y));
+        g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.getSize().x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.getSize().y * 0.5f - camera.getPos().y), factor * rect.getSize().x, factor * rect.getSize().y));
 
         g.rotate(-rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
 
@@ -286,9 +266,6 @@ public class Renderer {
 
         this.graphicsBuffer = new GraphicsBuffer(width, height);
         cameraController.setCameraDisplayBoundsInPixels(width, height);
-
-        // A faire soit même (pour éviter de le faire deux fois, et pour éviter un pb de récursion puisqu'on pourrait très bien faire renderer.setDestination(this) dans le setRenderer du panel)
-        //destination.setRenderer(this);
     }
 
 
@@ -475,6 +452,24 @@ public class Renderer {
     public GraphicsBuffer getGraphicsBuffer() {
 
         return this.graphicsBuffer;
+    }
+
+    /**
+     * Renvoie la couleur des bordures de monde
+     * @return worldBoundsColor
+     */
+    public Color getWorldBoundsColor() {
+
+        return worldBoundsColor;
+    }
+
+    /**
+     * Redéfinit la couleur des bordures de monde
+     * @param worldBoundsColor nouvelle couleur des bords du monde
+     */
+    public void setWorldBoundsColor(Color worldBoundsColor) {
+
+        this.worldBoundsColor = worldBoundsColor;
     }
 
     public String toString() {
