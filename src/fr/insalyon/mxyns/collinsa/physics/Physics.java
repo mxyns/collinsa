@@ -262,8 +262,8 @@ public class Physics {
     // TODO : change all float computations by double computations for more precision
 
     /**
-     * Calcule la
-     * @param toResolve
+     * Calcule la normale et les points de contacts entre deux cercles avant d'appliquer une bounceImpulse et une frictionImpulse
+     * @param toResolve collision entre deux cercles
      */
     public static void resolveCircleCircleCollision(Collision toResolve) {
 
@@ -285,6 +285,10 @@ public class Physics {
         frictionImpulse(circleA, circleB, centerToContactA, centerToContactB, normal, i_n);
     }
 
+    /**
+     * Calcule la normale et les points de contacts entre un cercle et un rectangle avant d'appliquer une bounceImpulse et une frictionImpulse
+     * @param toResolve collision entre les deux objets (cercle en source et rectangle en target)
+     */
     public static void resolveCircleRectangleCollision(Collision toResolve) {
 
         Circle circle = (Circle) toResolve.getSource();
@@ -322,6 +326,16 @@ public class Physics {
 
     }
 
+    /**
+     * Calcule et applique une bounce impulse : une correction de vitesse pour prendre en compte une collision
+     * @param entityA première entité impliquée dans la collision (source en général)
+     * @param entityB deuxième entité impliquée dans la collision (target en général)
+     * @param rA vecteur partant du centre de rotation de l'entité A vers son point de contact
+     * @param rB vecteur partant du centre de rotation de l'entité B vers son point de contact
+     * @param normal normale (unitaire) au point de contact (orientée de B vers A)
+     * @param penetration profondeur de penetration de l'objet A dans B (ou inversement). positif.
+     * @return intensité de l'impulse appliquée à A selon normale (pour B il faut prendre l'opposé)
+     */
     private static float bounceImpulse(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normal, float penetration) {
 
         float rACrossNSqrd = Vec2f.cross(rA, normal)*Vec2f.cross(rA, normal);
@@ -362,6 +376,15 @@ public class Physics {
         return i_n;
     }
 
+    /**
+     * Calcule et applique une friction impulse : une correction de vitesse pour prendre en compte les frottements lors d'une collision
+     * @param entityA première entité impliquée dans la collision (source en général)
+     * @param entityB deuxième entité impliquée dans la collision (target en général)
+     * @param rA vecteur partant du centre de rotation de l'entité A vers son point de contact
+     * @param rB vecteur partant du centre de rotation de l'entité B vers son point de contact
+     * @param normal normale (unitaire) au point de contact (orientée de B vers A)
+     * @param i_n intensité de la bounce impulse appliquée à cette collision (résultat de bounceImpulse)
+     */
     private static void frictionImpulse(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normal, float i_n) {
 
         Vec2f speedA = entityA.getVel().copy().add(Vec2f.cross(entityA.getAngVel(), rA));
@@ -399,10 +422,15 @@ public class Physics {
 
         if (!entityA.isKinematic())
             applyImpulse(entityA, rA, frictionImpulse.neg());
-
     }
 
-    private static void applyImpulse(Entity entity, Vec2f centerToContact, Vec2f impulse) {
+    /**
+     * Applique une impulsion sur une entité à un point de contact donnée et d'une intensité donnée.
+     * @param entity entité sur laquelle appliqué l'impulse
+     * @param centerToContact vecteur partant du centre de rotation de l'entité jusqu'au point où est appliqué l'impulsion
+     * @param impulse intensité de l'impulsion
+     */
+    public static void applyImpulse(Entity entity, Vec2f centerToContact, Vec2f impulse) {
 
         entity.getVel().add(impulse, entity.getInertia().getMassInv());
         entity.setAngVel(entity.getAngVel() + entity.getInertia().getJInv() * Vec2f.cross(centerToContact, impulse));

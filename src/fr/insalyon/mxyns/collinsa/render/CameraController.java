@@ -262,7 +262,6 @@ public class CameraController extends MouseAdapter implements KeyListener {
         setCameraZoom(getCameraZoom() - zoomDecrement);
     }
 
-
     /**
      * Renvoie le vecteur position de la caméra
      * @return Vec2f camera position

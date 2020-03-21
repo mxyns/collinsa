@@ -7,6 +7,9 @@ import java.awt.Color;
  */
 public class Material {
 
+    /**
+     * Matériaux par défaut
+     */
     public static Material DUMMY = new Material(1, 0.7f, 0.2f, 0.1f, Color.blue);
     public static Material STICKY = new Material(1, 0.5f, 1f, 0.9f, new Color(120, 0, 0));
     public static Material BOUNCY = new Material(1, 3f, 0.05f, 0.025f, new Color(0, 120, 0));
@@ -56,46 +59,90 @@ public class Material {
         return color;
     }
 
+    /**
+     * Renvoie la densité du matériau en kg/m^3
+     * @return density
+     */
     public float getDensity() {
 
         return density;
     }
 
+    /**
+     * Redéfinit la densité du matériau en kg/m^3.
+     * Nécessite d'executer Entity.getInertia()::update pour que les changements soient appliqués à l'entité
+     * @param density nouvelle densité en kg/m^3
+     */
     public void setDensity(float density) {
 
         this.density = density;
     }
 
+    /**
+     * Renvoie le coefficient de restitution du matériau.
+     * < 1 inelastic
+     * = 1 elastic
+     * > unreal but can be useful
+     * @return restitution
+     */
     public float getRestitution() {
 
         return restitution;
     }
 
+    /**
+     * Redéfinit la restitution du matériau
+     * @param restitution nouvelle restitution
+     */
     public void setRestitution(float restitution) {
 
         this.restitution = restitution;
     }
 
+    /**
+     * Méthode de calcul du coefficient de frottement équivalent entre deux matériaux.
+     * Pour deux matériaux A et B de friction respective fA et fB on obtient √(fA²+fB²)
+     * N'a pas d'explication physique puisque il n'existe aucune formule pour déterminer les coefficients de frottements d'un matériau.
+     * @param frictionA coefficient de friction du premier matériau
+     * @param frictionB coefficient de friction du deuxième matériau
+     * @return moyenne des deux coefficients
+     */
     public static float frictionAverage(float frictionA, float frictionB) {
 
         return (float) Math.sqrt(frictionA*frictionA + frictionB*frictionB);
     }
 
+    /**
+     * Renvoie le coefficient de friction statique (~ énergie nécessaire pour qu'un objet se mette en mouvement)
+     * @return staticFriction
+     */
     public float getStaticFriction() {
 
         return staticFriction;
     }
 
+    /**
+     * Rédefinit le coefficient de friction statique (~ énergie nécessaire pour qu'un objet se mette en mouvement)
+     * @param staticFriction nouveau coefficient de frottement statique
+     */
     public void setStaticFriction(float staticFriction) {
 
         this.staticFriction = staticFriction;
     }
 
+    /**
+     * Renvoie le coefficient de friction dynamique (frottements lors de déplacements)
+     * @return staticFriction
+     */
     public float getDynamicFriction() {
 
         return dynamicFriction;
     }
 
+    /**
+     * Rédefinit le coefficient de friction dynamique (frottements lors de déplacements)
+     * @param dynamicFriction nouveau coefficient de frottement dynamique
+     */
     public void setDynamicFriction(float dynamicFriction) {
 
         this.dynamicFriction = dynamicFriction;

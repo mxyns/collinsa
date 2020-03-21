@@ -480,16 +480,34 @@ public class Vec2f {
         return new Vec2d(x,y);
     }
 
+    /**
+     * Renvoie la valeur sur z du produit vectoriel entre vecA = (xA, yA, 0) et vecB = (xB, yB, 0)
+     * @param vecA premier vecteur (0 sur z)
+     * @param vecB deuxieme vecteur (0 sur z)
+     * @return vecA ∧ vecB = (0, 0, result)
+     */
     public static float cross(Vec2f vecA, Vec2f vecB) {
 
         return vecA.x * vecB.y - vecB.x * vecA.y;
     }
 
+    /**
+     * Renvoie le vecteur résultant du produit vectoriel entre vec = (x, y, 0) et v = (0, 0, s)
+     * @param vec vecteur sans valeur sur z
+     * @param s valeur sur z du deuxième vecteur
+     * @return vec ∧ v = (x, y, 0) ∧ (0, 0, s) = (y*s, -s*x, 0)
+     */
     public static Vec2f cross(Vec2f vec, float s) {
 
         return new Vec2f(vec.y*s, -s*vec.x);
     }
 
+    /**
+     * Renvoie le vecteur résultant du produit vectoriel entre v = (0, 0, s) et vec = (x, y, 0)
+     * @param vec vecteur sans valeur sur z
+     * @param s valeur sur z du deuxième vecteur
+     * @return v ∧ vec = (0, 0, s) ∧ (x, y, 0) = (-s*y, s*x, 0)
+     */
     public static Vec2f cross(float s, Vec2f vec) {
 
         return new Vec2f(-vec.y*s, s*vec.x);

@@ -22,6 +22,9 @@ import static fr.insalyon.mxyns.collinsa.Collinsa.INSTANCE;
  */
 public class Renderer {
 
+    /**
+     * Buffer de deux images contenant les images générées par le Renderer et à afficher
+     */
     private GraphicsBuffer graphicsBuffer;
 
     /**

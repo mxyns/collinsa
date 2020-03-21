@@ -31,24 +31,30 @@ public class Inertia {
 
         super();
     }
-    public Inertia(Entity entity) {
 
-        setMass(entity.getMaterial().getDensity() * entity.getVolume());
-
-        // utiliser update après. pas faisable à l'initialisation à cause du fonctionnement de computeJ
-    }
-
+    /**
+     * Met à jour la masse et le moment d'inertie d'une entité à partir de la densité de son matériau et de ses dimensions actuelles
+     * @param entity entité référence pour les calculs
+     */
     public void update(Entity entity) {
 
         setMass(entity.getMaterial().getDensity() * entity.getVolume());
         setJ(entity.computeJ());
     }
 
+    /**
+     * Renvoie la masse de l'entité
+     * @return mass
+     */
     public float getMass() {
 
         return mass;
     }
 
+    /**
+     * Force la valeur de la masse de l'entité associée à cette Inertia. Sera écrasée si update() est appelée
+     * @param mass nouvelle masse si mass = 0, invMass = 0 pour une masse infinie
+     */
     public void setMass(float mass) {
 
         if ((this.mass = mass) != 0)
@@ -57,16 +63,28 @@ public class Inertia {
             massInv = 0;
     }
 
+    /**
+     * Renvoie l'inverse de la masse de l'entité
+     * @return massInv
+     */
     public float getMassInv() {
 
         return massInv;
     }
 
+    /**
+     * Renvoie l'inverse du moment d'inertie autour du centre de rotation de l'entité
+     * @return J
+     */
     public float getJ() {
 
         return J;
     }
 
+    /**
+     * Force J le moment d'inertie autour du centre de rotation de l'entité. Sera écrasé si update() est appelée
+     * @param j si J = 0, invJ = 0 pour une masse infinie
+     */
     public void setJ(float j) {
 
         if ((this.J = j) != 0)
@@ -75,14 +93,13 @@ public class Inertia {
             inv_J = 0;
     }
 
+    /**
+     * Renvoie l'inverse du moment d'inertie
+     * @return inv_J
+     */
     public float getJInv() {
 
         return inv_J;
-    }
-
-    public void setInvJInv(float inv_J) {
-
-        this.inv_J = inv_J;
     }
 
     public String toString() {

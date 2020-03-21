@@ -123,8 +123,16 @@ public abstract class Entity {
      */
     public abstract double getMaximumSize();
 
+    /**
+     * Calcule le moment d'inertie autour du centre de rotation
+     * @return moment d'inertie de l'entité autour de son centre de rotation
+     */
     public abstract float computeJ();
 
+    /**
+     * Méthode qui permet de calculer le volume d'une entité
+     * @return volume en m^3
+     */
     public abstract float getVolume();
 
     /**

@@ -12,32 +12,10 @@ import java.awt.Color;
 
 public class Preset_Friction extends Preset {
 
-    int rate = 1;
-    float circleMass = 1;
-    float e = Material.DUMMY.getRestitution();
     Rect mill;
 
     @Override
     public void setup(String[] args, Collinsa collinsa) {
-
-       float sF = Material.DUMMY.getStaticFriction(), dF = Material.DUMMY.getDynamicFriction(), cyanMass = 5;
-
-        try {
-            if (Utils.lookForString("--millSF", args) != -1)
-                sF = Float.parseFloat(Utils.getArgValue("-millSF", args));
-            if (Utils.lookForString("--millDF", args) != -1)
-                dF = Float.parseFloat(Utils.getArgValue("-millDF", args));
-            if (Utils.lookForString("-e", args) != -1)
-                e = Float.parseFloat(Utils.getArgValue("e", args));
-            if (Utils.lookForString("--circleMass", args) != -1)
-                circleMass = Float.parseFloat(Utils.getArgValue("-circleMass", args));
-            if (Utils.lookForString("--cyanMass", args) != -1)
-                cyanMass = Float.parseFloat(Utils.getArgValue("-cyanMass", args));
-            if (Utils.lookForString("--rate", args) != -1)
-                rate = Integer.parseInt(Utils.getArgValue("-rate", args));
-        } catch (NumberFormatException | NullPointerException e1) {
-            System.out.println("wrong parameters format");
-        }
 
         //Création d'élements / entitées à ajouter à la simulation
         Physics physics = collinsa.getPhysics();
@@ -66,14 +44,14 @@ public class Preset_Friction extends Preset {
 
         Rect r_cyan = new Rect(250, 500, 500, 30);
         r_cyan.setColor(Color.cyan);
-        r_cyan.getInertia().setMass(cyanMass);
+        Utils.applyParameter("--cyanMass", 5f, args, r_cyan.getInertia()::setMass);
         r_cyan.setRot(0.2f);
         r_cyan.setCollisionType(Collision.CollisionType.KINEMATIC);
         physics.addEntity(r_cyan);
 
         mill = new Rect(780, 500, 275, 15);
-        mill.getMaterial().setDynamicFriction(dF);
-        mill.getMaterial().setStaticFriction(sF);
+        Utils.applyParameter("--millDF", Material.DUMMY.getDynamicFriction(), args, mill.getMaterial()::setDynamicFriction);
+        Utils.applyParameter("--millSF", Material.DUMMY.getStaticFriction(), args, mill.getMaterial()::setStaticFriction);
         mill.setAngVel(-1f);
         mill.setAngAcc(-0.1f);
         mill.setCollisionType(Collision.CollisionType.KINEMATIC);
@@ -95,6 +73,9 @@ public class Preset_Friction extends Preset {
 
         Physics physics = collinsa.getPhysics();
         float x,y,vx,vy;
+
+        int rate = Utils.getParameter("--rate", 1, args);
+
         while (true) {
 
             if (mill.getAngVel() < -1.5) mill.setAngAcc(0);
@@ -110,10 +91,10 @@ public class Preset_Friction extends Preset {
             vy*=5;
 
             Circle circle = new Circle(x, y, (int) (2 * Math.random()) + 2);
-            circle.getInertia().setMass(circleMass);
+            Utils.applyParameter("--m", 1f, args, circle.getInertia()::setMass);
             circle.setAcc(0, 30);
             circle.setVel(vx, vy);
-            circle.getMaterial().setRestitution(e);
+            Utils.applyParameter("--e", Material.DUMMY.getRestitution(), args, circle.getMaterial()::setRestitution);
 
             physics.addEntity(circle);
 

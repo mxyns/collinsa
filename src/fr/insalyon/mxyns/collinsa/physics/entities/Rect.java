@@ -62,7 +62,7 @@ public class Rect extends Entity {
     }
     /**
      * Change la taille du rectangle et met à jour son inertie en fonction des nouvelles dimensions
-     * @return size (w, h)
+     * @param size (w, h)
      */
     public void setSize(Vec2f size) {
 
@@ -85,6 +85,12 @@ public class Rect extends Entity {
         renderer.renderRect(this, g);
     }
 
+    /**
+     * Calcule le moment d'inertie d'un rectangle autour de son centre d'inertie
+     * Formule : J = (w² + h²) * m / 12
+     * @link https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+     * @return (w² + h²) * m / 12
+     */
     @Override
     public float computeJ() {
 
@@ -94,6 +100,10 @@ public class Rect extends Entity {
         return 0;
     }
 
+    /**
+     * Volume d'un pavé droit de profondeur 1m
+     * @return w * h * 1 (depth)
+     */
     @Override
     public float getVolume() {
 
@@ -103,6 +113,10 @@ public class Rect extends Entity {
         return 0;
     }
 
+    /**
+     * Taille de la grande diagonale
+     * @return (w² + h²)^0.5
+     */
     @Override
     public double getMaximumSize() {
 
