@@ -19,8 +19,7 @@ public class Preset_AngularVelocity extends Preset {
         Physics physics = collinsa.getPhysics();
 
         rect = new Rect(physics.getWidth() / 2, physics.getHeight() / 2, 800, 20);
-
-        Utils.applyParameter("--angle", -.5f, args, circle::setRot);
+        Utils.applyParameter("--angle", -.5f, args, rect::setRot);
         rect.setCollisionType(Collision.CollisionType.KINEMATIC);
 
 

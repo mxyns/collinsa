@@ -161,7 +161,7 @@ public class Utils {
         Utils.applyParameter("--fpsr", 60, args, collinsa.getRenderer().getRenderingThread()::setFramerate);
         Utils.applyParameter("--fpsd", 60, args, collinsa.getMainFrame().getSandboxPanel().getRefreshingThread()::setRefreshRate);
         Utils.applyParameter("--bgColor", Color.white, args, collinsa.getRenderer().getGraphicsBuffer()::setBackgroundColor);
-        Utils.applyParameter("--worldBoundsColor", Color.black, args, collinsa.getRenderer()::setWorldBoundsColor);;
+        Utils.applyParameter("--worldBoundsColor", Color.black, args, collinsa.getRenderer()::setWorldBoundsColor);
     }
 
     /**

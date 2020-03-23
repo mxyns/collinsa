@@ -5,6 +5,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.presets.Preset;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
+import fr.insalyon.mxyns.collinsa.ui.frames.Interface;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 
@@ -13,6 +14,7 @@ import java.awt.Toolkit;
 // TODO:
 //  - CollisionListener Interface if user wants to add specific actions on object
 //  - Layering to ignore collisions between some objects / objects types
+//  - TextObject to display text in the world
 
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme
@@ -72,7 +74,7 @@ public class Collinsa {
             Utils.applyParameters(INSTANCE, args);
 
         // On ouvre la GUI.
-            // new Interface("qdzdzqd", 1200, 800);
+            new Interface("qdzdzqd", 1200, 800);
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
