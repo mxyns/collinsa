@@ -94,12 +94,13 @@ public class Collision {
      * Un HashSet ajoute un élément si il ne trouve pas d'élément avec un HashCode identique et qui renvoie true avec la comparaison equals
      * Tout le temps 1 pour que seulement equals soit pris en compte, je n'ai pas encore trouvé de bonne fonction de hashing pour une collision puisque les entités n'ont pas d'ID
      *
+     * @link https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java hashCode method
      * @return 1
      */
     @Override
     public int hashCode() {
 
-        return 1;
+        return (source == null ? 0 : source.hashCode()) ^ (target == null ? 0 : target.hashCode());
     }
 
     /**

@@ -148,6 +148,7 @@ public class Utils {
      */
     public static void applyParameters(Collinsa collinsa, String[] args) {
 
+        // https://github.com/mxyns/collinsa
         Utils.applyParameter("--showAABB", false, args, collinsa.getRenderer()::setRenderEntitiesAABB);
         Utils.applyParameter("--aabbColor", Color.yellow, args, collinsa.getRenderer()::setAABBBoundsColor);
         Utils.applyParameter("--showAxes", false, args, collinsa.getRenderer()::setRenderCoordinateSystem);
@@ -162,6 +163,7 @@ public class Utils {
         Utils.applyParameter("--fpsd", 60, args, collinsa.getMainFrame().getSandboxPanel().getRefreshingThread()::setRefreshRate);
         Utils.applyParameter("--bgColor", Color.white, args, collinsa.getRenderer().getGraphicsBuffer()::setBackgroundColor);
         Utils.applyParameter("--worldBoundsColor", Color.black, args, collinsa.getRenderer()::setWorldBoundsColor);
+        Utils.applyParameter("--useDebugColors", false, args, collinsa.getPhysics().getCollider()::setDisplayCollisionColor);
     }
 
     /**
@@ -220,5 +222,16 @@ public class Utils {
             return constrain(value, max, min);
 
         return Math.min(Math.max(min, value), max);
+    }
+
+    public static float mean(float[] penetrations) {
+
+        if (penetrations.length == 0) return 0;
+
+        float sum = 0;
+        for (float f : penetrations)
+            sum+=f;
+
+        return sum/penetrations.length;
     }
 }

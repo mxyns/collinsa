@@ -2,6 +2,7 @@ package fr.insalyon.mxyns.collinsa.utils.geo;
 
 
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
+import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 
 /**
@@ -16,20 +17,26 @@ public class Geometry {
      */
     public static Vec2f[] getRectangleCorners(Rect rect) {
 
+        Vec2f[] result;
+        for (Vec2f corner : (result=getRectangeLocalCorners(rect)))
+            corner.add(rect.getPos());
+
+        return result;
+    }
+    public static Vec2f[] getRectangeLocalCorners(Rect rect) {
+
         Vec2f v1 = new Vec2f((float)Math.cos(rect.getRot()), (float)Math.sin(rect.getRot()));
         Vec2f v2 = new Vec2f(-v1.y, v1.x);
 
         v1.mult(rect.getSize().x * 0.5f);
         v2.mult(rect.getSize().y * 0.5f);
 
-        Vec2f pos = rect.getPos();
-
         return new Vec2f[] {
-            pos.copy().sub(v1).sub(v2),
-            pos.copy().sub(v1).add(v2),
-            pos.copy().add(v1).add(v2),
-            pos.copy().add(v1).sub(v2),
-                             };
+            Vec2f.zero().sub(v1).sub(v2),
+            Vec2f.zero().sub(v1).add(v2),
+            Vec2f.zero().add(v1).add(v2),
+            Vec2f.zero().add(v1).sub(v2),
+            };
     }
 
     /**
@@ -96,8 +103,8 @@ public class Geometry {
      */
     public static boolean rectOnRectSAT(Rect rectA, Rect rectB) {
 
-        Vec2f[] cornersA = rectA.getCorners();
-        Vec2f[] cornersB = rectB.getCorners();
+        Vec2f[] cornersA = rectA.getVertices();
+        Vec2f[] cornersB = rectB.getVertices();
 
         Vec2f axis1 = new Vec2f(cornersA[3].x - cornersA[0].x,cornersA[3].y - cornersA[0].y);
         Vec2f axis2 = new Vec2f(cornersA[3].x - cornersA[2].x,cornersA[3].y - cornersA[2].y);
@@ -157,6 +164,140 @@ public class Geometry {
         return new Vec2f(min, max);
     }
 
+    private static Vec2f getSupport(Vec2f axis, Vec2f... points) {
+
+        Vec2f result = points[0];
+        float v = result.dot(axis), tmp;
+
+        for (int i = 1; i < points.length; ++i) {
+
+            if ((tmp = points[i].dot(axis)) > v) {
+
+                v = tmp;
+                result = points[i];
+            }
+
+        }
+
+        return result;
+    }
+
+    public static float findAxisOfLeastPenetration(int[] faceIndex, Polygon polygonA, Polygon polygonB) {
+
+        float bestDistance = Float.NEGATIVE_INFINITY;
+        int bestIndex = -1;
+
+        for (int i = 0; i < polygonA.getVertices().length; ++i) {
+
+            Vec2f normal = polygonA.getNormals()[i];
+            Vec2f support = getSupport(normal, polygonB.getVertices());
+            Vec2f v = polygonA.getVertices()[i];
+            float d = Vec2f.dot(normal.multOut(-1), support.copy().sub(v));
+
+            if (d > bestDistance) {
+                bestDistance = d;
+                bestIndex = i;
+            }
+        }
+
+        faceIndex[0] = bestIndex;
+
+        return bestDistance;
+    }
+
+    public static void getNormalsAndEdges(Vec2f[] vertices, Vec2f[] edges, Vec2f[] normals) {
+
+        for (int i = 0; i < vertices.length; ++i) {
+            edges[i] = vertices[i].copy().sub(vertices[(i + (vertices.length - 1)) % vertices.length]).neg();
+            normals[i] = cross(1, edges[i].multOut(-1));
+        }
+    }
+
+    public static Vec2f[] getEdgesVectors(Vec2f... vecs) {
+
+        Vec2f[] edges = new Vec2f[vecs.length];
+
+        for (int i = 0; i < vecs.length; ++i)
+            edges[i] = vecs[i].copy().sub(vecs[(i + (vecs.length - 1)) % vecs.length]).neg();
+
+        return edges;
+    }
+
+    public static void findIncidentFace(Vec2f[] v, Polygon incident, Vec2f referenceNormal) {
+
+        Vec2f normal = referenceNormal;
+
+        // Find most anti-normal face on incident polygon
+
+        float dot, bestDot = Float.MAX_VALUE;
+        int incidentFace = -1;
+        for (int i = 0; i < incident.getVertices().length; ++i) {
+
+            dot = Vec2f.dot(normal, incident.getEdges()[i]);
+            if (dot < bestDot) {
+
+                bestDot = dot;
+                incidentFace = i;
+            }
+        }
+
+        v[0] = incident.getVertices()[incidentFace];
+        incidentFace = (incidentFace + (incident.getVertices().length - 1)) % incident.getVertices().length;
+        v[1] = incident.getVertices()[incidentFace];
+    }
+
+    public static Vec2f[] getNormals(Vec2f... vecs) {
+
+        Vec2f[] normals = new Vec2f[vecs.length];
+
+        for (int i = 0; i < vecs.length; ++i)
+            normals[i] = cross(1, vecs[i].copy().sub(vecs[(i + (vecs.length - 1)) % vecs.length]));
+
+        return normals;
+    }
+
+    public static Vec2f getNormal(Vec2f vec) {
+
+        return cross(1, vec).normalize();
+    }
+
+    public static Vec2f cross(Vec2f vec, float s) {
+
+        return new Vec2f(s*vec.y, -s*vec.x);
+    }
+    public static Vec2f cross(float s, Vec2f vec) {
+
+        return new Vec2f(-s*vec.y, s*vec.x);
+    }
+    public static float cross(Vec2f a, Vec2f b) {
+        return a.x * b.y - a.y * b.x;
+    }
+
+    public static int clip(Vec2f normal, float c, Vec2f[] face) {
+
+        int sp = 0;
+        Vec2f[] out = {
+            face[0].copy(),
+            face[1].copy()
+        };
+
+        float d1 = Vec2f.dot(normal, face[0]) - c;
+        float d2 = Vec2f.dot(normal, face[1]) - c;
+
+        if (d1 <= 0.0f) out[sp++].set(face[0]);
+        if (d2 <= 0.0f) out[sp++].set(face[1]);
+
+        if (d1 * d2 < 0.0f) {
+            float alpha = d1 / (d1 - d2);
+
+            out[sp++].set(face[1]).sub(face[0]).mult(alpha).add(face[0]);
+        }
+
+        face[0] = out[0];
+        face[1] = out[1];
+
+        return sp;
+    }
 
     /**
      * Ces méthodes font tourner un point (P) autour d'un autre (O) selon la formule :
@@ -180,6 +321,12 @@ public class Geometry {
 
         return new Vec2d(Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x,
                          Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y);
+    }
+    @SuppressWarnings("DuplicatedCode")
+    public static Vec2f rotatePointAboutCenterFloat(Vec2f point, Vec2f center, float angle) {
+
+        return new Vec2f((float) (Math.cos(angle) * (point.x - center.x) - Math.sin(angle) * (point.y - center.y) + center.x),
+                         (float) (Math.sin(angle) * (point.x - center.x) + Math.cos(angle) * (point.y - center.y) + center.y));
     }
     @SuppressWarnings("DuplicatedCode")
     public static Vec2f rotatePointAboutCenter(float x, float y, Vec2f center, float angle) {
@@ -280,5 +427,22 @@ public class Geometry {
     public static float dist(double x1, double y1, double x2, double y2) {
 
         return (float) Math.sqrt(sqrdDist(x1, y1, x2, y2));
+    }
+
+    public static boolean SAT(Polygon entity, Polygon target) {
+
+        Vec2f[] axes = new Vec2f[entity.getVertices().length + target.getVertices().length];
+        Vec2f[] normals = Geometry.getNormals(entity.getVertices());
+
+        System.arraycopy(normals, 0, axes, 0, normals.length);
+
+        normals = Geometry.getNormals(target.getVertices());
+        System.arraycopy(normals, 0, axes, entity.getVertices().length, normals.length);
+
+        for (Vec2f axe : axes)
+            if (!Geometry.projectionOverlap(axe, entity.getVertices(), target.getVertices()))
+                return false;
+
+        return true;
     }
 }

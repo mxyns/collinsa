@@ -5,8 +5,10 @@ import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
+import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
@@ -322,9 +324,89 @@ public class Physics {
         frictionImpulse(circle, rect, centerToContactCircle, centerToContactRectangle, normal, i_n);
     }
 
-    public void resolveRectangleRectangleCollision(Collision toResolve) {
+    public static void resolvePolygonPolygonCollision(Collision toResolve) {
 
+        Polygon polygon = (Polygon) toResolve.getSource();
+        Polygon polygon2 = (Polygon) toResolve.getTarget();
 
+        int[] faceA = { -1 };
+        float penA = Geometry.findAxisOfLeastPenetration(faceA, polygon, polygon2);
+
+        int[] faceB = { -1 };
+        float penB = Geometry.findAxisOfLeastPenetration(faceB, polygon2, polygon);
+
+        int referenceIndex;
+
+        Polygon reference, incident;
+        if (penA < penB) {
+
+            reference = polygon;
+            incident = polygon2;
+            referenceIndex = faceA[0];
+        } else {
+
+            reference = polygon2;
+            incident = polygon;
+            referenceIndex = faceB[0];
+        }
+
+        // FIXME incident face mal détectée quand un seul point pénètre
+        Vec2f[] incidentFace = new Vec2f[2];
+        Geometry.findIncidentFace(incidentFace, incident, Geometry.getNormals(reference.getVertices())[referenceIndex]);
+
+        Vec2f v1 = reference.getVertices()[referenceIndex];
+        referenceIndex = (referenceIndex + (reference.getVertices().length - 1)) % reference.getVertices().length;
+        Vec2f v2 = reference.getVertices()[referenceIndex];
+
+        Vec2f referenceFaceTangent = v2.copy().sub(v1).normalize();
+        Vec2f refFaceNormal = new Vec2f(referenceFaceTangent.y, -referenceFaceTangent.x);
+        Vec2f normal = refFaceNormal.copy();
+
+        float refC = Vec2f.dot(refFaceNormal, v1);
+        float negSide = -Vec2f.dot(referenceFaceTangent, v1);
+        float posSide = Vec2f.dot(referenceFaceTangent, v2);
+
+        if (Geometry.clip(referenceFaceTangent, posSide, incidentFace) + Geometry.clip(referenceFaceTangent.multOut(-1), negSide, incidentFace) < 4) { /*System.out.println("skip");*/ }
+
+        Vec2f[] contactPoints = new Vec2f[2];
+        float[] penetrations = new float[2];
+
+        int cp = 0;
+        float separation = Vec2f.dot(refFaceNormal, incidentFace[0]) - refC;
+        if (separation >= 0f) {
+
+            penetrations[cp] = -separation;
+            contactPoints[cp++] = incidentFace[0];
+        } else {
+            penetrations[cp] = 0;
+        }
+
+        separation = Vec2f.dot(refFaceNormal, incidentFace[1]) - refC;
+        if (separation >= 0f) {
+
+            penetrations[cp] = -separation;
+            contactPoints[cp++] = incidentFace[1];
+        }
+
+        int contactCount = cp;
+
+        if(normal.normalize() == null) // résout les pbs d'infini
+            return;
+
+        float mean = Utils.mean(penetrations);
+        float half_min = Utils.min(penetrations) * 0.5f;
+
+        //incident.getPos().add(normal, half_min);
+        //reference.getPos().add(normal, -half_min);
+
+        for (int i = 0; i < contactCount; ++i) {
+
+            Vec2f centerToContactReference = contactPoints[i].copy().sub(reference.getPos());
+            Vec2f centerToContactIncident = contactPoints[i].copy().sub(incident.getPos());
+
+            float i_n = bounceImpulse(reference, incident, centerToContactReference, centerToContactIncident, normal, mean);
+            frictionImpulse(reference, incident, centerToContactReference, centerToContactIncident, normal, i_n);
+        }
     }
 
     /**
@@ -337,6 +419,7 @@ public class Physics {
      * @param penetration profondeur de penetration de l'objet A dans B (ou inversement). positif.
      * @return intensité de l'impulse appliquée à A selon normale (pour B il faut prendre l'opposé)
      */
+    // FIXME split bounceImpulse and displacement
     private static float bounceImpulse(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normal, float penetration) {
 
         float rACrossNSqrd = Vec2f.cross(rA, normal)*Vec2f.cross(rA, normal);

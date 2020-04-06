@@ -10,15 +10,11 @@ import java.awt.Graphics2D;
  */
 public class ConcavePoly extends Polygon {
 
-    public ConcavePoly(Vec2f pos) {
+    public ConcavePoly(Vec2f pos, int n) {
 
-        super(pos);
+        super(pos, n);
     }
 
-    public ConcavePoly(double x, double y) {
-
-        super(x, y);
-    }
 
     @Override
     public void render(Renderer renderer, Graphics2D g) {

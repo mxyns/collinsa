@@ -3,6 +3,7 @@ package fr.insalyon.mxyns.collinsa.physics.collisions;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 
@@ -156,6 +157,9 @@ public class Collider {
                 checkForCircleRectCollision((Circle) entity, (Rect) target);
             else if (entity instanceof Rect && target instanceof Circle)
                 checkForCircleRectCollision((Circle) target, (Rect) entity);
+            else if (entity instanceof Polygon && target instanceof Polygon) {
+                checkForPolyPolyCollision((Polygon) entity, (Polygon) target);
+            }
         }
 
     }
@@ -179,7 +183,7 @@ public class Collider {
     private void checkForRectRectCollision(Rect entity, Rect target) {
 
         if (Geometry.rectOnRectSAT(entity, target))
-            logCollision(entity, target, physics::resolveRectangleRectangleCollision);
+            logCollision(entity, target, Physics::resolvePolygonPolygonCollision);
     }
 
     /**
@@ -193,10 +197,15 @@ public class Collider {
             logCollision(circle, rect, Physics::resolveCircleRectangleCollision);
     }
 
+    public void checkForPolyPolyCollision(Polygon entity, Polygon target) {
+
+        if (Geometry.SAT(entity, target))
+            logCollision(entity, target, Physics::resolvePolygonPolygonCollision);
+    }
+
     public void checkForCircleSegmentCollision(Circle entity, Circle target) {
 
-        if (true)
-            logCollision(entity, target, physics::resolveRectangleRectangleCollision);
+
     }
 
     /**
@@ -207,7 +216,6 @@ public class Collider {
      */
     public void logCollision(Entity firstEntity, Entity secondEntity, Consumer<Collision> resolvingFunction) {
 
-        // TODO check if contained before instantiating a new Collision objects
         collisions.add(new Collision(firstEntity, secondEntity, resolvingFunction));
     }
 
@@ -227,4 +235,15 @@ public class Collider {
 
         this.collisions.clear();
     }
+
+    public boolean doesDisplayCollisionColor() {
+
+        return displayCollisionColor;
+    }
+
+    public void setDisplayCollisionColor(boolean displayCollisionColor) {
+
+        this.displayCollisionColor = displayCollisionColor;
+    }
+
 }

@@ -2,6 +2,7 @@ package fr.insalyon.mxyns.collinsa.physics.entities;
 
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
@@ -9,13 +10,7 @@ import java.awt.Graphics2D;
 /**
  * Entitée rectangulaire, simplifie les détections de collisions pour les objets simples
  */
-public class Rect extends Entity {
-
-
-    /**
-     * Tableau de Vec2f contenant les coins du rectangle
-     */
-    private Vec2f[] corners;
+public class Rect extends ConvexPoly {
 
     /**
      * Vec2f contenant la taille du Rect : (width, height)
@@ -29,11 +24,12 @@ public class Rect extends Entity {
      */
     public Rect(Vec2f pos, Vec2f size) {
 
-        super(pos);
+        super(pos, 4);
         this.size = size;
+        this.local_vertices = Geometry.getRectangeLocalCorners(this);
 
         getInertia().update(this);
-        updateAABB();
+        updateVertices();
     }
 
     /**
@@ -45,11 +41,7 @@ public class Rect extends Entity {
      */
     public Rect(double x, double y, double w, double h) {
 
-        super(x, y);
-        size = new Vec2f((float)w, (float)h);
-
-        getInertia().update(this);
-        updateAABB();
+        this(new Vec2d(x, y).toFloat(), new Vec2f((float)w, (float)h));
     }
 
     /**
@@ -68,15 +60,6 @@ public class Rect extends Entity {
 
         this.size = size;
         getInertia().update(this);
-    }
-
-    /**
-     * Renvoie le tableau contenant la position des 4 coins du Rect
-     * @return corners
-     */
-    public Vec2f[] getCorners() {
-
-        return corners;
     }
 
     @Override
@@ -121,19 +104,6 @@ public class Rect extends Entity {
     public double getMaximumSize() {
 
         return size.mag();
-    }
-
-    @Override
-    public void updateAABB() {
-
-        this.corners = Geometry.getRectangleCorners(this);
-        Vec2f minCorner = Geometry.getMinPos(corners);
-        Vec2f maxCorner = Geometry.getMaxPos(corners);
-
-        this.aabb.x = minCorner.x;
-        this.aabb.y = minCorner.y;
-        this.aabb.w = maxCorner.x - minCorner.x;
-        this.aabb.h = maxCorner.y - minCorner.y;
     }
 
     public String toString() {

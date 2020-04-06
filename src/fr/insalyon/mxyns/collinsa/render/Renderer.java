@@ -5,15 +5,17 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.*;
 
 import static fr.insalyon.mxyns.collinsa.Collinsa.INSTANCE;
 
@@ -233,6 +235,23 @@ public class Renderer {
 
         /*for (int i = 0; i < 4; ++i)
             g.drawString("corner #"+i, (float)factor*(rect.getCorners()[i].x - camera.getPos().x), (float)factor*(rect.getCorners()[i].y - camera.getPos().y));*/
+    }
+
+    public void renderPolygon(Polygon polygon, Graphics2D g) {
+
+        g.setColor(polygon.getColor());
+
+        Path2D outline = new Path2D.Float();
+        outline.moveTo(factor * (polygon.getPos().x - camera.getPos().x),factor * (polygon.getPos().y - camera.getPos().y));
+        Vec2f[] vertices = polygon.getVertices();
+
+        for (int i = 0; i < vertices.length; ++i)
+            outline.lineTo(factor * (vertices[i].x - camera.getPos().x),factor * (vertices[i].y - camera.getPos().y));
+
+        outline.lineTo(factor * (vertices[0].x - camera.getPos().x) ,factor * (vertices[0].y - camera.getPos().y));
+        outline.closePath();
+
+        g.draw(outline);
     }
 
     /**

@@ -37,7 +37,6 @@ public class Material {
 
     /**
      * Densité utilisée pour calculer la masse
-     * TODO: inutilisée pour l'instant
      */
     float density;
 
