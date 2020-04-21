@@ -106,6 +106,12 @@ public class Rect extends ConvexPoly {
         return size.mag();
     }
 
+    @Override
+    public short cardinal() {
+
+        return 1;
+    }
+
     public String toString() {
 
         return "Rect[center=" + pos + ", size=" + size + "]";

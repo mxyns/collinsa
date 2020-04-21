@@ -605,6 +605,17 @@ public class Vec2f {
         return new Vec2f(-vec.y * s, s * vec.x);
     }
 
+    public static Vec2f[] arrayOf(int i) {
+
+        Vec2f[] result = new Vec2f[i];
+        for (int j = 0 ; j < i; ++j)
+            result[j] = Vec2f.zero();
+
+        return result;
+    }
+
+
+
     @Override
     public boolean equals(Object o) {
 

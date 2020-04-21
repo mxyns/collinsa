@@ -164,17 +164,17 @@ public class Geometry {
         return new Vec2f(min, max);
     }
 
-    private static Vec2f getSupport(Vec2f axis, Vec2f... points) {
+    public static Vec2f getSupport(Vec2f[] vertices, Vec2f axis) {
 
-        Vec2f result = points[0];
+        Vec2f result = vertices[0];
         float v = result.dot(axis), tmp;
 
-        for (int i = 1; i < points.length; ++i) {
+        for (int i = 1; i < vertices.length; ++i) {
 
-            if ((tmp = points[i].dot(axis)) > v) {
+            if ((tmp = vertices[i].dot(axis)) > v) {
 
                 v = tmp;
-                result = points[i];
+                result = vertices[i];
             }
 
         }
@@ -189,11 +189,13 @@ public class Geometry {
 
         for (int i = 0; i < polygonA.getVertices().length; ++i) {
 
-            Vec2f normal = polygonA.getNormals()[i];
-            Vec2f support = getSupport(normal, polygonB.getVertices());
+            Vec2f n = polygonA.getNormals()[i].copy();
+            Vec2f s = getSupport(polygonB.getVertices(), n.neg());
             Vec2f v = polygonA.getVertices()[i];
-            float d = Vec2f.dot(normal.multOut(-1), support.copy().sub(v));
 
+            float d = Vec2f.dot(n, s.copy().sub(v));
+
+            // Store greatest distance
             if (d > bestDistance) {
                 bestDistance = d;
                 bestIndex = i;
@@ -201,64 +203,73 @@ public class Geometry {
         }
 
         faceIndex[0] = bestIndex;
-
         return bestDistance;
     }
 
-    public static void getNormalsAndEdges(Vec2f[] vertices, Vec2f[] edges, Vec2f[] normals) {
+    public static Vec2f getEdge(Vec2f[] vertices, int i) {
 
-        for (int i = 0; i < vertices.length; ++i) {
-            edges[i] = vertices[i].copy().sub(vertices[(i + (vertices.length - 1)) % vertices.length]).neg();
-            normals[i] = cross(1, edges[i].multOut(-1));
+        return vertices[(i + 1) % vertices.length].copy().sub(vertices[i]);
+    }
+
+    public static Vec2f[] getEdgesVectors(Vec2f... vertices) {
+
+        Vec2f[] result = new Vec2f[vertices.length];
+
+        for (int i = 0; i < result.length; ++i)
+            result[i] = vertices[(i + 1) % result.length].copy().sub(vertices[i]);
+
+        return result;
+    }
+
+    public static Vec2f[] getEdgesCenters(Vec2f[] corners, Vec2f[] edges) {
+
+        Vec2f[] edgesCenters = new Vec2f[corners.length];
+        for (int i = 0; i < corners.length; ++i) {
+            Vec2f edge = edges[i];
+            Vec2f corner = corners[i];
+            edgesCenters[i] = corner.copy().add(edge.copy().mult(0.5f));
         }
+
+        return edgesCenters;
     }
 
-    public static Vec2f[] getEdgesVectors(Vec2f... vecs) {
+    public static void findIncidentFace(Vec2f[] v, Polygon reference, Polygon incident, int referenceIndex) {
 
-        Vec2f[] edges = new Vec2f[vecs.length];
+        Vec2f referenceNormal = reference.getNormals()[referenceIndex];
 
-        for (int i = 0; i < vecs.length; ++i)
-            edges[i] = vecs[i].copy().sub(vecs[(i + (vecs.length - 1)) % vecs.length]).neg();
-
-        return edges;
-    }
-
-    public static void findIncidentFace(Vec2f[] v, Polygon incident, Vec2f referenceNormal) {
-
-        Vec2f normal = referenceNormal;
-
-        // Find most anti-normal face on incident polygon
-
-        float dot, bestDot = Float.MAX_VALUE;
-        int incidentFace = -1;
+        int incidentFace = 0;
+        float minDot = Float.POSITIVE_INFINITY;
         for (int i = 0; i < incident.getVertices().length; ++i) {
 
-            dot = Vec2f.dot(normal, incident.getEdges()[i]);
-            if (dot < bestDot) {
+            float dot = Vec2f.dot(referenceNormal, incident.getNormals()[i]);
 
-                bestDot = dot;
+            if (dot < minDot) {
+                minDot = dot;
                 incidentFace = i;
             }
         }
 
         v[0] = incident.getVertices()[incidentFace];
-        incidentFace = (incidentFace + (incident.getVertices().length - 1)) % incident.getVertices().length;
+        incidentFace = (incidentFace + 1) % incident.getVertices().length;
         v[1] = incident.getVertices()[incidentFace];
     }
 
-    public static Vec2f[] getNormals(Vec2f... vecs) {
+    public static Vec2f[] getNormals(Vec2f... vertices) {
 
-        Vec2f[] normals = new Vec2f[vecs.length];
+        Vec2f[] result = new Vec2f[vertices.length];
 
-        for (int i = 0; i < vecs.length; ++i)
-            normals[i] = cross(1, vecs[i].copy().sub(vecs[(i + (vecs.length - 1)) % vecs.length]));
+        for (int i = 0; i < result.length; ++i)
+            result[i] = cross(vertices[(i + 1) % result.length].copy().sub(vertices[i]), 1).normalize();
 
-        return normals;
+        return result;
     }
 
-    public static Vec2f getNormal(Vec2f vec) {
+    public static void getNormalsAndEdges(Vec2f[] vertices, Vec2f[] edges, Vec2f[] normals) {
 
-        return cross(1, vec).normalize();
+        for (int i = 0; i < vertices.length; ++i) {
+            edges[i] = vertices[(i + 1) % vertices.length].copy().sub(vertices[i]);
+            normals[i] = new Vec2f(edges[i].y, -edges[i].x).normalize();
+        }
     }
 
     public static Vec2f cross(Vec2f vec, float s) {
@@ -298,7 +309,6 @@ public class Geometry {
 
         return sp;
     }
-
     /**
      * Ces méthodes font tourner un point (P) autour d'un autre (O) selon la formule :
      *

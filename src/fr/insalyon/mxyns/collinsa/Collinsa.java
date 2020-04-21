@@ -12,7 +12,6 @@ import fr.insalyon.mxyns.collinsa.utils.Utils;
 import java.awt.Toolkit;
 
 // TODO:
-//  - CollisionListener Interface if user wants to add specific actions on object
 //  - Layering to ignore collisions between some objects / objects types
 //  - TextObject to display text in the world
 
@@ -54,17 +53,12 @@ public class Collinsa {
 
             // On pose un zoom caméra inital de x1.0
             INSTANCE.getRenderer().getCameraController().setCameraZoom(1f);
-            INSTANCE.getRenderer().setRenderChunksBounds(false);
-            INSTANCE.getRenderer().setRenderEntitiesAABB(false);
-            INSTANCE.getRenderer().setRenderCoordinateSystem(false);
 
             // Physics settings
             INSTANCE.getPhysics().setRealtime(false);
 
             // On pose le framerate voulu
             INSTANCE.setFramerate(60);
-
-        // new Interface("qdzdzqd", 1200, 800);
 
         // Si on a activé un preset dans les paramètres de lancement on l'execute et on n'execute pas le programme principal
         if (args.length > 0 && args[0].equals("-s") && args.length > 1) {
@@ -73,8 +67,12 @@ public class Collinsa {
         } else // si aucun preset n'est lancé, on applique tous les paramètres donnés
             Utils.applyParameters(INSTANCE, args);
 
+        // Affichage des infos du programme
+        System.out.println("World: " + INSTANCE.getPhysics());
+        System.out.println("Renderer: " + INSTANCE.getRenderer());
+
         // On ouvre la GUI.
-            new Interface("qdzdzqd", 1200, 800);
+            new Interface(1200, 800);
 
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
@@ -102,10 +100,6 @@ public class Collinsa {
 
         // Maintenant que le panel est prêt à être utilisé (défini et affiché à l'écran), on peut préparer le renderer au rendu. Le panel est par la même occasion notifié du "changement" de renderer.
         setRenderer(renderer);
-
-        // Affichage des infos du programme
-        System.out.println("World: " + physics);
-        System.out.println("Renderer: " + renderer);
     }
 
     /**

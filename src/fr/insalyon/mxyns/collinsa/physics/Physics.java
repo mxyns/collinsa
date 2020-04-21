@@ -8,7 +8,6 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
-import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
@@ -161,6 +160,7 @@ public class Physics {
      */
     public void removeEntity(Entity entity) {
 
+        entity.setActivated(false);
         entities.remove(entity);
     }
 
@@ -262,39 +262,38 @@ public class Physics {
     }
 
     // TODO : change all float computations by double computations for more precision
-
     /**
      * Calcule la normale et les points de contacts entre deux cercles avant d'appliquer une bounceImpulse et une frictionImpulse
      * @param toResolve collision entre deux cercles
      */
-    public static void resolveCircleCircleCollision(Collision toResolve) {
+    public static boolean generateCircleCircleManifold(Collision toResolve) {
 
-        Circle circleA = (Circle) toResolve.getSource();
-        Circle circleB = (Circle) toResolve.getTarget();
+        Circle circleA = (Circle) toResolve.getReference();
+        Circle circleB = (Circle) toResolve.getIncident();
 
         // la normale de la collision
         Vec2f normal = circleA.getPos().copy().sub(circleB.getPos());
 
-        float penetrationDepth = circleA.getR() + circleB.getR() - normal.mag();
+        toResolve.penetrations = new float[] {circleA.getR() + circleB.getR() - normal.mag()};
 
         if(normal.normalize() == null) // résout les pbs d'infini
-            return;
+            return false;
 
-        Vec2f centerToContactA = Vec2f.zero().add(normal, -circleA.getR());
-        Vec2f centerToContactB = Vec2f.zero().add(normal, circleB.getR());
+        toResolve.normal = normal;
+        toResolve.centerToContactReference = new Vec2f[] {Vec2f.zero().add(normal, -circleA.getR())};
+        toResolve.centerToContactIncident = new Vec2f[] {Vec2f.zero().add(normal, circleB.getR())};
 
-        float i_n = bounceImpulse(circleA, circleB, centerToContactA, centerToContactB, normal, penetrationDepth);
-        frictionImpulse(circleA, circleB, centerToContactA, centerToContactB, normal, i_n);
+        return true;
     }
 
     /**
      * Calcule la normale et les points de contacts entre un cercle et un rectangle avant d'appliquer une bounceImpulse et une frictionImpulse
      * @param toResolve collision entre les deux objets (cercle en source et rectangle en target)
      */
-    public static void resolveCircleRectangleCollision(Collision toResolve) {
+    public static boolean generateCircleRectangleManifold(Collision toResolve) {
 
-        Circle circle = (Circle) toResolve.getSource();
-        Rect rect = (Rect) toResolve.getTarget();
+        Circle circle = (Circle) toResolve.getReference();
+        Rect rect = (Rect) toResolve.getIncident();
 
         // Passage en coordonnées relatives au rectangle
         Vec2f upos = Geometry.rotatePointAboutCenter(circle.getPos(), rect.getPos(), -rect.getRot()).toFloat();
@@ -315,98 +314,219 @@ public class Physics {
         normal.rotate(rect.getRot());
 
         if(normal.normalize() == null) // résout les pbs d'infini
-            return;
+            return false;
 
-        Vec2f centerToContactRectangle = Geometry.rotatePointAboutCenter(clampedPos, rect.getPos(), rect.getRot()).toFloat().sub(rect.getPos());
-        Vec2f centerToContactCircle = circle.getPos().copy().add(normal, -circle.getR()).sub(circle.getPos());
+        toResolve.penetrations = new float[] { penetration };
+        toResolve.normal = normal;
 
-        float i_n = bounceImpulse(circle, rect, centerToContactCircle, centerToContactRectangle, normal, penetration);
-        frictionImpulse(circle, rect, centerToContactCircle, centerToContactRectangle, normal, i_n);
+        toResolve.centerToContactIncident = new Vec2f[] {Geometry.rotatePointAboutCenter(clampedPos, rect.getPos(), rect.getRot()).toFloat().sub(rect.getPos())};
+        toResolve.centerToContactReference = new Vec2f[] {Vec2f.zero().add(normal, -circle.getR())};
+
+        return true;
     }
 
-    public static void resolvePolygonPolygonCollision(Collision toResolve) {
+    public static boolean generatePolygonPolygonManifold(Collision toResolve) {
 
-        Polygon polygon = (Polygon) toResolve.getSource();
-        Polygon polygon2 = (Polygon) toResolve.getTarget();
+        Polygon source = (Polygon) toResolve.getReference();
+        Polygon target = (Polygon) toResolve.getIncident();
 
-        int[] faceA = { -1 };
-        float penA = Geometry.findAxisOfLeastPenetration(faceA, polygon, polygon2);
+        // Check for a separating axis with A's face planes
+        int[] faceA = { 0 };
+        float penetrationA = Geometry.findAxisOfLeastPenetration( faceA, source, target);
 
-        int[] faceB = { -1 };
-        float penB = Geometry.findAxisOfLeastPenetration(faceB, polygon2, polygon);
+        // Check for a separating axis with B's face planes
+        int[] faceB = { 0 };
+        float penetrationB = Geometry.findAxisOfLeastPenetration( faceB, target, source );
 
         int referenceIndex;
+        boolean flip = false; // Always point from b to a
 
         Polygon reference, incident;
-        if (penA < penB) {
 
-            reference = polygon;
-            incident = polygon2;
+        // Determine which shape contains reference face
+        // TODO do greater than with error
+        if (penetrationA < penetrationB) {
+            reference = source;
+            incident = target;
             referenceIndex = faceA[0];
+            flip = true;
         } else {
-
-            reference = polygon2;
-            incident = polygon;
+            reference = target;
+            incident = source;
             referenceIndex = faceB[0];
         }
 
-        // FIXME incident face mal détectée quand un seul point pénètre
-        Vec2f[] incidentFace = new Vec2f[2];
-        Geometry.findIncidentFace(incidentFace, incident, Geometry.getNormals(reference.getVertices())[referenceIndex]);
+        Vec2f[] incidentFace = Vec2f.arrayOf(2);
+        Geometry.findIncidentFace(incidentFace, reference, incident, referenceIndex);
 
         Vec2f v1 = reference.getVertices()[referenceIndex];
-        referenceIndex = (referenceIndex + (reference.getVertices().length - 1)) % reference.getVertices().length;
+
+        Vec2f referenceFaceTangent = Geometry.getEdge(reference.getVertices(), referenceIndex);
+        Vec2f refFaceNormal = new Vec2f(referenceFaceTangent.y, -referenceFaceTangent.x).neg();
+        
+        referenceIndex = (referenceIndex + 1) % reference.getVertices().length;
         Vec2f v2 = reference.getVertices()[referenceIndex];
 
-        Vec2f referenceFaceTangent = v2.copy().sub(v1).normalize();
-        Vec2f refFaceNormal = new Vec2f(referenceFaceTangent.y, -referenceFaceTangent.x);
-        Vec2f normal = refFaceNormal.copy();
+        if (refFaceNormal.normalize() == null) {
+            System.out.println("null faceNormal");
+            return false;
+        }
 
-        float refC = Vec2f.dot(refFaceNormal, v1);
+        float refC = Vec2f.dot(refFaceNormal, v2);
         float negSide = -Vec2f.dot(referenceFaceTangent, v1);
         float posSide = Vec2f.dot(referenceFaceTangent, v2);
 
-        if (Geometry.clip(referenceFaceTangent, posSide, incidentFace) + Geometry.clip(referenceFaceTangent.multOut(-1), negSide, incidentFace) < 4) { /*System.out.println("skip");*/ }
+        int clipped = 0;
+        //FIXME, use doubles ?
+        if ((clipped += Geometry.clip(referenceFaceTangent, posSide, incidentFace)) < 2 || (clipped += Geometry.clip(referenceFaceTangent.multOut(-1), negSide, incidentFace)) < 4) {
+
+            //System.out.println("skip, clipped="+clipped);
+            return false;
+        }
 
         Vec2f[] contactPoints = new Vec2f[2];
         float[] penetrations = new float[2];
 
         int cp = 0;
         float separation = Vec2f.dot(refFaceNormal, incidentFace[0]) - refC;
-        if (separation >= 0f) {
+        if (separation <= 0f) {
 
             penetrations[cp] = -separation;
             contactPoints[cp++] = incidentFace[0];
-        } else {
+
+        } else
             penetrations[cp] = 0;
-        }
 
         separation = Vec2f.dot(refFaceNormal, incidentFace[1]) - refC;
-        if (separation >= 0f) {
+        if (separation <= 0f) {
 
             penetrations[cp] = -separation;
             contactPoints[cp++] = incidentFace[1];
         }
 
-        int contactCount = cp;
+        // Normal must be from B to A (target -> source)
+        if (flip)
+            refFaceNormal.neg();
 
-        if(normal.normalize() == null) // résout les pbs d'infini
-            return;
+        toResolve.normal = refFaceNormal;
+        toResolve.penetrations = penetrations;
+        toResolve.centerToContactReference = new Vec2f[cp];
+        toResolve.centerToContactIncident = new Vec2f[cp];
 
-        float mean = Utils.mean(penetrations);
-        float half_min = Utils.min(penetrations) * 0.5f;
+        for (int i = 0; i < cp; ++i) {
 
-        //incident.getPos().add(normal, half_min);
-        //reference.getPos().add(normal, -half_min);
-
-        for (int i = 0; i < contactCount; ++i) {
-
-            Vec2f centerToContactReference = contactPoints[i].copy().sub(reference.getPos());
-            Vec2f centerToContactIncident = contactPoints[i].copy().sub(incident.getPos());
-
-            float i_n = bounceImpulse(reference, incident, centerToContactReference, centerToContactIncident, normal, mean);
-            frictionImpulse(reference, incident, centerToContactReference, centerToContactIncident, normal, i_n);
+            toResolve.centerToContactReference[i] = contactPoints[i].copy().sub(reference.getPos());
+            toResolve.centerToContactIncident[i] = contactPoints[i].copy().sub(incident.getPos());
         }
+
+        return true;
+    }
+
+    public static boolean generateCirclePolygonManifold(Collision toResolve) {
+
+        Circle circle = (Circle) toResolve.getIncident();
+        Polygon polygon = (Polygon) toResolve.getReference();
+
+        Vec2f circlePos = Geometry.rotatePointAboutCenter(circle.getPos(), polygon.getPos(), -polygon.getRot()).toFloat().sub(polygon.getPos());
+
+        Vec2f[] normals = Geometry.getNormals(polygon.local_vertices);
+
+        float separation = Float.NEGATIVE_INFINITY;
+        int faceNormal = 0;
+        for (int i = 0; i < polygon.getVertices().length; ++i) {
+
+            Vec2f normal = normals[i];
+            float s = Vec2f.dot(normal, polygon.local_vertices[i].copy().sub(circlePos));
+
+            if (s > circle.getR())
+                return false;
+
+            if (s > separation) {
+                separation = s;
+                faceNormal = i;
+            }
+        }
+
+        Vec2f normal = polygon.getNormals()[faceNormal];
+
+        Vec2f v1 = polygon.local_vertices[faceNormal];
+        Vec2f v2 = polygon.local_vertices[(faceNormal + 1) % polygon.getVertices().length];
+
+        if (separation < 0) { // Center inside polygon
+
+            toResolve.normal = normal;
+            toResolve.penetrations = new float[] {Math.abs(separation - circle.getR())};
+            Vec2f contact = circle.getPos().copy().add(normal, -Math.abs(separation - circle.getR()) + circle.getR());
+            toResolve.centerToContactIncident = new Vec2f[] {normal.multOut(circle.getR())};
+            toResolve.centerToContactReference = new Vec2f[] {contact.sub(polygon.getPos())};
+
+            return true;
+        }
+
+        float dot1 = Vec2f.dot( circlePos.copy().sub( v1 ), v2.copy().sub( v1 ) );
+        float dot2 = Vec2f.dot( circlePos.copy().sub( v2 ), v1.copy().sub( v2 ) );
+
+        if (dot1 <= 0) { // Closer to v1
+            if (circlePos.sqrdDist(v1) > circle.getR()*circle.getR())
+                return false;
+
+            normal = polygon.getVertices()[faceNormal].copy().sub(circle.getPos()).normalize();
+            toResolve.normal = normal;
+            toResolve.penetrations = new float[] {Math.abs(separation - circle.getR())};
+            Vec2f contact = circle.getPos().copy().add(normal, -Math.abs(separation - circle.getR()) + circle.getR());
+            toResolve.centerToContactIncident = new Vec2f[] {normal.multOut(circle.getR())};
+            toResolve.centerToContactReference = new Vec2f[] {contact.sub(polygon.getPos())};
+
+            return true;
+
+        } else if (dot2 <= 0) { // Closer to v2
+
+            if (circlePos.sqrdDist(v2) > circle.getR()*circle.getR())
+                return false;
+
+            normal = polygon.getVertices()[(faceNormal + 1) % polygon.getVertices().length].copy().sub(circle.getPos()).normalize();
+            toResolve.normal = normal;
+            toResolve.penetrations = new float[] {Math.abs(separation - circle.getR())};
+            Vec2f contact = circle.getPos().copy().add(normal, -Math.abs(separation - circle.getR()) + circle.getR());
+            toResolve.centerToContactIncident = new Vec2f[] {normal.multOut(circle.getR())};
+            toResolve.centerToContactReference = new Vec2f[] {contact.sub(polygon.getPos())};
+
+            return true;
+
+        } else { // Closer to face
+
+            if (Math.abs(Vec2f.dot(circlePos.copy().sub(v2), normals[faceNormal])) >= circle.getR())
+                return false;
+
+        }
+
+        toResolve.normal = normal;
+        toResolve.penetrations = new float[] {Math.abs(separation - circle.getR())};
+        Vec2f contact = circle.getPos().copy().add(normal, -Math.abs(separation - circle.getR()) + circle.getR());
+        toResolve.centerToContactIncident = new Vec2f[] {normal.multOut(circle.getR())};
+        toResolve.centerToContactReference = new Vec2f[] {contact.sub(polygon.getPos())};
+
+        return true;
+    }
+
+    public static void displace(Entity entityA, Entity entityB, Vec2f normalBtoA, float penetration, boolean isKinematic) {
+
+        Vec2f displacementVector = normalBtoA.multOut(penetration);
+
+        if (!isKinematic) {
+            displacementVector.div(entityA.getInertia().getMass() + entityB.getInertia().getMass());
+
+            entityA.getPos().add(displacementVector, entityA.getInertia().getMass());
+            entityB.getPos().add(displacementVector, -entityB.getInertia().getMass());
+
+            return;
+        }
+
+        if (!entityA.isKinematic())
+            entityA.getPos().add(displacementVector);
+
+        if (!entityB.isKinematic())
+            entityB.getPos().sub(displacementVector);
     }
 
     /**
@@ -415,15 +535,13 @@ public class Physics {
      * @param entityB deuxième entité impliquée dans la collision (target en général)
      * @param rA vecteur partant du centre de rotation de l'entité A vers son point de contact
      * @param rB vecteur partant du centre de rotation de l'entité B vers son point de contact
-     * @param normal normale (unitaire) au point de contact (orientée de B vers A)
-     * @param penetration profondeur de penetration de l'objet A dans B (ou inversement). positif.
+     * @param normalBtoA normale (unitaire) au point de contact (orientée de B vers A)
      * @return intensité de l'impulse appliquée à A selon normale (pour B il faut prendre l'opposé)
      */
-    // FIXME split bounceImpulse and displacement
-    private static float bounceImpulse(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normal, float penetration) {
+    public static float bounceImpulseAmplitude(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normalBtoA) {
 
-        float rACrossNSqrd = Vec2f.cross(rA, normal)*Vec2f.cross(rA, normal);
-        float rBCrossNSqrd = Vec2f.cross(rB, normal)*Vec2f.cross(rB, normal);
+        float rACrossNSqrd = Vec2f.cross(rA, normalBtoA)*Vec2f.cross(rA, normalBtoA);
+        float rBCrossNSqrd = Vec2f.cross(rB, normalBtoA)*Vec2f.cross(rB, normalBtoA);
         float inverseMassSum = entityA.getInertia().getMassInv() + entityB.getInertia().getMassInv() + rACrossNSqrd * entityA.getInertia().getJInv() + rBCrossNSqrd * entityB.getInertia().getJInv();
 
         Vec2f speedA = entityA.getVel().copy().add(Vec2f.cross(entityA.getAngVel(), rA));
@@ -431,33 +549,14 @@ public class Physics {
 
         Vec2f relativeSpeed = speedA.sub(speedB);
 
-        if (relativeSpeed.dot(normal) > 0 || inverseMassSum == 0) return 0;
+        if (relativeSpeed.dot(normalBtoA) > 0 || inverseMassSum == 0) return 0;
 
         // la restitution est la plus petite des deux
         float e = Math.min(entityB.getMaterial().restitution, entityA.getMaterial().restitution);
 
         // coefficient d'impulsion en fonction des masses et de la restitution
         // impulsion normale = k * vitesseRelative.normale
-        float i_n = (1+e) * Math.abs(relativeSpeed.dot(normal)) / inverseMassSum;
-
-        // Vecteur de repositionnement
-        // TODO: set 0.5f factor to 1 when one of the objects is kinematic to avoid sinking
-        Vec2f displacementVector = normal.multOut(penetration * .5f);
-        Vec2f impulse = normal.multOut(i_n);
-
-        if (!entityA.isKinematic()) {
-
-            entityA.getPos().add(displacementVector);
-            applyImpulse(entityA, rA, impulse);
-        }
-
-        if(!entityB.isKinematic()) {
-
-            entityB.getPos().sub(displacementVector);
-            applyImpulse(entityB, rB, impulse.neg());
-        }
-
-        return i_n;
+        return (1 + e) * Math.abs(relativeSpeed.dot(normalBtoA)) / inverseMassSum;
     }
 
     /**
@@ -466,10 +565,10 @@ public class Physics {
      * @param entityB deuxième entité impliquée dans la collision (target en général)
      * @param rA vecteur partant du centre de rotation de l'entité A vers son point de contact
      * @param rB vecteur partant du centre de rotation de l'entité B vers son point de contact
-     * @param normal normale (unitaire) au point de contact (orientée de B vers A)
+     * @param normalBtoA normale (unitaire) au point de contact (orientée de B vers A)
      * @param i_n intensité de la bounce impulse appliquée à cette collision (résultat de bounceImpulse)
      */
-    private static void frictionImpulse(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normal, float i_n) {
+    public static Vec2f frictionImpulseVector(Entity entityA, Entity entityB, Vec2f rA, Vec2f rB, Vec2f normalBtoA, float i_n) {
 
         Vec2f speedA = entityA.getVel().copy().add(Vec2f.cross(entityA.getAngVel(), rA));
         Vec2f speedB = entityB.getVel().copy().add(Vec2f.cross(entityB.getAngVel(), rB));
@@ -477,12 +576,12 @@ public class Physics {
         Vec2f relativeSpeed = speedB.sub(speedA);
 
         // Vecteur tangent, on le calcule ici puisque 'normal' est tjr unitaire, on utilise plus relativeSpeed et on a calculé sa projection
-        Vec2f tangent = Vec2f.zero().add(relativeSpeed).sub(normal.multOut(relativeSpeed.dot(normal)));
+        Vec2f tangent = Vec2f.zero().add(relativeSpeed).sub(normalBtoA.multOut(relativeSpeed.dot(normalBtoA)));
 
         // Si on n'a pas de tangente, on n'a pas de frottements (tangente = 0 si relativeSpeed∙normal = relativeSpeed)
         // Autrement dit si la vitesse relative entre les deux objets est seulement sur la normale
         if (tangent.normalize() == null) // si la tangente est trop petite (car vitesse relative trop petite) pour être normalisée, on arrête tout pour ne pas avoir de vitesse/position infini ou NaN
-            return;
+            return null;
 
         float rACrossTSqrd = Vec2f.cross(rA, tangent)*Vec2f.cross(rA, tangent);
         float rBCrossTSqrd = Vec2f.cross(rB, tangent)*Vec2f.cross(rB, tangent);
@@ -490,22 +589,19 @@ public class Physics {
         float inverseMassSum = entityA.getInertia().getMassInv() + entityB.getInertia().getMassInv() + rACrossTSqrd * entityA.getInertia().getJInv() + rBCrossTSqrd * entityB.getInertia().getJInv();
 
         if (inverseMassSum == 0)
-            return;
+            return null;
 
         float i_t = -relativeSpeed.dot(tangent) / inverseMassSum;
 
         // Loi de Coulomb F_frottements <= µF_normale(contact)
         Vec2f frictionImpulse;
         if (Math.abs(i_t) < Math.abs(i_n) * Material.frictionAverage(entityA.getMaterial().staticFriction, entityB.getMaterial().staticFriction))
-            frictionImpulse = tangent.mult(i_t);
+            frictionImpulse = tangent.mult(-i_t);
         else
-            frictionImpulse = tangent.mult(-i_n * Material.frictionAverage(entityA.getMaterial().dynamicFriction, entityB.getMaterial().dynamicFriction));
+            frictionImpulse = tangent.mult(i_n * Material.frictionAverage(entityA.getMaterial().dynamicFriction, entityB.getMaterial().dynamicFriction));
 
-        if (!entityB.isKinematic())
-            applyImpulse(entityB, rB, frictionImpulse);
-
-        if (!entityA.isKinematic())
-            applyImpulse(entityA, rA, frictionImpulse.neg());
+        // Friction impulse sur A (reference)
+        return frictionImpulse;
     }
 
     /**

@@ -9,7 +9,8 @@ import java.awt.Graphics2D;
 public abstract class Polygon extends Entity {
 
 
-    protected Vec2f[] local_vertices;
+    public Vec2f[] local_vertices;
+
     protected Vec2f[] vertices, edges, normals;
 
     protected Polygon(Vec2f pos, int n) {
@@ -41,7 +42,7 @@ public abstract class Polygon extends Entity {
 
         float a = 360f / n;
         for (int i = 0; i < n; ++i)
-            local_vertices[i] = new Vec2f(r, 0).rotate((float) Math.toRadians(a * i));
+            local_vertices[i] = new Vec2f(r, 0).rotate((float) Math.toRadians(-a * i));
 
         getInertia().update(this);
         updateVertices();
@@ -78,12 +79,18 @@ public abstract class Polygon extends Entity {
         this.aabb.h = maxCorner.y - minCorner.y;
     }
 
+    @Override
+    public short cardinal() {
+
+        return 2;
+    }
+
     public void updateVertices() {
 
         for (int i = 0; i < vertices.length; ++i)
             vertices[i] = local_vertices[i].rotateOut(getRot()).add(pos);
 
-        Geometry.getNormalsAndEdges(local_vertices, edges, normals);
+        Geometry.getNormalsAndEdges(vertices, edges, normals);
     }
 
     public Vec2f[] getVertices() {

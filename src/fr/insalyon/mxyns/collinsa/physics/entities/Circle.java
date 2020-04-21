@@ -77,6 +77,12 @@ public class Circle extends Entity {
         this.aabb.h = this.aabb.w;
     }
 
+    @Override
+    public short cardinal() {
+
+        return 0;
+    }
+
     public float getR() {
 
         return r;

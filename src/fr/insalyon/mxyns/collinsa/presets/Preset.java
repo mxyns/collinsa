@@ -39,7 +39,7 @@ public abstract class Preset {
         Poly(new Preset_Polygons()),
         GazTest(new Preset_GazTest());
 
-        private Preset presetInstance;
+        private final Preset presetInstance;
 
         EPreset(Preset presetInstance) {
 
@@ -50,17 +50,21 @@ public abstract class Preset {
 
             for (EPreset preset : EPreset.values())
                 if (preset.name().toLowerCase().equals(name.toLowerCase())) {
+
+                    Utils.applyParameters(collinsa, args);
+
+                    // Affichage des infos du programme
+                    System.out.println("World: " + collinsa.getPhysics());
+                    System.out.println("Renderer: " + collinsa.getRenderer());
+
                     System.out.println("=====- RUNNING PRESET " + preset.name() + " -=====");
 
                     preset.presetInstance.setup(args, collinsa);
-
-                    Utils.applyParameters(collinsa, args);
 
                     collinsa.start();
 
                     preset.presetInstance.loop(args, collinsa);
                 }
-
         }
     }
 }

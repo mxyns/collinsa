@@ -4,11 +4,14 @@ import fr.insalyon.mxyns.collinsa.physics.Inertia;
 import fr.insalyon.mxyns.collinsa.physics.Material;
 import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType;
+import fr.insalyon.mxyns.collinsa.physics.collisions.CollisionListener;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Représente une Entité (un objet ou un élément de la simulation) de manière générale
@@ -75,6 +78,8 @@ public abstract class Entity {
      */
     private boolean activated = true;
 
+    final private LinkedList<CollisionListener> listeners = new LinkedList<>();
+
     /**
      * Constructeur global
      */
@@ -140,6 +145,8 @@ public abstract class Entity {
      */
     public abstract void updateAABB();
 
+    public abstract short cardinal();
+
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
      * @param elapsed temps en ms
@@ -169,7 +176,6 @@ public abstract class Entity {
 
         updateAABB();
     }
-
 
     // GETTERS & SETTERS
 
@@ -380,5 +386,15 @@ public abstract class Entity {
     public void setActivated(boolean activated) {
 
         this.activated = activated;
+    }
+
+    public void addCollisionListener(CollisionListener listener) {
+
+        listeners.add(listener);
+    }
+
+    public List<CollisionListener> getCollisionListeners() {
+
+        return listeners;
     }
 }

@@ -13,6 +13,7 @@ public class Material {
     public static Material DUMMY = new Material(1, 0.7f, 0.2f, 0.1f, Color.blue);
     public static Material STICKY = new Material(1, 0.5f, 1f, 0.9f, new Color(120, 0, 0));
     public static Material BOUNCY = new Material(1, 3f, 0.05f, 0.025f, new Color(0, 120, 0));
+    public static Material SLIDY = new Material(1, 0.1f, 0.05f, 0.025f, Color.cyan);
 
     /**
      * Coefficient de restitution, représente l'élasticité ou la "bounciness" / rebond

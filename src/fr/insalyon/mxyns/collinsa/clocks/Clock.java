@@ -6,20 +6,20 @@ package fr.insalyon.mxyns.collinsa.clocks;
 public abstract class Clock {
 
     /*
-     *  - Les temps sont de type long car vu qu'ils sont en millisecondes ils peuvenet excéder la valeur maximale des Integer
-     *  - Leur accès est en package puisque MillisColock et NanoClock doivent pouvoir y accéder. Le protected n'est pas nécessaire puisque Millis et Nano sont dans le package 'clocks'
+     *  - Les temps sont de type long car vu qu'ils sont en millisecondes ils peuvent excéder la valeur maximale des Integer
+     *  - Leur accès est de type protected puisque MillisColock et NanoClock doivent pouvoir y accéder.
      */
 
     /**
      * Temps actuel (au moment de la lecture)
      * Pas nécessaire mais rend la Clock plus précise car elle prend en compte le temps acquisition de l'heure et le temps de calcul du timeElapsed qui est non-négligeable en ns
      */
-    long currentTime;
+    protected long currentTime;
 
     /**
      * Temps enregistré après la dernière lecture
      */
-    long lastTime;
+    protected long lastTime;
 
     /**
      * Temps séparant les deux dernières mesures (la mesure actuelle et la précédente)
@@ -29,7 +29,7 @@ public abstract class Clock {
     /**
      * Permet de s'avoir si la Clock est active (ne fait rien en soit, sa valeur est définie mais jamais utilisée)
      */
-    boolean running;
+    protected boolean running;
 
 
     /**

@@ -243,8 +243,8 @@ public class Renderer {
 
         Path2D outline = new Path2D.Float();
         outline.moveTo(factor * (polygon.getPos().x - camera.getPos().x),factor * (polygon.getPos().y - camera.getPos().y));
-        Vec2f[] vertices = polygon.getVertices();
 
+        Vec2f[] vertices = polygon.getVertices();
         for (int i = 0; i < vertices.length; ++i)
             outline.lineTo(factor * (vertices[i].x - camera.getPos().x),factor * (vertices[i].y - camera.getPos().y));
 

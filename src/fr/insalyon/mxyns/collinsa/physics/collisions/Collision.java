@@ -1,8 +1,11 @@
 package fr.insalyon.mxyns.collinsa.physics.collisions;
 
+import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.utils.Utils;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Représente une collision entre deux entités (Entity)
@@ -11,16 +14,22 @@ public class Collision {
 
     /**
      * Les deux entités impliquées dans la collision.
-     * Les noms 'source' et 'target' ne représentent pas grand chose, ils permettent seulement de mieux voir la différence entre les deux entités que si on utilisait entity1/entityA et entity2/entityB
+     * Les noms 'reference' et 'incident' ne représentent pas grand chose, ils permettent seulement de mieux voir la différence entre les deux entités que si on utilisait entity1/entityA et entity2/entityB
      * donc Collision(A, B) ≡ Collision(B, A)
      */
-    Entity source, target;
+    Entity reference, incident;
 
     /**
      * La fonction à executer pour résoudre la collision.
      * Permet de ne pas avoir à refaire des comparaisons de types d'entités ou de créer plein de sous-classes Collision pour chaque type de collision
      */
-    Consumer<Collision> resolvingFunction;
+    Function<Collision, Boolean> manifoldFunction;
+
+    public Vec2f normal;
+
+    // Reference <=> Source // Incident <=> Target
+    public Vec2f[] centerToContactReference, centerToContactIncident;
+    public float[] penetrations;
 
     /**
      * Type résultant de la collision, assigné au moment où resolve est appelée, utilisée dans les méthodes de résolutions de collisions
@@ -28,16 +37,16 @@ public class Collision {
     private CollisionType type;
 
     /**
-     * Instancie une Collision entre deux entités 'source' et 'target' qui sera résolue via la méthode resolvingFunction
-     * @param source première entité impliquée dans la collision
-     * @param target deuxième entité impliquée dans la collision
-     * @param resolvingFunction fonction utilisée pour la résolution de la collision
+     * Instancie une Collision entre deux entités 'reference' et 'incident' qui sera résolue via la méthode resolvingFunction
+     * @param reference première entité impliquée dans la collision
+     * @param incident deuxième entité impliquée dans la collision
+     * @param manifoldFunction fonction utilisée pour la résolution de la collision
      */
-    public Collision(Entity source, Entity target, Consumer<Collision> resolvingFunction) {
+    public Collision(Entity reference, Entity incident, Function<Collision, Boolean> manifoldFunction) {
 
-        this.source = source;
-        this.target = target;
-        this.resolvingFunction = resolvingFunction;
+        this.reference = reference;
+        this.incident = incident;
+        this.manifoldFunction = manifoldFunction;
     }
 
     /**
@@ -47,26 +56,82 @@ public class Collision {
 
         // Une collision entre deux éléments cinématiques ne doit pas être résolue puisqu'ils ignorent les modifications de position/vitesse/accélération/... causées par les autres éléments
         // On évite donc des calculs inutiles puisque les résultats ne seront pas utilisés. Par contre, on peut réagir à la détection de la collision (utilisation d'objets comme trigger box par exemple)
-        if (source.isActivated() && target.isActivated() && (type = CollisionType.resultingType(source.getCollisionType(), target.getCollisionType())) != CollisionType.IGNORE)
-            resolvingFunction.accept(this);
+        if (reference.isActivated() && incident.isActivated() && (type = CollisionType.resultingType(reference.getCollisionType(), incident.getCollisionType())) != CollisionType.IGNORE) {
+
+            // Generate manifold
+
+            // Resolve
+            if (manifoldFunction.apply(this)) {
+
+                for (CollisionListener listener : reference.getCollisionListeners())
+                    listener.collisionDectected(reference, incident, this);
+
+                for (CollisionListener listener : incident.getCollisionListeners())
+                    listener.collisionDectected(incident, reference, this);
+
+                // Facteur 2 si un des deux objets est cinématique puisque l'énergie qu'il ne récupère pas en ignorant les effets de la collision doit être transmise à l'autre objet
+                int contactCount = centerToContactIncident.length;
+
+                if (contactCount == 0) {
+                    System.out.println("no penetration, skip");
+                    return;
+                }
+
+                Physics.displace(reference, incident, normal, Utils.max(penetrations), getType() == CollisionType.KINEMATIC);
+
+                for (int i = 0; i < contactCount; ++i) {
+
+                    float i_n = Physics.bounceImpulseAmplitude(reference, incident, centerToContactReference[i], centerToContactIncident[i], normal) / contactCount;
+
+                    if (!reference.isKinematic())
+                        Physics.applyImpulse(reference, centerToContactReference[i], normal.multOut(i_n));
+
+                    if (!incident.isKinematic())
+                        Physics.applyImpulse(incident, centerToContactIncident[i], normal.multOut(-i_n));
+
+                    Vec2f frictionImpulse = Physics.frictionImpulseVector(reference, incident, centerToContactReference[i], centerToContactIncident[i], normal, i_n);
+                    if (frictionImpulse == null)
+                        continue;
+
+                    if (!reference.isKinematic())
+                        Physics.applyImpulse(reference, centerToContactReference[i], frictionImpulse);
+
+                    if (!incident.isKinematic())
+                        Physics.applyImpulse(incident, centerToContactIncident[i], frictionImpulse.neg());
+
+                    for (CollisionListener listener : reference.getCollisionListeners())
+                        listener.collisionResolved(reference, incident, this);
+
+                    for (CollisionListener listener : incident.getCollisionListeners())
+                        listener.collisionResolved(incident, reference, this);
+                }
+            }
+        } else {
+
+            for (CollisionListener listener : reference.getCollisionListeners())
+                listener.collisionIgnored(reference, incident, this);
+
+            for (CollisionListener listener : incident.getCollisionListeners())
+                listener.collisionIgnored(incident, reference, this);
+        }
     }
 
     /**
      * Renvoie la première entité impliquée dans la collision
-     * @return source
+     * @return reference
      */
-    public Entity getSource() {
+    public Entity getReference() {
 
-        return this.source;
+        return this.reference;
     }
 
     /**
      * Renvoie la deuxième entité impliquée dans la collision
-     * @return target
+     * @return incident
      */
-    public Entity getTarget() {
+    public Entity getIncident() {
 
-        return this.target;
+        return this.incident;
     }
 
     /**
@@ -75,7 +140,7 @@ public class Collision {
      */
     public CollisionType getType() {
 
-        return type != null ? type : (type = CollisionType.resultingType(source.getCollisionType(), target.getCollisionType()));
+        return type != null ? type : (type = CollisionType.resultingType(reference.getCollisionType(), incident.getCollisionType()));
     }
 
     /**
@@ -86,7 +151,7 @@ public class Collision {
     @Override
     public boolean equals(Object obj) {
 
-        return obj instanceof Collision && ((source == ((Collision) obj).target && target == ((Collision) obj).source) || (source == ((Collision) obj).source && target == ((Collision) obj).target) );
+        return obj instanceof Collision && ((reference == ((Collision) obj).incident && incident == ((Collision) obj).reference) || (reference == ((Collision) obj).reference && incident == ((Collision) obj).incident) );
     }
 
     /**
@@ -94,13 +159,13 @@ public class Collision {
      * Un HashSet ajoute un élément si il ne trouve pas d'élément avec un HashCode identique et qui renvoie true avec la comparaison equals
      * Tout le temps 1 pour que seulement equals soit pris en compte, je n'ai pas encore trouvé de bonne fonction de hashing pour une collision puisque les entités n'ont pas d'ID
      *
-     * @link https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java hashCode method
+     * @link https://android.googlereference.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java hashCode method
      * @return 1
      */
     @Override
     public int hashCode() {
 
-        return (source == null ? 0 : source.hashCode()) ^ (target == null ? 0 : target.hashCode());
+        return (reference == null ? 0 : reference.hashCode()) ^ (incident == null ? 0 : incident.hashCode());
     }
 
     /**

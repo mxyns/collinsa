@@ -11,7 +11,8 @@ import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Moteur de collisions, détecte et calcule les conséquences des collisions entre objets
@@ -37,6 +38,12 @@ public class Collider {
      * Liste des dernières collisions détectées
      */
     private final LinkedHashSet<Collision> collisions;
+
+    private final BiConsumer<Entity, Entity>[][] collisionChecksJumpTable = new BiConsumer[][] {
+        { this::checkForCircleCircleCollision, this::checkForCircleRectCollision, this::checkForCirclePolyCollision }, // Circle
+        { (r, c) -> checkForCircleRectCollision(c, r), this::checkForRectRectCollision, this::checkForPolyPolyCollision }, // Rectangle
+        { (p, c) -> checkForCirclePolyCollision(c, p), this::checkForPolyPolyCollision, this::checkForPolyPolyCollision } // Polygon
+    };
 
     /**
      * Crée un Collider et lui associe une simulation (Physics)
@@ -143,25 +150,17 @@ public class Collider {
 
         } else {
 
+            for (CollisionListener listener : entity.getCollisionListeners())
+                listener.aabbCollided(entity, target);
+
             if (displayCollisionColor) {
                 entity.setColor(Color.pink);
                 target.setColor(Color.pink);
             }
 
             // Narrow phase
-            if (entity instanceof Circle && target instanceof Circle)
-                checkForCircleCircleCollision((Circle) entity, (Circle) target);
-            else if (entity instanceof Rect && target instanceof Rect)
-                checkForRectRectCollision((Rect) entity, (Rect) target);
-            else if (entity instanceof Circle && target instanceof Rect)
-                checkForCircleRectCollision((Circle) entity, (Rect) target);
-            else if (entity instanceof Rect && target instanceof Circle)
-                checkForCircleRectCollision((Circle) target, (Rect) entity);
-            else if (entity instanceof Polygon && target instanceof Polygon) {
-                checkForPolyPolyCollision((Polygon) entity, (Polygon) target);
-            }
+            collisionChecksJumpTable[entity.cardinal()][target.cardinal()].accept(entity, target);
         }
-
     }
 
     /**
@@ -169,10 +168,12 @@ public class Collider {
      * @param entity premier cercle pour la vérification
      * @param target deuxième cercle pour la vérification
      */
-    public void checkForCircleCircleCollision(Circle entity, Circle target) {
+    public void checkForCircleCircleCollision(Object entity, Object target) {
 
-        if (entity.getPos().sqrdDist(target.getPos()) <= Math.pow(entity.getR() + target.getR(), 2))
-            logCollision(entity, target, Physics::resolveCircleCircleCollision);
+        Circle reference = (Circle) entity;
+        Circle incident = (Circle) target;
+        if (reference.getPos().sqrdDist(incident.getPos()) <= Math.pow(reference.getR() + incident.getR(), 2))
+            logCollision(reference, incident, Physics::generateCircleCircleManifold);
     }
 
     /**
@@ -180,10 +181,12 @@ public class Collider {
      * @param entity premier rectangle pour la vérification
      * @param target deuxième rectangle pour la vérification
      */
-    private void checkForRectRectCollision(Rect entity, Rect target) {
+    private void checkForRectRectCollision(Object entity, Object target) {
 
-        if (Geometry.rectOnRectSAT(entity, target))
-            logCollision(entity, target, Physics::resolvePolygonPolygonCollision);
+        Rect reference = (Rect) entity;
+        Rect incident = (Rect) target;
+        if (Geometry.rectOnRectSAT(reference, incident))
+            logCollision(reference, incident, Physics::generatePolygonPolygonManifold);
     }
 
     /**
@@ -191,32 +194,42 @@ public class Collider {
      * @param circle premier rectangle pour la vérification
      * @param rect deuxième rectangle pour la vérification
      */
-    public void checkForCircleRectCollision(Circle circle, Rect rect) {
+    public void checkForCircleRectCollision(Object circle, Object rect) {
 
-        if(Geometry.circleIntersectRectByClamping(circle, rect))
-            logCollision(circle, rect, Physics::resolveCircleRectangleCollision);
+        Circle reference = (Circle) circle;
+        Rect incident = (Rect) rect;
+        if(Geometry.circleIntersectRectByClamping(reference, incident))
+            logCollision(reference, incident, Physics::generateCircleRectangleManifold);
     }
 
-    public void checkForPolyPolyCollision(Polygon entity, Polygon target) {
+    public void checkForPolyPolyCollision(Object entity, Object target) {
 
-        if (Geometry.SAT(entity, target))
-            logCollision(entity, target, Physics::resolvePolygonPolygonCollision);
+        Polygon reference = (Polygon) entity;
+        Polygon incident = (Polygon) target;
+        if (Geometry.SAT(reference, incident))
+            logCollision(reference, incident, Physics::generatePolygonPolygonManifold);
     }
 
+    // TODO use for raycasting
     public void checkForCircleSegmentCollision(Circle entity, Circle target) {
 
+    }
 
+    private void checkForCirclePolyCollision(Object circle, Object polygon) {
+
+        // No smart checks, they are done while computing the normal and contact point. Collision is dismissed (generateCirclePolygonManifold returns false) if they aren't intersecting
+        logCollision((Polygon)polygon, (Circle)circle, Physics::generateCirclePolygonManifold);
     }
 
     /**
      * Ajoute une collision au registre des collisions détectée lors du tick
-     * @param firstEntity première entité impliquée dans la collision
-     * @param secondEntity deuxième entité impliquée dans la collision
+     * @param reference première entité impliquée dans la collision
+     * @param incident deuxième entité impliquée dans la collision
      * @param resolvingFunction fonction qui sera utilisée pour la résolution de la collision
      */
-    public void logCollision(Entity firstEntity, Entity secondEntity, Consumer<Collision> resolvingFunction) {
+    public void logCollision(Entity reference, Entity incident, Function<Collision, Boolean> resolvingFunction) {
 
-        collisions.add(new Collision(firstEntity, secondEntity, resolvingFunction));
+        collisions.add(new Collision(reference, incident, resolvingFunction));
     }
 
     /**
@@ -246,4 +259,8 @@ public class Collider {
         this.displayCollisionColor = displayCollisionColor;
     }
 
+    public String toString() {
+
+        return "Collider[JumpTable##=" + collisionChecksJumpTable.length + "x" + collisionChecksJumpTable[0].length + ", displayCollisionColor=" + this.displayCollisionColor + ", preciseCollisionResolution=" + this.preciseResolution + "]";
+    }
 }

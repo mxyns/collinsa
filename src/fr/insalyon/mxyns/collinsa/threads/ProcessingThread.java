@@ -107,16 +107,14 @@ public class ProcessingThread extends ClockedThread {
             for (Collision coll : collider.getRegisteredCollision()) {
 
                 if (collider.displayCollisionColor) {
-                    coll.getSource().setColor(Color.red);
-                    coll.getTarget().setColor(Color.red);
+                    coll.getReference().setColor(Color.red);
+                    coll.getIncident().setColor(Color.red);
                 }
 
                 coll.resolve();
 
                 // trigger collision listeners
             }
-
-        //System.out.println("detected " + collider.getRegisteredCollision().size() + " collisions");
 
             // 4ème étape : on remet à jour les Chunks
             physics.clearChunks();
