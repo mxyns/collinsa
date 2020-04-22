@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 
 import java.awt.Color;
@@ -66,6 +67,7 @@ public class Preset_Friction extends Preset {
         r_landing.setCollisionType(Collision.CollisionType.KINEMATIC);
         r_landing.setColor(Color.black);
         physics.addEntity(r_landing);
+        physics.globalForces.add(new PlanetGravity(1));
     }
 
     @Override
@@ -92,7 +94,6 @@ public class Preset_Friction extends Preset {
 
             Circle circle = new Circle(x, y, (int) (2 * Math.random()) + 2);
             Utils.applyParameter("--m", 1f, args, circle.getInertia()::setMass);
-            circle.setAcc(0, 30);
             circle.setVel(vx, vy);
             Utils.applyParameter("--e", Material.DUMMY.getRestitution(), args, circle.getMaterial()::setRestitution);
 

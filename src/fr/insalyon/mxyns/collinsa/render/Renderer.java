@@ -9,6 +9,7 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
+import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
@@ -252,6 +253,16 @@ public class Renderer {
         outline.closePath();
 
         g.draw(outline);
+
+        if (renderEntitiesAABB) {
+            g.setColor(Color.green);
+            Vec2f barycenter = Geometry.getBarycenter(polygon.getVertices());
+            g.draw(new Ellipse2D.Double((barycenter.x - camera.getPos().x) * factor - 2.5f, (barycenter.y - camera.getPos().y) * factor - 2.5f, 5f, 5f));
+
+            g.setColor(Color.red);
+            g.draw(new Ellipse2D.Double((polygon.getPos().x - camera.getPos().x) * factor - 2.5f, (polygon.getPos().y - camera.getPos().y) * factor - 2.5f, 5f, 5f));
+        }
+
     }
 
     /**

@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.collisions.CollisionListener;
 import fr.insalyon.mxyns.collinsa.physics.entities.*;
+import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 public class Preset_Polygons extends Preset {
@@ -19,7 +20,7 @@ public class Preset_Polygons extends Preset {
 
         Physics physics = collinsa.getPhysics();
 
-        Polygon poly = new ConvexPoly(new Vec2f(100, 100), 5, 60);
+        Polygon poly = new ConvexPoly(new Vec2f(100, 60), 5, 60);
         //poly2 = new ConvexPoly(new Vec2f(420, 250), 3, 60);
         //Rect poly = new Rect(100, 100, 300, 100);
         poly.setVel(50,0);
@@ -45,6 +46,13 @@ public class Preset_Polygons extends Preset {
         poly2.getMaterial().setRestitution(0.2f);
         sol.getMaterial().setRestitution(0.2f);
         triangle.getMaterial().setRestitution(0.2f);
+
+        Polygon convexPoly = new ConvexPoly(new Vec2f(70, 580),
+                                            new Vec2f(20, 20),
+                                            new Vec2f(-40, -20),
+                                            new Vec2f(-5f, 30)
+                                            );
+        physics.addEntity(convexPoly);
 
         Circle boule = new Circle(triangle.getPos().copy(), 20);
         boule.getPos().add(10, -50);
@@ -86,6 +94,7 @@ public class Preset_Polygons extends Preset {
         physics.addEntity(triangle);
         physics.addEntity(poly);
         physics.addEntity(poly2);
+        physics.globalForces.add(new PlanetGravity(1));
     }
 
     @Override
@@ -94,14 +103,9 @@ public class Preset_Polygons extends Preset {
         while (true) {
 
             if (loop <= 8) {
-                //collinsa.getPhysics().removeEntity(poly2);
-//
-                //float oldRot = poly2.getRot();
-//
-                ////poly2 = new ConvexPoly(new Vec2f(380, 220), 2 + ++loop, 50);
-                //poly2.setRot(oldRot);
-                ////poly2.setAngVel(1);
-                ////collinsa.getPhysics().addEntity(poly2);
+
+                // Do something, no ideas yet
+
             } else {
 
             }

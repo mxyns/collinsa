@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 
 public class Preset_AngularVelocity extends Preset {
@@ -24,7 +25,6 @@ public class Preset_AngularVelocity extends Preset {
 
 
         circle = new Circle(rect.getPos().x - 130, rect.getPos().y + 50, 10);
-        circle.setAcc(0, 10);
         Utils.applyParameter("--acc", 2f, args, circle::setAngAcc);
         Utils.applyParameter("--vel", 3f, args, circle::setAngVel);
 
@@ -33,6 +33,7 @@ public class Preset_AngularVelocity extends Preset {
 
         physics.addEntity(rect);
         physics.addEntity(circle);
+        physics.globalForces.add(new PlanetGravity(1));
     }
 
     @Override

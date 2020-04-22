@@ -37,7 +37,8 @@ public abstract class Preset {
         Angular_Velocity(new Preset_AngularVelocity()),
         Wheel(new Preset_AngularVelocity()),
         Poly(new Preset_Polygons()),
-        GazTest(new Preset_GazTest());
+        GazTest(new Preset_GazTest()),
+        Force(new Preset_Force());
 
         private final Preset presetInstance;
 

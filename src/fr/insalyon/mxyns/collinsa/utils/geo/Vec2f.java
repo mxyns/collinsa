@@ -32,13 +32,28 @@ public class Vec2f {
     }
 
     /**
+     * Ajout d'un Vec2f multiplié, sans le modifier, au vecteur courant
+     *
+     * @param other Vec2f à ajouter
+     *
+     * @return vecteur courant modifié
+     */
+    public Vec2f add(Vec2f other, float mult) {
+
+        x += other.x * mult;
+        y += other.y * mult;
+
+        return this;
+    }
+
+    /**
      * Ajout d'un Vec2d multiplié, sans le modifier, au vecteur courant
      *
      * @param other Vec2d à ajouter
      *
      * @return vecteur courant modifié
      */
-    public Vec2f add(Vec2f other, float mult) {
+    public Vec2f add(Vec2d other, float mult) {
 
         x += other.x * mult;
         y += other.y * mult;

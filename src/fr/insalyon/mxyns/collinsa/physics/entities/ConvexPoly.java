@@ -15,6 +15,10 @@ public class ConvexPoly extends Polygon {
 
         super(pos, n, r);
     }
+    public ConvexPoly(Vec2f pos, Vec2f... vertices) {
+
+        super(pos, vertices);
+    }
 
     @Override
     public double getMaximumSize() {

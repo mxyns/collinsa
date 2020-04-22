@@ -25,6 +25,7 @@ public class Circle extends Entity {
         super(pos);
         this.r = r;
 
+        getInertia().update(this);
         updateAABB();
     }
 

@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.forces.Force;
 
 import java.awt.Color;
 
@@ -82,21 +83,39 @@ public class ProcessingThread extends ClockedThread {
         deltaTime = physics.isRealtime() ? elapsedTime : physics.getFixedDeltaTime();
 
         // Test de mise à jour des positions, vitesses, accélérations
-            for (Entity entity : physics.getEntities()) {
+        for (Entity entity : physics.getEntities()) {
+            // 1ère étape : mettre à jour les éléments
+            // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
+            if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
+                if (entity.isActivated()) {
+                    entity.updateMillis(deltaTime);
 
-                // 1ère étape : mettre à jour les éléments
-                // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
-                if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
-                    if (entity.isActivated())
-                        entity.updateMillis(deltaTime);
-                } else
-                    physics.removeEntity(entity);
+                    if (!entity.isKinematic()) {
+                        entity.setAcc(0, 0);
+                        entity.setAngAcc(0);
+                    }
+                }
+            } else
+                physics.removeEntity(entity);
+        }
+
+        // 1-bis étape : on applique les forces
+        for (Force force : physics.forces)
+            force.apply();
+
+        for (Entity entity : physics.getEntities()) {
+
+            // 1-ter étape : on applique les forces globales (on le fait ici pour éviter de re-parcourir une deuxième fois la liste des entités
+            for (Force globalForce : physics.globalForces) {
+
+                globalForce.setTarget(entity);
+                globalForce.apply();
             }
 
-            for (Entity entity : physics.getEntities())
-                // 2ème étape : détection de collisions
-                for (Entity target : collider.getNearbyEntities(entity))
-                    collider.checkForCollision(entity, target);
+            // 2ème étape : détection de collisions
+            for (Entity target : collider.getNearbyEntities(entity))
+                collider.checkForCollision(entity, target);
+        }
 
         // 3ème étape : résolution des collisions détectées
         if (collider.preciseResolution) {

@@ -3,8 +3,12 @@ package fr.insalyon.mxyns.collinsa.presets;
 import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Material;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
+import fr.insalyon.mxyns.collinsa.physics.entities.ConvexPoly;
+import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 
@@ -19,6 +23,14 @@ public class Preset_GazTest extends Preset {
         //Création d'élements / entitées à ajouter à la simulation
         Physics physics = collinsa.getPhysics();
 
+
+        Entity pusher = new ConvexPoly(new Vec2f(50, collinsa.getPhysics().getHeight() / 2), 3, 100);
+        pusher.setCollisionType(Collision.CollisionType.KINEMATIC);
+        System.out.println("inertia " + pusher.getInertia());
+        pusher.setAcc(100, 0);
+        collinsa.getPhysics().addEntity(pusher);
+
+
         for (int i = 0; i < n; ++i) {
 
             Circle circle = new Circle((int) (Math.random() * collinsa.getPhysics().getWidth()), (int) (Math.random() * collinsa.getPhysics().getHeight()), 2);
@@ -32,17 +44,6 @@ public class Preset_GazTest extends Preset {
             //circle.setVel(speed);
             physics.addEntity(circle);
         }
-
-    }
-
-    @Override
-    public void loop(String[] args, Collinsa collinsa) {
-
-        Circle circle = new Circle(10,collinsa.getPhysics().getHeight() /2, 25);
-        circle.getInertia().setMass(150);
-        circle.setAcc(100, 0);
-
-        collinsa.getPhysics().addEntity(circle);
 
     }
 }

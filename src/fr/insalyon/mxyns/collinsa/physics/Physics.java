@@ -7,6 +7,7 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.physics.forces.Force;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
@@ -80,6 +81,8 @@ public class Physics {
      */
     // FIXME: change this slow bs
     final private CopyOnWriteArrayList<Entity> entities = new CopyOnWriteArrayList<>();
+
+    final public ArrayList<Force> forces = new ArrayList<>(), globalForces = new ArrayList<>();
 
     /**
      * Largeur et hauteur de la simulation en mètres
@@ -380,7 +383,7 @@ public class Physics {
         //FIXME, use doubles ?
         if ((clipped += Geometry.clip(referenceFaceTangent, posSide, incidentFace)) < 2 || (clipped += Geometry.clip(referenceFaceTangent.multOut(-1), negSide, incidentFace)) < 4) {
 
-            //System.out.println("skip, clipped="+clipped);
+            System.out.println("skip, clipped="+clipped);
             return false;
         }
 

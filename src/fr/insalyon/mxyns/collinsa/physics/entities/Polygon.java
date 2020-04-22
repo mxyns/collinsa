@@ -24,15 +24,16 @@ public abstract class Polygon extends Entity {
     public Polygon(Vec2f pos, Vec2f[] local_vertices) {
 
         this(pos, local_vertices.length);
-        this.local_vertices = local_vertices;
 
-        getInertia().update(this);
+        this.local_vertices = new Vec2f[local_vertices.length];
+
+        Vec2f barycenter = Geometry.getBarycenter(local_vertices);
+        for (int i = 0; i < local_vertices.length; ++i)
+            this.local_vertices[i] = local_vertices[i].copy().sub(barycenter);
+
         updateVertices();
+        getInertia().update(this);
     }
-    /*public Polygon(Vec2f[] vertices) {
-
-        this(Inertia.getBarycenter(vertices), vertices);
-    }*/ // TODO : barycenter
 
     public Polygon(Vec2f pos, int n, float r) {
 
@@ -44,8 +45,8 @@ public abstract class Polygon extends Entity {
         for (int i = 0; i < n; ++i)
             local_vertices[i] = new Vec2f(r, 0).rotate((float) Math.toRadians(-a * i));
 
-        getInertia().update(this);
         updateVertices();
+        getInertia().update(this);
     }
 
     @Override
@@ -57,12 +58,32 @@ public abstract class Polygon extends Entity {
     @Override
     public float computeJ() {
 
-        return 1;
+        if (local_vertices == null)
+            return 0;
+
+        return getInertia().getMass() * local_vertices[0].squaredMag();
     }
     //TODO :
 
     @Override
-    public float getVolume() { return 1; }
+    public float getVolume() {
+
+        // Happens at first initialization (Entity constructor => setMaterial(DUMMY) => setMass => getVolume) but is changed right in Polygon constructor (inertia.update(this))
+        if (local_vertices == null)
+            return 0;
+
+        double area = 0;
+        int j;
+
+        for (int i = 0 ; i < local_vertices.length; ++i) {
+            j = (i + 1) % local_vertices.length;
+            area += vertices[i].x * vertices[j].y;
+            area -= vertices[i].y * vertices[j].x;
+        }
+        area = Math.abs(area) / 2;
+
+        return (float) area;
+    }
     // TODO :
 
     @Override

@@ -272,6 +272,18 @@ public class Geometry {
         }
     }
 
+    public static Vec2f getBarycenter(Vec2f[] vertices) {
+
+        float x = 0, y = 0;
+
+        for (Vec2f vertex : vertices) {
+            x += vertex.x;
+            y += vertex.y;
+        }
+
+        return new Vec2f(x, y).div(vertices.length);
+    }
+
     public static Vec2f cross(Vec2f vec, float s) {
 
         return new Vec2f(s*vec.y, -s*vec.x);

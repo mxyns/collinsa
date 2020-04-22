@@ -219,6 +219,11 @@ public class Vec2d {
         return x*other.y - other.x*y;
     }
 
+    public static double cross(Vec2d first, Vec2d second) {
+
+        return first.x * second.y - second.x * first.y;
+    }
+
     /**
      * Multiplie le vecteur courant par -1 // Le rend égal à son opposé
      * @return vecteur courant modifié
