@@ -13,7 +13,7 @@ import java.awt.Color;
 
 public class Preset_Friction extends Preset {
 
-    Rect mill;
+    private Rect mill;
 
     @Override
     public void setup(String[] args, Collinsa collinsa) {

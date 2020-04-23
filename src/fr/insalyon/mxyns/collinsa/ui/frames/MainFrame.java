@@ -19,6 +19,7 @@ public class MainFrame extends JFrame {
     final private SandboxPanel sandboxPanel;
 
     public MainFrame(int width, int height) {
+
         super();
 
         setTitle("CollINSA");

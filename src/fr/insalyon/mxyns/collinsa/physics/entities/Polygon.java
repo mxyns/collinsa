@@ -84,27 +84,6 @@ public abstract class Polygon extends Entity {
 
         return (float) area;
     }
-    // TODO :
-
-    @Override
-    public void updateAABB() {
-
-        updateVertices();
-
-        Vec2f minCorner = Geometry.getMinPos(vertices);
-        Vec2f maxCorner = Geometry.getMaxPos(vertices);
-
-        this.aabb.x = minCorner.x;
-        this.aabb.y = minCorner.y;
-        this.aabb.w = maxCorner.x - minCorner.x;
-        this.aabb.h = maxCorner.y - minCorner.y;
-    }
-
-    @Override
-    public short cardinal() {
-
-        return 2;
-    }
 
     public void updateVertices() {
 
@@ -127,5 +106,36 @@ public abstract class Polygon extends Entity {
     public Vec2f[] getNormals() {
 
         return normals;
+    }
+
+    @Override
+    public void updateAABB() {
+
+        updateVertices();
+
+        Vec2f minCorner = Geometry.getMinPos(vertices);
+        Vec2f maxCorner = Geometry.getMaxPos(vertices);
+
+        this.aabb.x = minCorner.x;
+        this.aabb.y = minCorner.y;
+        this.aabb.w = maxCorner.x - minCorner.x;
+        this.aabb.h = maxCorner.y - minCorner.y;
+    }
+
+    @Override
+    public double getMaximumSize() {
+
+        double max = Double.NEGATIVE_INFINITY, tmp;
+        for (Vec2f vertex : local_vertices)
+            if ((tmp = vertex.squaredMag()) > max)
+                max = tmp;
+
+        return 2 * Math.sqrt(max);
+    }
+
+    @Override
+    public short cardinal() {
+
+        return 2;
     }
 }

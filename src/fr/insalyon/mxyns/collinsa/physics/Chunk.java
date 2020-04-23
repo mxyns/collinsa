@@ -2,7 +2,7 @@ package fr.insalyon.mxyns.collinsa.physics;
 
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -14,7 +14,7 @@ public class Chunk {
     /**
      * Rectangle représentant le chunk (position et taille)
      */
-    public Rectangle bounds;
+    public Rectangle2D bounds;
 
     /**
      * Contient les entités présentes dans le chunk
@@ -29,9 +29,9 @@ public class Chunk {
      * @param w largeur en mètres
      * @param h hauteur en mètres
      */
-    public Chunk(int x, int y, int w, int h) {
+    public Chunk(float x, float y, float w, float h) {
 
-        bounds = new Rectangle(x, y, w, h);
+        bounds = new Rectangle2D.Float(x, y, w, h).getBounds2D();
         entities = new CopyOnWriteArraySet<>();
     }
 
@@ -48,6 +48,6 @@ public class Chunk {
 
     public String toString() {
 
-        return "Chunk[pos(T-L)=" + bounds.getLocation() + ", size=" + bounds.getSize() + "]";
+        return "Chunk[pos(T-L)= (" + bounds.getX() + ", " + bounds.getY() + "), size=[" + bounds.getWidth() + ", " + bounds.getHeight() + ") ";
     }
 }

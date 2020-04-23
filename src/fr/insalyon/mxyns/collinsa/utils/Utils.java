@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.utils;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 import java.util.function.Consumer;
@@ -130,6 +131,17 @@ public class Utils {
             } catch (Exception e) {
                 caught = e;
             }
+        } else if (defaultValue instanceof Vec2f) {
+
+            try {
+                result = (T) parseVector(value);
+
+            } catch (Exception e) {
+                caught = e;
+            }
+        } else {
+
+            System.out.println("Unsupported type");
         }
 
         if (caught != null) {
@@ -164,6 +176,13 @@ public class Utils {
         Utils.applyParameter("--bgColor", Color.white, args, collinsa.getRenderer().getGraphicsBuffer()::setBackgroundColor);
         Utils.applyParameter("--worldBoundsColor", Color.black, args, collinsa.getRenderer()::setWorldBoundsColor);
         Utils.applyParameter("--useDebugColors", false, args, collinsa.getPhysics().getCollider()::setDisplayCollisionColor);
+
+        Utils.applyParameter("--chunkCount", new Vec2f(3, 3), args, collinsa.getPhysics()::setChunkCount);
+        Utils.applyParameter("--worldSize", new Vec2f(1440, 810), args, collinsa.getPhysics()::resize);
+
+        float width = Utils.getParameter("--width", collinsa.getPhysics().getWidth(), args);
+        float height = Utils.getParameter("--height", collinsa.getPhysics().getHeight(), args);
+        collinsa.getPhysics().resize(new Vec2f(width, height));
     }
 
     /**
@@ -206,7 +225,38 @@ public class Utils {
         else if (toThrow != null)
             toThrow.printStackTrace();
 
-        throw new Exception("Couldn't cast '" + str + "' to Color. Use already existing field name in class java.awt.Color (case sensitive) or the following format: rgb(r, g, b). With r, g & b in range [0,255]");
+        throw new Exception("Couldn't cast '" + str + "' to Color. Use already existing field name in class java.awt.Color (case sensitive) or the following format: rgb(r,g,b). With r, g & b in range [0,255]. /!\\ No spaces ! /!\\");
+    }
+
+    private static Vec2f parseVector(String str) throws Exception {
+
+        Exception toThrow = null;
+        Vec2f result = null;
+
+        if (Pattern.matches("(?:(?:Vec2f)|(?:vec2f))\\((?:[\\d]+,?){2}\\)", str)) {
+            str = str.substring(6, str.length() - 1);
+            String[] values = str.split(",");
+            Float[] posValues = new Float[2];
+            for (int i = 0; i < 2; ++i) {
+                if (values[i] != null && !values[i].isEmpty()) {
+                    try {
+                        posValues[i] = Float.parseFloat(values[i]);
+                    } catch (Exception e2) {
+                        toThrow = e2;
+                        --i;
+                    }
+                } else --i;
+            }
+
+            result = new Vec2f(posValues[0], posValues[1]);
+        }
+
+        if (result != null)
+            return result;
+        else if (toThrow != null)
+            toThrow.printStackTrace();
+
+        throw new Exception("Couldn't cast '" + str + "' to Vec2f. Use the following format: vec2f(a,b).");
     }
 
     /**
@@ -218,7 +268,7 @@ public class Utils {
      */
     public static int constrain(int value, int min, int max) {
 
-        if (min < max)
+        if (min > max)
             return constrain(value, max, min);
 
         return Math.min(Math.max(min, value), max);

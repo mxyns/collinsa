@@ -42,17 +42,17 @@ public class Physics {
      * | Add  | Remove | Get  | Contains | Next |
      * | O(1) |  O(n)  | O(1) |   O(n)   | O(1) |
      */
-    private ArrayList<Chunk> chunks;
+    private final ArrayList<Chunk> chunks = new ArrayList<>();
 
     /**
      * Permet de stocker la taille des Chunks sans avoir à accéder au Set des chunks à chaque fois
      */
-    private Vec2f chunkSize = Vec2f.zero();
+    private final Vec2f chunkSize = Vec2f.zero();
 
     /**
      * Permet de stocker le nombre de Chunks sans avoir à accéder au Set des chunks à chaque fois
      */
-    private Vec2f chunkCount = Vec2f.zero();
+    private final Vec2f chunkCount = Vec2f.zero();
 
     /**
      * Permet de stocker le nombre total de Chunks sans avoir à accéder au Set des chunks ni à multiplier chunkCount.x par chunkCount.y à chaque fois
@@ -87,7 +87,7 @@ public class Physics {
     /**
      * Largeur et hauteur de la simulation en mètres
      */
-    private int width, height;
+    private float width, height;
 
     /**
      * Crée un moteur physique, avec un nombre défini de chunk avec un refreshRate par défaut de 60, isRealtime = true, fixedDeltaTime = 10
@@ -116,7 +116,7 @@ public class Physics {
         this.fixedDeltaTime = fixedDeltaTime;
 
         processingThread = new ProcessingThread(this, new MillisClock(), refreshRate);
-        chunks = buildChunks(horizontalChunkCount, verticalChunkCount, width / horizontalChunkCount, height / verticalChunkCount);
+        buildChunks(horizontalChunkCount, verticalChunkCount, width * 1.0f / horizontalChunkCount, height * 1.0f / verticalChunkCount);
     }
 
     /**
@@ -190,26 +190,23 @@ public class Physics {
     }
 
     /**
-     * Partitionne le monde e [n_x * n_y] chunks de taille [w * h]
+     * Partitionne le monde en [n_x * n_y] chunks de taille [w * h]
      * @param n_x nombre de chunks à l'horizontale
      * @param n_y nombre de chunks à la verticale
      * @param w largeur d'un chunk
      * @param h hauteur d'un chunk
-     * @return SortedSet de Chunk. Triés par Hash
      * @see Chunk
      */
-    private ArrayList<Chunk> buildChunks(int n_x, int n_y, int w, int h) {
+    private void buildChunks(int n_x, int n_y, float w, float h) {
 
-        ArrayList<Chunk> chunksSet = new ArrayList<>();
+        chunks.clear();
         for (int y = 0; y < n_y; ++y)
             for (int x = 0; x < n_x; ++x)
-                chunksSet.add(new Chunk(x * w, y * h, w, h));
+                chunks.add(new Chunk(x * w, y * h, w, h));
 
         chunkSize.set(w, h);
         chunkCount.set(n_x, n_y);
         totalChunkCount = n_x * n_y;
-
-        return chunksSet;
     }
 
     /**
@@ -226,7 +223,7 @@ public class Physics {
      */
     public int hashChunk(Chunk chunk) {
 
-        return (int)(chunk.bounds.x / chunkSize.x) + (int)chunkCount.x * (int)(chunk.bounds.y / chunkSize.y);
+        return (int)(chunk.bounds.getX() / chunkSize.x) + (int)chunkCount.x * (int)(chunk.bounds.getY() / chunkSize.y);
     }
 
     /**
@@ -652,7 +649,7 @@ public class Physics {
      * Renvoie la largeur du monde en mètres
      * @return largeur du monde en mètres
      */
-    public int getWidth() {
+    public float getWidth() {
 
         return width;
     }
@@ -661,7 +658,7 @@ public class Physics {
      * Redéfinie la largeur du monde en mètres
      * @param width largeur du monde en mètres
      */
-    private void setWidth(int width) {
+    public void setWidth(float width) {
 
         this.width = width;
     }
@@ -670,7 +667,7 @@ public class Physics {
      * Renvoie la hauteur du monde en mètres
      * @return hauteur du monde en mètres
      */
-    public int getHeight() {
+    public float getHeight() {
 
         return height;
     }
@@ -679,9 +676,16 @@ public class Physics {
      * Redéfinie la hauteur du monde en mètres
      * @param height hauteur du monde en mètres
      */
-    private void setHeight(int height) {
+    public void setHeight(float height) {
 
         this.height = height;
+    }
+
+    public void resize(Vec2f newSize) {
+
+        setWidth(newSize.x);
+        setHeight(newSize.y);
+        buildChunks((int)chunkCount.x, (int)chunkCount.y, newSize.x / chunkCount.x, newSize.y / chunkCount.y);
     }
 
     /**
@@ -700,6 +704,15 @@ public class Physics {
     public Vec2f getChunkCount() {
 
         return chunkCount;
+    }
+
+    /**
+     * Redéfini le nombre de chunks. Nécessite d'utiliser Physics.buildChunks après pour que les changements soient appliqués.
+     * @param chunkCount Vec2f contenant le nb de chunks en x et le nb de chunks en y
+     */
+    public void setChunkCount(Vec2f chunkCount) {
+
+        this.chunkCount.set((int)chunkCount.x, (int)chunkCount.y);
     }
 
     /**

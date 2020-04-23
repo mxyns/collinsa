@@ -19,10 +19,4 @@ public class ConvexPoly extends Polygon {
 
         super(pos, vertices);
     }
-
-    @Override
-    public double getMaximumSize() {
-
-        return 0;
-    }
 }

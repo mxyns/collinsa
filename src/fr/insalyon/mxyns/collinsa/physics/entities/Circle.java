@@ -66,7 +66,7 @@ public class Circle extends Entity {
     @Override
     public double getMaximumSize() {
 
-        return r;
+        return 2 * r;
     }
 
     @Override

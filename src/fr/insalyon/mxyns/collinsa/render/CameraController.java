@@ -1,5 +1,6 @@
 package fr.insalyon.mxyns.collinsa.render;
 
+import fr.insalyon.mxyns.collinsa.utils.CyclicList;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
@@ -21,9 +22,10 @@ public class CameraController extends MouseAdapter implements KeyListener {
     private final Set<Integer> pressedKeys = new HashSet<>();
 
     /**
-     * Controlled camera
+     * Controlled cameras CyclicList
+     * @see CyclicList
      */
-    final private Camera camera;
+    final private CyclicList<Camera> cameras = new CyclicList<>(false);
 
     /**
      * Renderer associé à la Camera, permet le calcul du zoom sur la surface de rendu
@@ -54,7 +56,8 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public CameraController(Camera camera, Renderer renderer, boolean doesForceRender) {
 
-        this.camera = camera;
+        this.cameras.add(camera);
+        this.cameras.next();
         this.renderer = renderer;
         this.doesForceRender = doesForceRender;
     }
@@ -108,7 +111,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraDisplayBounds(double height) {
 
-        this.camera.setHeight(height);
+        this.cameras.current().setHeight(height);
         renderer.setRenderFactor(renderer.getDestinationSize().getHeight() / height);
     }
 
@@ -119,7 +122,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraDisplayBounds(double width, double height) {
 
-        this.camera.setSize(width, height);
+        this.cameras.current().setSize(width, height);
         setCameraDisplayBounds(height);
     }
 
@@ -129,7 +132,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraDisplayBounds(Vec2d size) {
 
-        this.camera.setSize(size);
+        this.cameras.current().setSize(size);
         setCameraDisplayBounds(size.y);
     }
 
@@ -154,13 +157,24 @@ public class CameraController extends MouseAdapter implements KeyListener {
     }
 
     /**
-     * Détermine le coin haut-gauche du champs de vue de la caméra
+     * Positionne le coin haut-gauche (center = false) ou le centre (center = true) du champs de vue de la caméra
      * @param x en mètres
      * @param y en mètres
+     * @param center true on veut centrer la caméra sur le point donné
      */
-    public void setCameraFocus(float x, float y) {
+    public void setCameraFocus(float x, float y, boolean center) {
 
-        this.camera.setPos(x, y);
+        this.cameras.current().setPos(center ? (float) (x - cameras.current().getWidth() * 0.5f) : x, center ? (float) (y - cameras.current().getHeight() * 0.5f) : y);
+    }
+
+    /**
+     * Positionne le coin haut-gauche (center = false) ou le centre (center = true) du champs de vue de la caméra
+     * @param pos vecteur position (en mètres)
+     * @param center true on veut centrer la caméra sur le point donné
+     */
+    public void setCameraFocus(Vec2f pos, boolean center) {
+
+        setCameraFocus(pos.x, pos.y, center);
     }
 
     /**
@@ -169,7 +183,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraFocusX(float x) {
 
-        this.camera.setX(x);
+        this.cameras.current().setX(x);
     }
 
     /**
@@ -178,7 +192,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void setCameraFocusY(float y) {
 
-        this.camera.setY(y);
+        this.cameras.current().setY(y);
     }
 
     /**
@@ -188,7 +202,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void moveCameraFocus(Vec2f dir, float dist) {
 
-        camera.move(dir.mult(dist));
+        cameras.current().move(dir.setMag(dist));
     }
 
     /**
@@ -198,7 +212,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void moveCameraFocus(int x, int y) {
 
-        camera.move(x, y);
+        cameras.current().move(x, y);
     }
     /**
      * Translate la Camera d'un vecteur (x, y)
@@ -207,7 +221,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public void moveCameraFocus(float x, float y) {
 
-        camera.move(x, y);
+        cameras.current().move(x, y);
     }
 
     /**
@@ -219,7 +233,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public float getCameraZoom() {
 
-        return (float)(renderer.getDestinationSize().getWidth() / (renderer.getRenderScale() * camera.getWidth()));
+        return (float)(renderer.getDestinationSize().getWidth() / (renderer.getRenderScale() * cameras.current().getWidth()));
     }
 
     /**
@@ -233,13 +247,13 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
         if (zoom <= 0) return;
 
-        double oldHeight = camera.getHeight();
+        double oldHeight = cameras.current().getHeight();
 
-        this.camera.setHeight(renderer.getDestinationSize().getHeight() / (renderer.getRenderScale() * zoom));
+        this.cameras.current().setHeight(renderer.getDestinationSize().getHeight() / (renderer.getRenderScale() * zoom));
 
         // Repositionnement de la caméra après zoom pour rester aligner avec le centre
-        oldHeight = (oldHeight - camera.getHeight()) * 0.5f;
-        this.moveCameraFocus((float)(oldHeight * camera.getRatio()), (float)oldHeight);
+        oldHeight = (oldHeight - cameras.current().getHeight()) * 0.5f;
+        this.moveCameraFocus((float)(oldHeight * cameras.current().getRatio()), (float)oldHeight);
 
         renderer.setRenderFactor(zoom * renderer.getRenderScale());
     }
@@ -268,7 +282,7 @@ public class CameraController extends MouseAdapter implements KeyListener {
      */
     public Vec2f getCameraPosition() {
 
-        return camera.getPos();
+        return cameras.current().getPos();
     }
 
     @Override
@@ -281,12 +295,19 @@ public class CameraController extends MouseAdapter implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
 
-        if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN)
+        if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN) {
             pressedKeys.add(e.getKeyCode());
+            moveCameraFocus(getDirection(pressedKeys), 20);
 
-        moveCameraFocus(getDirection(pressedKeys), 20);
+        } else if (e.getKeyCode() == KeyEvent.VK_PAGE_UP)
+            previousCamera();
+        else if (e.getKeyCode() == KeyEvent.VK_PAGE_DOWN)
+            nextCamera();
+        else return;
 
-        renderer.forceRender();
+        // On n'arrive ici que si le keyPressed a été utile (la touche appuyée correspondait à une des touches utiles, sinon on passe par le 'else return;')
+        if (doesForceRender)
+            renderer.forceRender();
     }
 
     /**
@@ -325,6 +346,9 @@ public class CameraController extends MouseAdapter implements KeyListener {
     @Override
     public void mouseDragged(MouseEvent e) {
 
+        if (cameras.current().getFollowedEntity() != null)
+            return;
+
         moveCameraFocus((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderer.getRenderFactor()), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderer.getRenderFactor()));
 
         dragOrigin = e.getPoint();
@@ -353,6 +377,37 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
     public String toString() {
 
-        return "CameraController[activesKeys=" + pressedKeys + ", Camera=" + camera + ", zoom=x" + getCameraZoom() + "]";
+        return "CameraController[activesKeys=" + pressedKeys + ", Camera=" + cameras.current() + ", zoom=x" + getCameraZoom() + "]";
+    }
+
+    public CyclicList<Camera> getCameraList() {
+
+        return cameras;
+    }
+
+    public boolean addCamera(Camera camera) {
+
+        return cameras.add(camera);
+    }
+
+    public Camera nextCamera() {
+
+        return setCamera(cameras.next());
+    }
+
+    public Camera previousCamera() {
+
+        return setCamera(cameras.prev());
+    }
+
+    private Camera setCamera(Camera camera) {
+
+        if (cameras.contains(camera))
+            return null;
+
+        renderer.camera = camera;
+        renderer.setRenderFactor(getCameraZoom() * renderer.getRenderScale());
+
+        return renderer.camera;
     }
 }

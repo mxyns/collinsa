@@ -37,10 +37,10 @@ public class Renderer {
     private RenderingThread renderingThread;
 
     /**
-     * Rectangle renderBounds est un rectangle délimitant la zone de l'espace à rendre (tout objet en dehors de cette zone est toujours mis à jour mais n'est pas affiché)
-     * Il est toujours proportionnel à la taille du Panel et donc de la Frame
+     * Camera est la caméra utilisée actuellement par le renderer. Elle permet de délimiter la zone de rendu et de ne pas rendre les objets étant en dehors de cette zone.
+     * Puisque le CameraController du Renderer peut avoir plusieurs caméras, Renderer.camera contiendra seulement la caméra actuelle, et cet attribut sera mis à jour à chaque changement de caméras.
      */
-    private Camera camera;
+    Camera camera;
 
     /**
      * Le controleur qui permet de controller la Camera (déplacement, zoom/redimensionnement, etc.)
@@ -130,6 +130,15 @@ public class Renderer {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+        if (camera == null) {
+            System.out.println("Render failed : no camera selected");
+            return;
+        }
+
+        if (camera.getFollowedEntity() != null) {
+            cameraController.setCameraFocus(camera.getFollowedEntity().getPos(), true);
+        }
+
         // On fait le rendu de tous les Chunk visibles
         for (Chunk chunk : physics.getChunks())
             if(shouldRenderChunk(chunk))
@@ -158,6 +167,14 @@ public class Renderer {
         g.drawString("FPS-Proc.:"+(INSTANCE.getPhysics().getProcessingThread().getClock().lastElapsed != 0 ? 1000 / INSTANCE.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
         g.drawString("FPS-Rend.:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
         g.drawString("FPS-Disp.:"+(INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed != 0 ? 1000 / INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed : 0), 5, 41);
+
+        Dimension imageSize = getDestinationSize();
+
+        float moreWidth = 7 * (int) Math.log10(getCameraController().getCameraList().size() + 1);
+              moreWidth += getCameraController().getCameraList().getIndex() == 0 ? 0 : 7 * (int) Math.log10(getCameraController().getCameraList().getIndex());
+
+        g.draw(new Rectangle2D.Float(0, imageSize.height - 15, 90 + moreWidth, 15));
+        g.drawString("Camera #" + getCameraController().getCameraList().getIndex() + " / " + getCameraController().getCameraList().size(), 5, imageSize.height - 3);
     }
 
     /**
@@ -203,8 +220,8 @@ public class Renderer {
 
         if (renderChunksBounds) {
             g.setColor(chunkBoundsColor);
-            g.drawRect((int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y) * factor), (int) (chunk.bounds.getWidth() * factor), (int) (chunk.bounds.getHeight() * factor));
-            g.drawString(String.valueOf(INSTANCE.getPhysics().getPositionHash(chunk.bounds.x, chunk.bounds.y)), (int) ((chunk.bounds.x - camera.getPos().x) * factor), (int) ((chunk.bounds.y - camera.getPos().y + INSTANCE.getPhysics().getChunkSize().y) * factor));
+            g.drawRect((int) ((chunk.bounds.getX() - camera.getPos().x) * factor), (int) ((chunk.bounds.getY() - camera.getPos().y) * factor), (int) (chunk.bounds.getWidth() * factor), (int) (chunk.bounds.getHeight() * factor));
+            g.drawString(String.valueOf(INSTANCE.getPhysics().getPositionHash(chunk.bounds.getX(), chunk.bounds.getY())), (int) ((chunk.bounds.getX() - camera.getPos().x) * factor), (int) ((chunk.bounds.getY() - camera.getPos().y + INSTANCE.getPhysics().getChunkSize().y) * factor));
         }
     }
     /**
@@ -350,6 +367,11 @@ public class Renderer {
     public CameraController getCameraController() {
 
         return cameraController;
+    }
+
+    public Camera getCamera() {
+
+        return camera;
     }
 
     /**

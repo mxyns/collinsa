@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.render;
 
 import fr.insalyon.mxyns.collinsa.physics.Chunk;
+import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
@@ -10,7 +11,7 @@ import javax.swing.JPanel;
  * Une camera permettant le rendu de la scene, elle a toujours le même ratio que le JPanel sur lequel elle est rendue
  * Elle est associée à son JPanel par un Renderer. C'est lui qui la contrôle, les autres classes peuvent seulement lire les paramètres de la Camera.
  */
-class Camera {
+public class Camera {
 
     /**
      * La caméra appartient au monde donc toutes les dimensions doivent être en mètres
@@ -22,6 +23,11 @@ class Camera {
      * Ratio largeur / hauteur de la caméra (e.g: 16:9)
      */
     private double ratio;
+
+    /**
+     * Entité suivie par la caméra
+     */
+    private Entity followedEntity = null;
 
     public Camera() {
 
@@ -40,14 +46,33 @@ class Camera {
         setSize(size);
     }
     /**
-     * Crée une caméra à partir d'un panel. La caméra aura initialement la même taille que le panel (convertit dans le monde via le scale)
+     * Crée une caméra à partir de dimensions en mètres, doivent avoir le même rapport largeur/hauteur que le Panel sur lequel elle est dessinée.
+     * @param pos position de la caméra en mètres
+     * @param size dimensions de la caméra en mètres
+     */
+    public Camera(Vec2d pos, Vec2d size) {
+
+        this();
+        setPos(pos.toFloat());
+        setSize(size);
+    }
+    /**
+     * Crée une caméra à partir de dimensions en mètres, doivent avoir le même rapport largeur/hauteur que le Panel sur lequel elle est dessinée.
+     * @param width largeur de la caméra en mètres
+     * @param height largeur de la caméra en mètres
+     */
+    public Camera(double width, double height) {
+
+        this(new Vec2d(width, height));
+    }
+    /**
+     * Crée une caméra à partir d'un panel. La caméra aura initialement la même taille que le panel (converti dans le monde via le scale)
      * @param panel dimensions de la caméra en mètres
      * @param scale échelle en px/m
      */
     public Camera(JPanel panel, float scale) {
 
-        this();
-        setSize(new Vec2d(panel.getSize().getWidth() / scale, panel.getSize().getHeight() / scale));
+        this(new Vec2d(panel.getSize().getWidth() / scale, panel.getSize().getHeight() / scale));
     }
 
 
@@ -58,10 +83,10 @@ class Camera {
      */
     boolean sees(Chunk chunk) {
 
-        return pos.x < chunk.bounds.x + chunk.bounds.width &&
-               pos.x + width > chunk.bounds.x &&
-               pos.y < chunk.bounds.y + chunk.bounds.height &&
-               height + pos.y > chunk.bounds.y;
+        return pos.x < chunk.bounds.getX() + chunk.bounds.getWidth() &&
+               pos.x + width > chunk.bounds.getX() &&
+               pos.y < chunk.bounds.getY() + chunk.bounds.getHeight() &&
+               height + pos.y > chunk.bounds.getY();
     }
 
     /**
@@ -197,8 +222,18 @@ class Camera {
         return ratio;
     }
 
+    public Entity getFollowedEntity() {
+
+        return followedEntity;
+    }
+
+    public void follow(Entity entity) {
+
+        this.followedEntity = entity;
+    }
+
     public String toString() {
 
-        return "Camera[" + pos + ", " + new Vec2d(width, height) + ", ratio=" + ratio + "]";
+        return "Camera[pos=" + pos + ", size=" + new Vec2d(width, height) + ", ratio=" + ratio + "]";
     }
 }

@@ -11,10 +11,6 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 public class Preset_Polygons extends Preset {
 
-    float rate = .3f;
-    int loop = 0;
-    Polygon poly2;
-
     @Override
     public void setup(String[] args, Collinsa collinsa) {
 
@@ -23,10 +19,10 @@ public class Preset_Polygons extends Preset {
         Polygon poly = new ConvexPoly(new Vec2f(100, 60), 5, 60);
         //poly2 = new ConvexPoly(new Vec2f(420, 250), 3, 60);
         //Rect poly = new Rect(100, 100, 300, 100);
-        poly.setVel(50,0);
+        poly.setVel(50, 0);
         poly.setRot(0.5f);
 
-        poly2 = new Rect(500, 100, 300, 100);
+        Polygon poly2 = new Rect(500, 100, 300, 100);
 
         poly2 = new ConvexPoly(new Vec2f(300, 100), 5, 60);
         poly2.setRot(0.1f);
@@ -51,7 +47,7 @@ public class Preset_Polygons extends Preset {
                                             new Vec2f(20, 20),
                                             new Vec2f(-40, -20),
                                             new Vec2f(-5f, 30)
-                                            );
+        );
         physics.addEntity(convexPoly);
 
         Circle boule = new Circle(triangle.getPos().copy(), 20);
@@ -61,14 +57,15 @@ public class Preset_Polygons extends Preset {
         boule.setMaterial(Material.STICKY);
 
         Entity listenerTest;
-        (listenerTest = new Circle(boule.getPos().copy(), boule.getR())).getPos().add(0,-60);
-        listenerTest.setAcc(-2,15);
+        (listenerTest = new Circle(boule.getPos().copy(), boule.getR())).getPos().add(0, -60);
+        listenerTest.setAcc(-2, 15);
         listenerTest.addCollisionListener(new CollisionListener() {
             @Override
             public void aabbCollided(Entity source, Entity target) {
 
-                ((Circle) source).setR(Math.max(5, ((Circle) source).getR()-.5f));
+                ((Circle) source).setR(Math.max(5, ((Circle) source).getR() - .5f));
             }
+
             @Override
             public void collisionDectected(Entity source, Entity target, Collision collision) {
 
@@ -95,26 +92,5 @@ public class Preset_Polygons extends Preset {
         physics.addEntity(poly);
         physics.addEntity(poly2);
         physics.globalForces.add(new PlanetGravity(1));
-    }
-
-    @Override
-    public void loop(String[] args, Collinsa collinsa) {
-
-        while (true) {
-
-            if (loop <= 8) {
-
-                // Do something, no ideas yet
-
-            } else {
-
-            }
-
-            try {
-                Thread.sleep((int) (1000 / rate));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

@@ -7,12 +7,17 @@ import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.ConvexPoly;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.render.Camera;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 
 public class Preset_GazTest extends Preset {
+
+    private Entity pusher;
+    private Camera camera_2;
 
     @Override
     public void setup(String[] args, Collinsa collinsa) {
@@ -24,7 +29,8 @@ public class Preset_GazTest extends Preset {
         Physics physics = collinsa.getPhysics();
 
 
-        Entity pusher = new ConvexPoly(new Vec2f(50, collinsa.getPhysics().getHeight() / 2), 3, 100);
+        pusher = new ConvexPoly(new Vec2f(50, collinsa.getPhysics().getHeight() / 2), 3, 100);
+        pusher = new Circle(pusher.getPos(), 100);
         pusher.setCollisionType(Collision.CollisionType.KINEMATIC);
         System.out.println("inertia " + pusher.getInertia());
         pusher.setAcc(100, 0);
@@ -45,5 +51,11 @@ public class Preset_GazTest extends Preset {
             physics.addEntity(circle);
         }
 
+        System.out.println("max size = " + pusher.getMaximumSize());
+        camera_2 = new Camera(pusher.getPos().toDouble(), new Vec2d(collinsa.getRenderer().getCamera().getRatio() * 2 * pusher.getMaximumSize(), 2 * pusher.getMaximumSize()));
+        for (int i = 0; i < 157; ++i)
+            collinsa.getRenderer().getCameraController().addCamera(new Camera(new Vec2d(physics.getWidth() * Math.random(), physics.getHeight() * Math.random()), new Vec2d(physics.getWidth() * (0.5f + Math.random() / 3f), physics.getHeight() * (0.5f + Math.random() / 3f))));
+        camera_2.follow(pusher);
+        collinsa.getRenderer().getCameraController().addCamera(camera_2);
     }
 }

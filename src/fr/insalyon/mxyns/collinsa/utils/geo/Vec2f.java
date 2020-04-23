@@ -372,6 +372,9 @@ public class Vec2f {
     public Vec2f setMag(float mult) {
 
         double mag = Math.sqrt(x * x + y * y);
+
+        if (mag == 0) return null;
+
         this.x *= mult / mag;
         this.y *= mult / mag;
 
