@@ -34,29 +34,47 @@ public class Material {
     /**
      * Couleur par défaut d'un objet ayant ce matériau
      */
-    Color color;
+    Color outlineColor, fillColor;
 
     /**
      * Densité utilisée pour calculer la masse
      */
     float density;
 
-    public Material(float density, float restitution, float staticFriction, float dynamicFriction, Color color) {
+    public Material(float density, float restitution, float staticFriction, float dynamicFriction, Color outlineColor, Color fillColor) {
 
         this.restitution = restitution;
         this.staticFriction = staticFriction;
         this.dynamicFriction = dynamicFriction;
         this.density = density;
-        this.color = color;
+        this.outlineColor = outlineColor;
+        this.fillColor = fillColor;
+    }
+    public Material(float density, float restitution, float staticFriction, float dynamicFriction, Color fillColor) {
+
+        this.restitution = restitution;
+        this.staticFriction = staticFriction;
+        this.dynamicFriction = dynamicFriction;
+        this.density = density;
+        this.outlineColor = Color.black;
+        this.fillColor = fillColor;
     }
 
     /**
      * Renvoie la couleur par défaut du matériau. Peut être modifiée ou remplacée manuellement avec Entity.setColor()
      * @return couleur par défaut du matériau
      */
-    public Color getColor() {
+    public Color getOutlineColor() {
 
-        return color;
+        return outlineColor;
+    }
+    /**
+     *   Renvoie la couleur par défaut du matériau. Peut être modifiée ou remplacée manuellement avec Entity.setColor()
+     * @return couleur par défaut du matériau
+     */
+    public Color getFillColor() {
+
+        return fillColor;
     }
 
     /**
@@ -154,6 +172,6 @@ public class Material {
      */
     public Material copy() {
 
-        return new Material(density, restitution, staticFriction, dynamicFriction, color);
+        return new Material(density, restitution, staticFriction, dynamicFriction, outlineColor, fillColor);
     }
 }

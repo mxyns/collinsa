@@ -7,6 +7,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -330,7 +331,6 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
     // Pas très conventionnel de ne pas mettre l'attribut en tête de classe mais il n'a de rapport qu'avec cette méthode
     private Point dragOrigin;
-
     /**
      * Enregistre le point de départ du drag (cliqué-déplacé) de la souris
      */
@@ -375,11 +375,6 @@ public class CameraController extends MouseAdapter implements KeyListener {
             renderer.forceRender();
     }
 
-    public String toString() {
-
-        return "CameraController[activesKeys=" + pressedKeys + ", Camera=" + cameras.current() + ", zoom=x" + getCameraZoom() + "]";
-    }
-
     public CyclicList<Camera> getCameraList() {
 
         return cameras;
@@ -402,12 +397,14 @@ public class CameraController extends MouseAdapter implements KeyListener {
 
     private Camera setCamera(Camera camera) {
 
-        if (cameras.contains(camera))
-            return null;
-
         renderer.camera = camera;
         renderer.setRenderFactor(getCameraZoom() * renderer.getRenderScale());
 
         return renderer.camera;
+    }
+
+    public String toString() {
+
+        return "CameraController[activesKeys=" + pressedKeys + ", Cameras=" + Arrays.toString(cameras.toArray()) + ", currentCameraIndex=" + cameras.getIndex() + ", zoom=x" + getCameraZoom() + "]";
     }
 }

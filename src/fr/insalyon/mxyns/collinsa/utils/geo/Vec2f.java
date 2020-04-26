@@ -632,7 +632,11 @@ public class Vec2f {
         return result;
     }
 
+    public static Vec2f fromAngle (float angle) {
 
+        // Normalize pas obligatoire mais corrige les erreurs
+        return new Vec2f(1, 0).rotate(angle).normalize();
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -30,10 +30,9 @@ public class Preset_GazTest extends Preset {
 
 
         pusher = new ConvexPoly(new Vec2f(50, collinsa.getPhysics().getHeight() / 2), 3, 100);
-        pusher = new Circle(pusher.getPos(), 100);
         pusher.setCollisionType(Collision.CollisionType.KINEMATIC);
         System.out.println("inertia " + pusher.getInertia());
-        pusher.setAcc(100, 0);
+        pusher.setAcc(50, 0);
         collinsa.getPhysics().addEntity(pusher);
 
 

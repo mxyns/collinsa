@@ -3,6 +3,8 @@ package fr.insalyon.mxyns.collinsa.physics.forces;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 
+import static fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType.CLASSIC;
+
 public abstract class Force {
 
     protected Entity target = null, source = null;
@@ -21,13 +23,13 @@ public abstract class Force {
 
         Vec2d force = computeValue();
 
-        if (!target.isKinematic()) {
+        if (target.getCollisionType() == CLASSIC) {
 
             applyForce(target, force);
             applyMoment(target, computeMoment(toTargetApplicationPoint, force));
         }
 
-        if (source != null && !source.isKinematic()) {
+        if (source != null && source.getCollisionType() == CLASSIC) {
 
             applyForce(source, force.neg());
             applyMoment(source, computeMoment(toSourceApplicationPoint, force));

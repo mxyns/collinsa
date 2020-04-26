@@ -3,6 +3,7 @@ package fr.insalyon.mxyns.collinsa.ui.panels;
 import fr.insalyon.mxyns.collinsa.render.CameraController;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.threads.RefreshingThread;
+import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -10,7 +11,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Panel dans lequel est affiché le monde.
@@ -19,6 +21,8 @@ import java.awt.event.KeyListener;
  *    - Il se redessine automatiquement grâce au refreshingThread
  */
 public class SandboxPanel extends JPanel implements FocusListener {
+
+    private MainFrame mainFrame;
 
     /**
      * Renderer associé au panel, utilisé pour recupérer l'image
@@ -31,7 +35,9 @@ public class SandboxPanel extends JPanel implements FocusListener {
      */
     private RefreshingThread refreshingThread;
 
-    public SandboxPanel() {
+    public SandboxPanel(MainFrame mainFrame) {
+
+        this.mainFrame = mainFrame;
 
         // On crée un Thread qui permettra de repaint le panel automatiquement (il n'est pas actif par défaut)
         refreshingThread = new RefreshingThread(this);
@@ -43,13 +49,42 @@ public class SandboxPanel extends JPanel implements FocusListener {
         setBorder(BorderFactory.createLineBorder(Color.black, 2));
 
         addFocusListener(this);
-    }
-    public SandboxPanel(Renderer renderer) {
 
-        this();
+        MouseAdapter toolEventTransmitter = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
 
-        // Ajoute le controleur de la caméra aux keyListeners du panel
-        setRenderer(renderer);
+                super.mouseClicked(e);
+                mainFrame.getSandboxPanel().requestFocus();
+                mainFrame.getSelectedTool().onClick(e);
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+
+                super.mouseDragged(e);
+                mainFrame.getSelectedTool().onDrag(e);
+                mainFrame.getSandboxPanel().requestFocus();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+                super.mousePressed(e);
+                mainFrame.getSandboxPanel().requestFocus();
+                mainFrame.getSelectedTool().onMousePressed(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+                super.mouseReleased(e);
+                mainFrame.getSandboxPanel().requestFocus();
+                mainFrame.getSelectedTool().onMouseReleased(e);
+            }
+        };
+        addMouseListener(toolEventTransmitter);
+        addMouseMotionListener(toolEventTransmitter);
     }
 
     @Override
@@ -58,8 +93,11 @@ public class SandboxPanel extends JPanel implements FocusListener {
         super.paint(g);
 
         // On dessine la dernière image générée accessible dans le buffer
-        if (renderer != null)
-            g.drawImage(renderer.getGraphicsBuffer().getImage(),0 , 0, null);
+        if (renderer != null) {
+
+            mainFrame.selectionTool.drawSelectedEntityOutline(renderer);
+            g.drawImage(renderer.getGraphicsBuffer().getImage(), 0, 0, null);
+        }
 
         this.getBorder().paintBorder(this, g, 0, 0, getWidth(), getHeight());
     }
@@ -80,17 +118,22 @@ public class SandboxPanel extends JPanel implements FocusListener {
     public void setRenderer(Renderer renderer) {
 
         this.renderer = renderer;
+    }
 
-        // On enlève tous les controleurs de caméra associés
-        for (KeyListener keyListener : this.getKeyListeners())
-            if (keyListener instanceof CameraController)
-                removeKeyListener(keyListener);
+    public void addCameraController(CameraController cameraController) {
 
-        //On ajoute le nouveau controleur associé à la nouvelle camera
-        addKeyListener(renderer.getCameraController());
-        addMouseWheelListener(renderer.getCameraController());
-        addMouseListener(renderer.getCameraController());
-        addMouseMotionListener(renderer.getCameraController());
+        addKeyListener(cameraController);
+        addMouseWheelListener(cameraController);
+        addMouseListener(cameraController);
+        addMouseMotionListener(cameraController);
+    }
+
+    public void removeCameraController(CameraController cameraController) {
+
+        removeKeyListener(cameraController);
+        removeMouseWheelListener(cameraController);
+        removeMouseListener(cameraController);
+        removeMouseMotionListener(cameraController);
     }
 
     /**
@@ -143,6 +186,6 @@ public class SandboxPanel extends JPanel implements FocusListener {
      */
     public void stopRefresh() {
 
-        refreshingThread.interrupt();
+        refreshingThread.queryStop();
     }
 }

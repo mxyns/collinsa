@@ -1,5 +1,6 @@
 package fr.insalyon.mxyns.collinsa.physics.forces;
 
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 
@@ -21,7 +22,7 @@ public class PlanetGravity extends Force {
     @Override
     public boolean apply() {
 
-        if (!target.isKinematic())
+        if (target.getCollisionType() == Collision.CollisionType.CLASSIC)
             applyForce(target, computeValue());
 
         return true;

@@ -63,7 +63,7 @@ public abstract class Polygon extends Entity {
 
         return getInertia().getMass() * local_vertices[0].squaredMag();
     }
-    //TODO :
+    //TODO : use https://mathoverflow.net/questions/73556/calculating-moment-of-inertia-in-2d-planar-polygon
 
     @Override
     public float getVolume() {

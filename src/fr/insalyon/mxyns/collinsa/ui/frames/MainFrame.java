@@ -1,12 +1,15 @@
 package fr.insalyon.mxyns.collinsa.ui.frames;
 
-
+import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
+import fr.insalyon.mxyns.collinsa.ui.tools.*;
 
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import java.awt.BorderLayout;
-import java.awt.Font;
+import javax.swing.JToolBar;
+import java.awt.Color;
+import java.awt.Component;
 
 /**
  * Frame principale, titre et Sandbox
@@ -18,32 +21,103 @@ public class MainFrame extends JFrame {
      */
     final private SandboxPanel sandboxPanel;
 
-    public MainFrame(int width, int height) {
+    public SelectionTool selectionTool;
+    private MoveCameraTool moveCameraTool;
+    private JToolBar toolbar;
 
-        super();
+    Color my = new Color(93,155,155);
 
-        setTitle("CollINSA");
+    public MainFrame (int width, int height) {
 
-        JLabel title = new JLabel("CollINSA");
-        title.setHorizontalAlignment(JLabel.CENTER);
-        Font font = new Font("Trebuchet MS", Font.BOLD, 24);
-        title.setFont(font);
-
-        sandboxPanel = new SandboxPanel();
-
-        add(sandboxPanel, BorderLayout.CENTER);
-        add(title, BorderLayout.NORTH);
-
-        setResizable(false);
-
+        super ("Simulateur Physique");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(width, height);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true);
+        setLayout(null);
+        setResizable(false);
+
+        sandboxPanel = new SandboxPanel(this);
+        sandboxPanel.setBounds((int) (width * .005f), (int) (height * .049f), (int) (width * .85f), (int) (height * .908f));
+        add(sandboxPanel);
+
+        genererInterface(width, height);
 
         // On s'assure que le panel a bien le focus initialement
         sandboxPanel.requestFocus();
+
+        setVisible(true);
     }
+
+    private void genererInterface(int width, int height) {
+
+        /* Création des différents boutons du menu
+         * Créer, modifier, supprimer et les paramètres que l'on peut rajouter
+         * On décrit les tailles et positions des boutons en fonction de la taille de la fenètre (en %)
+         */
+        JButton creer = new JButton("Créer");
+        add(creer);
+        creer.setBounds((int)(0.87*width),(int)(0.06*height),(int)(0.1*width),(int)(0.15*height));
+        creer.setBackground(my);
+        creer.setForeground(Color.black);
+        creer.addActionListener(e -> ouvrirPageCreation());
+
+
+        JButton supprimer = new JButton("Supprimer");
+        add(supprimer);
+        supprimer.setBounds((int)(0.87*width),(int)(0.06*height+0.17*height),(int)(0.1*width),(int)(0.15*height));
+        supprimer.setBackground(my);
+        supprimer.setForeground(Color.black);
+        supprimer.addActionListener(e -> Supprimer());
+
+        JButton modifier = new JButton("Modifier");
+        add(modifier);
+        modifier.setBounds((int)(0.87*width),(int)(0.06*height+2*0.17*height),(int)(0.1*width),(int)(0.15*height));
+        modifier.setBackground(my);
+        modifier.setForeground(Color.black);
+        modifier.addActionListener(e -> ouvrirPageModification());
+
+        JButton parametres = new JButton("Paramètres");
+        add(parametres);
+        parametres.setBounds((int)(0.87*width),(int)(0.06*height+3*0.17*height),(int)(0.1*width),(int)(0.15*height));
+        parametres.setBackground(my);
+        parametres.setForeground(Color.black);
+        parametres.addActionListener(e -> ouvrirParametres());
+
+        toolbar = new JToolBar(); ButtonGroup toolGroup = new ButtonGroup();
+        Tool[] tools = new Tool[] { selectionTool = new SelectionTool(), new EntityDragTool(), new FreezeEntityTool(), moveCameraTool = new MoveCameraTool() };
+        for (Tool tool : tools) {
+            toolGroup.add(tool);
+            toolbar.add(tool);
+        }
+        selectionTool.setSelected(true);
+
+        toolbar.setBounds(0, 0, getWidth(), 32);
+        add(toolbar);
+    }
+
+    private void Supprimer() {
+
+        if (selectionTool.getSelectedEntity() != null)
+            Collinsa.INSTANCE.getPhysics().removeEntity(selectionTool.getSelectedEntity());
+    }
+
+    private void ouvrirPageModification() {
+
+        // TODO on supprime l'objet et on rouvre la page création
+        if (selectionTool.getSelectedEntity() != null)
+            new Creation ("Création", 1200, 800);
+    }
+
+    public void ouvrirPageCreation() {
+
+        new Creation ("Création", 800, 800);
+    }
+
+    public void ouvrirParametres() {
+
+        new Parametres(800, 500);
+    }
+
 
     /**
      * Renvoie l'instance du panel de rendu de la simulation
@@ -52,5 +126,15 @@ public class MainFrame extends JFrame {
     public SandboxPanel getSandboxPanel() {
 
         return sandboxPanel;
+    }
+
+    public Tool getSelectedTool() {
+
+        for (Component component : toolbar.getComponents())
+            if (component instanceof Tool)
+                if (((Tool) component).isSelected())
+                    return (Tool) component;
+
+        return null;
     }
 }

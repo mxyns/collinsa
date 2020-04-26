@@ -117,12 +117,12 @@ public class ProcessingThread extends ClockedThread {
                 collider.checkForCollision(entity, target);
         }
 
-        // 3ème étape : résolution des collisions détectées
+     // 3ème étape : résolution des collisions détectées
         if (collider.preciseResolution) {
 
             // TODO: do some fancy collision time calculations and resolve collisions by time order accounting for simultaneous collisions when time difference is lower than a threshold
 
-        } else // Résout les collisions dans leur ordre de détection qui est aléatoire, rapide mais n'est pas déterministe
+        } else // Résout les collisions dans leur ordre de détection qui est aléatoire (rapide mais n'est pas déterministe)
             for (Collision coll : collider.getRegisteredCollision()) {
 
                 if (collider.displayCollisionColor) {

@@ -3,6 +3,7 @@ package fr.insalyon.mxyns.collinsa.physics;
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
+import fr.insalyon.mxyns.collinsa.physics.collisions.CollisionAdapter;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
@@ -141,7 +142,7 @@ public class Physics {
      */
     public void stop() {
 
-        processingThread.interrupt();
+        processingThread.queryStop();
     }
 
     /**
@@ -261,6 +262,62 @@ public class Physics {
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
     }
 
+    public Entity getClosestEntity(Vec2f pos, float radius) {
+
+        final Entity[] selected = new Entity[1];
+        if (processingThread.isInterrupted()) {
+
+            selected[0] = getClosestAABBIntersectingEntity(pos, radius);
+
+            if (selected[0] != null)
+                return selected[0];
+
+        } else {
+
+            Circle circle = new Circle(pos, radius);
+            circle.setCollisionType(Collision.CollisionType.IGNORE);
+            circle.addCollisionListener(new CollisionAdapter() {
+
+                @Override
+                public void collisionIgnored(Entity source, Entity target, Collision toResolve) {
+
+                    removeEntity(source);
+                    selected[0] = target;
+                }
+            });
+
+            addEntity(circle);
+
+            try {
+                Thread.sleep(2 * processingThread.getDelay());
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+            }
+
+            removeEntity(circle);
+        }
+
+        return selected[0];
+    }
+    public Entity getClosestAABBIntersectingEntity(Entity entity) {
+
+        float minDistance = Float.POSITIVE_INFINITY, tmp;
+        Entity hitEntity = null;
+        for (Entity test : collider.getNearbyEntities(entity))
+            if (entity.getAABB().intersects(test.getAABB())) {
+                if ((tmp=entity.getPos().sqrdDist(test.getPos())) < minDistance) {
+                    minDistance = tmp;
+                    hitEntity = test;
+                }
+            }
+
+        return hitEntity;
+    }
+    public Entity getClosestAABBIntersectingEntity(Vec2f pos, float radius) {
+
+        return getClosestAABBIntersectingEntity(new Circle(pos, radius));
+    }
+
     // TODO : change all float computations by double computations for more precision
     /**
      * Calcule la normale et les points de contacts entre deux cercles avant d'appliquer une bounceImpulse et une frictionImpulse
@@ -344,7 +401,6 @@ public class Physics {
         Polygon reference, incident;
 
         // Determine which shape contains reference face
-        // TODO do greater than with error
         if (penetrationA < penetrationB) {
             reference = source;
             incident = target;

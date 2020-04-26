@@ -48,8 +48,10 @@ public class Utils {
 
     /**
      * Renvoie l'index d'un String dans un tableau de String
+     *
      * @param toLookFor String à chercher
-     * @param array tableau de recherche
+     * @param array     tableau de recherche
+     *
      * @return index de 'toLookFor' dans 'array', -1 si pas présent
      */
     public static int lookForString(String toLookFor, String... array) {
@@ -64,6 +66,7 @@ public class Utils {
 
     /**
      * Renvoie la chaine de caractère suivant "-" + arg dans 'args'
+     *
      * @return null si il n'y a rien ou si le tableau est trop petit
      */
     public static String getArgValue(String arg, String[] args) {
@@ -76,12 +79,15 @@ public class Utils {
     }
 
     /**
-     * Récupère la valeur d'un paramètres dans un tableau, le cast et l'applique avec une fonction. Si il y a un problème lors d'une de ces opérations, c'est la valeur par défaut qui est appliquée
-     * @param arg paramètre recherché
+     * Récupère la valeur d'un paramètres dans un tableau, le cast et l'applique avec une fonction. Si il y a un
+     * problème lors d'une de ces opérations, c'est la valeur par défaut qui est appliquée
+     *
+     * @param arg          paramètre recherché
      * @param defaultValue valeur par défaut en cas de problème
-     * @param args tableau des paramètres (passé dans main)
-     * @param function fonction à appliquer
-     * @param <T> type de variable
+     * @param args         tableau des paramètres (passé dans main)
+     * @param function     fonction à appliquer
+     * @param <T>          type de variable
+     *
      * @return false si defaultValue est appliqué, true sinon
      */
     public static <T> boolean applyParameter(String arg, T defaultValue, String[] args, Consumer<T> function) {
@@ -93,11 +99,14 @@ public class Utils {
     }
 
     /**
-     * Récupère la valeur d'un paramètres dans un tableau, le cast et la renvoie. Si il y a un problème lors d'une de ces opérations, c'est la valeur par défaut qui est renvoyée
-     * @param arg paramètre recherché
+     * Récupère la valeur d'un paramètres dans un tableau, le cast et la renvoie. Si il y a un problème lors d'une de
+     * ces opérations, c'est la valeur par défaut qui est renvoyée
+     *
+     * @param arg          paramètre recherché
      * @param defaultValue valeur par défaut en cas de problème
-     * @param args tableau des paramètres (passé dans main)
-     * @param <T> type de variable
+     * @param args         tableau des paramètres (passé dans main)
+     * @param <T>          type de variable
+     *
      * @return la valeur du paramètre 'arg' si elle est donnée, defaultValue sinon
      */
     public static <T> T getParameter(String arg, T defaultValue, String[] args) {
@@ -146,7 +155,7 @@ public class Utils {
 
         if (caught != null) {
             caught.printStackTrace();
-            System.out.println("Wrong parameter given : " + arg + " " + value + ". Try format " + arg + " <" + defaultValue.getClass().getSimpleName() + "> ." +  " Applied default value: " + defaultValue);
+            System.out.println("Wrong parameter given : " + arg + " " + value + ". Try format " + arg + " <" + defaultValue.getClass().getSimpleName() + "> ." + " Applied default value: " + defaultValue);
         } else
             return result;
 
@@ -155,8 +164,9 @@ public class Utils {
 
     /**
      * Applique tous les paramètres par défaut (ou donnés) à une instance de Collinsa
+     *
      * @param collinsa instance sur laquelle appliquer les paramètres
-     * @param args paramètres donnés dans (main)
+     * @param args     paramètres donnés dans (main)
      */
     public static void applyParameters(Collinsa collinsa, String[] args) {
 
@@ -176,6 +186,7 @@ public class Utils {
         Utils.applyParameter("--bgColor", Color.white, args, collinsa.getRenderer().getGraphicsBuffer()::setBackgroundColor);
         Utils.applyParameter("--worldBoundsColor", Color.black, args, collinsa.getRenderer()::setWorldBoundsColor);
         Utils.applyParameter("--useDebugColors", false, args, collinsa.getPhysics().getCollider()::setDisplayCollisionColor);
+        Utils.applyParameter("--wireframe", false, args, collinsa.getRenderer()::setWireframeDisplay);
 
         Utils.applyParameter("--chunkCount", new Vec2f(3, 3), args, collinsa.getPhysics()::setChunkCount);
         Utils.applyParameter("--worldSize", new Vec2f(1440, 810), args, collinsa.getPhysics()::resize);
@@ -186,9 +197,13 @@ public class Utils {
     }
 
     /**
-     * Parse une couleur si elle est définie dans java.awt.Color ou si elle est au format rgb(a,b,c) avec a b et c entre 0 et 255
+     * Parse une couleur si elle est définie dans java.awt.Color ou si elle est au format rgb(a,b,c) avec a b et c entre
+     * 0 et 255
+     *
      * @param str texte à parser
+     *
      * @return Color si pas d'erreur
+     *
      * @throws Exception une des multiples exception qui peuvent se produire durant le parsing
      */
     public static Color parseColor(String str) throws Exception {
@@ -261,9 +276,11 @@ public class Utils {
 
     /**
      * Limite une valeur à un intervalle. Identique à constrain en Processing
+     *
      * @param value valeur à constrain
-     * @param min minimum de l'intervalle
-     * @param max maximum de l'intervalle
+     * @param min   minimum de l'intervalle
+     * @param max   maximum de l'intervalle
+     *
      * @return valeur contrainte à l'intervalle
      */
     public static int constrain(int value, int min, int max) {
@@ -274,14 +291,32 @@ public class Utils {
         return Math.min(Math.max(min, value), max);
     }
 
-    public static float mean(float[] penetrations) {
+    public static float mean(float... values) {
 
-        if (penetrations.length == 0) return 0;
+        if (values.length == 0) return 0;
 
         float sum = 0;
-        for (float f : penetrations)
-            sum+=f;
+        for (float f : values)
+            sum += f;
 
-        return sum/penetrations.length;
+        return sum / values.length;
+    }
+
+    public static Color getHighContrastColor(Color color) {
+
+        return new Color(255 - color.getRed(), 255 - color.getGreen(), 255 - color.getBlue());
+    }
+
+    public static Color getHighContrastColor(Color a, Color b, Color c) {
+
+        float[] hA = new float[3];
+        float[] hB = new float[3];
+        float[] hC = new float[3];
+
+        Color.RGBtoHSB(a.getRed(), a.getGreen(), a.getBlue(), hA);
+        Color.RGBtoHSB(b.getRed(), b.getGreen(), b.getBlue(), hB);
+        Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), hC);
+
+        return Color.getHSBColor(1 - mean(hA[0], hB[0], hC[0]), .66f, .66f);
     }
 }

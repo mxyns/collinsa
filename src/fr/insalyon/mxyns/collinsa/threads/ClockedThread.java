@@ -19,6 +19,8 @@ public class ClockedThread extends Thread {
      */
     long delay;
 
+    private boolean mustStop;
+
     /**
      *  Crée un Thread avec un délai nul entre chaque exécution (à utiliser si le la tâche est longue)
      * @param clock holorge à associer au Thread
@@ -49,6 +51,12 @@ public class ClockedThread extends Thread {
 
             // On patiente le temps d'un delay avant 'tick' car cette méthode peut décider de mettre fin au Thread.
             // On évite alors une ThreadInterruptedException à l'appel de 'sleep' qui se produirait si on appelait 'sleep' après 'tick'
+
+            if (mustStop) {
+                interrupt();
+                return;
+            }
+
             try {
                 if (delay > 0)
                     sleep(delay);
@@ -92,6 +100,12 @@ public class ClockedThread extends Thread {
 
         clock.stop();
         super.interrupt();
+        mustStop = false;
+    }
+
+    public void queryStop() {
+
+        mustStop = true;
     }
 
     /**

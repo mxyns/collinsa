@@ -96,7 +96,6 @@ public class Collider {
      */
     public LinkedHashSet<Entity> getNearbyEntities(Entity e) {
 
-        //TODO: optimize list type
         // On ne veut pas de doublons, et on parcourera la liste sans accès aléatoire
         // LinkedHashSet est donc un bon candidat
         // Il faut trouver une bonne fonction de hashing encore une fois. Sinon c'est pas rapide.
@@ -140,12 +139,23 @@ public class Collider {
      */
     public void checkForCollision(Entity entity, Entity target) {
 
-        // Broad phase
-        if (entity.getCollisionType() == Collision.CollisionType.IGNORE || target.getCollisionType() == Collision.CollisionType.IGNORE || !entity.getAABB().intersects(target.getAABB())) {
+        if (entity.getCollisionType() == Collision.CollisionType.IGNORE || target.getCollisionType() == Collision.CollisionType.IGNORE) {
 
             if (displayCollisionColor) {
-                entity.setColor(Color.green);
-                target.setColor(Color.green);
+                entity.setOutlineColor(Color.gray);
+                target.setOutlineColor(Color.gray);
+            }
+
+            // Not firing collision ignored yet. Will be done after in Collision.resolve when the if condition will fail bc of CollisionType == IGNORE
+
+        }
+
+        // Broad phase
+        if (!entity.getAABB().intersects(target.getAABB())) {
+
+            if (displayCollisionColor) {
+                entity.setOutlineColor(Color.green);
+                target.setOutlineColor(Color.green);
             }
 
         } else {
@@ -154,8 +164,8 @@ public class Collider {
                 listener.aabbCollided(entity, target);
 
             if (displayCollisionColor) {
-                entity.setColor(Color.pink);
-                target.setColor(Color.pink);
+                entity.setOutlineColor(Color.pink);
+                target.setOutlineColor(Color.pink);
             }
 
             // Narrow phase

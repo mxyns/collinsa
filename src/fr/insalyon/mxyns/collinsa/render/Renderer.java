@@ -12,10 +12,7 @@ import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.*;
 
 import static fr.insalyon.mxyns.collinsa.Collinsa.INSTANCE;
@@ -60,7 +57,7 @@ public class Renderer {
     /**
      * Détermine si le Renderer dessine les contours des Chunks, les AABB, les bords du monde et le repère utilisé.
      */
-    private boolean renderChunksBounds = false, renderEntitiesAABB = false, renderWorldBounds = true, renderCoordinateSystem = false;
+    private boolean renderChunksBounds = false, renderEntitiesAABB = false, renderWorldBounds = true, renderCoordinateSystem = false, wireframeDisplay = false;
 
     /**
      * Couleur des bordures de Chunks (si dessinées), des bounding boxes des entités et des bords du monde
@@ -109,7 +106,7 @@ public class Renderer {
      */
     public void stop() {
 
-        renderingThread.interrupt();
+        renderingThread.queryStop();
     }
 
     /**
@@ -157,24 +154,45 @@ public class Renderer {
             int axesSize = (int) (0.1 * Math.min(physics.getWidth(), physics.getHeight()));
 
             g.setColor(Color.red);
-            g.drawLine(0, 0, axesSize, 0);
+            g.draw(new Line2D.Float(-camera.getPos().x, -camera.getPos().y, axesSize-camera.getPos().x, -camera.getPos().y));
             g.setColor(Color.green);
-            g.drawLine(0, 0, 0, axesSize);
+            g.draw(new Line2D.Float(-camera.getPos().x, -camera.getPos().y, -camera.getPos().x, axesSize-camera.getPos().y));
         }
 
         // On affiche les différents compteurs de FPS
-        g.setColor(Color.black);
+        Rectangle2D textBox = new Rectangle2D.Float(0, 0, 90, 45);
+
+        g.setColor(graphicsBuffer.getBackgroundColor());
+        g.fill(textBox);
+
+        g.setColor(worldBoundsColor);
         g.drawString("FPS-Proc.:"+(INSTANCE.getPhysics().getProcessingThread().getClock().lastElapsed != 0 ? 1000 / INSTANCE.getPhysics().getProcessingThread().getClock().lastElapsed : 0), 5, 17);
         g.drawString("FPS-Rend.:"+(getRenderingThread().getClock().lastElapsed != 0 ? 1000 / getRenderingThread().getClock().lastElapsed : 0), 5, 29);
         g.drawString("FPS-Disp.:"+(INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed != 0 ? 1000 / INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().getClock().lastElapsed : 0), 5, 41);
+
+        g.draw(textBox);
 
         Dimension imageSize = getDestinationSize();
 
         float moreWidth = 7 * (int) Math.log10(getCameraController().getCameraList().size() + 1);
               moreWidth += getCameraController().getCameraList().getIndex() == 0 ? 0 : 7 * (int) Math.log10(getCameraController().getCameraList().getIndex());
 
-        g.draw(new Rectangle2D.Float(0, imageSize.height - 15, 90 + moreWidth, 15));
+
+        textBox.setRect(0, imageSize.height - 15, 90 + moreWidth, 15);
+        g.setColor(graphicsBuffer.getBackgroundColor());
+        g.fill(textBox);
+
+        g.setColor(worldBoundsColor);
         g.drawString("Camera #" + getCameraController().getCameraList().getIndex() + " / " + getCameraController().getCameraList().size(), 5, imageSize.height - 3);
+        g.draw(textBox);
+
+        textBox.setRect(textBox.getX() + textBox.getWidth(), textBox.getY(), 76, 15);
+        g.setColor(graphicsBuffer.getBackgroundColor());
+        g.fill(textBox);
+
+        g.setColor(worldBoundsColor);
+        g.drawString("Zoom x" + Math.round(100 * cameraController.getCameraZoom()) / 100.0d, (int) (textBox.getX() + 10), imageSize.height - 3);
+        g.draw(textBox);
     }
 
     /**
@@ -197,6 +215,7 @@ public class Renderer {
 
         return camera.sees(chunk);
     }
+
     /**
      * Render le chunk sur le panel de destination
      * @param chunk Le Chunk à rendre
@@ -224,6 +243,7 @@ public class Renderer {
             g.drawString(String.valueOf(INSTANCE.getPhysics().getPositionHash(chunk.bounds.getX(), chunk.bounds.getY())), (int) ((chunk.bounds.getX() - camera.getPos().x) * factor), (int) ((chunk.bounds.getY() - camera.getPos().y + INSTANCE.getPhysics().getChunkSize().y) * factor));
         }
     }
+
     /**
      * Rendu d'un cercle via le Graphics2D.
      * @param circle cercle à rendre
@@ -231,10 +251,21 @@ public class Renderer {
      */
     public void renderCircle(Circle circle, Graphics2D g) {
 
-        g.setColor(circle.getColor());
+        Shape shape = new Ellipse2D.Double(factor * (circle.getPos().x - circle.getR() - camera.getPos().x), factor * (circle.getPos().y - circle.getR() - camera.getPos().y), 2 * factor * circle.getR(), 2 * factor * circle.getR());
         g.rotate(circle.getRot(), factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - camera.getPos().y));
-        g.draw(new Ellipse2D.Double(factor * (circle.getPos().x - circle.getR() - camera.getPos().x), factor * (circle.getPos().y - circle.getR() - camera.getPos().y), 2 * factor * circle.getR(), 2 * factor * circle.getR()));
+
+        if (!wireframeDisplay && circle.getFillColor() != null) {
+            g.setColor(circle.getFillColor());
+            g.fill(shape);
+        }
+
+        if (circle.getOutlineColor() != null) {
+            g.setColor(circle.getOutlineColor());
+            g.draw(shape);
+        }
+
         g.draw(new Line2D.Double(factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - camera.getPos().y), factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - circle.getR() - camera.getPos().y)));
+
         g.rotate(-circle.getRot(), factor * (circle.getPos().x - camera.getPos().x), factor * (circle.getPos().y - camera.getPos().y));
     }
 
@@ -245,9 +276,19 @@ public class Renderer {
      */
     public void renderRect(Rect rect, Graphics2D g) {
 
-        g.setColor(rect.getColor());
+        Shape shape = new Rectangle2D.Double(factor * (rect.getPos().x - rect.getSize().x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.getSize().y * 0.5f - camera.getPos().y), factor * rect.getSize().x, factor * rect.getSize().y);
+
         g.rotate(rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
-        g.draw(new Rectangle2D.Double(factor * (rect.getPos().x - rect.getSize().x * 0.5f - camera.getPos().x), factor * (rect.getPos().y - rect.getSize().y * 0.5f - camera.getPos().y), factor * rect.getSize().x, factor * rect.getSize().y));
+
+        if (!wireframeDisplay && rect.getFillColor() != null) {
+            g.setColor(rect.getFillColor());
+            g.fill(shape);
+        }
+
+        if (rect.getOutlineColor() != null) {
+            g.setColor(rect.getOutlineColor());
+            g.draw(shape);
+        }
 
         g.rotate(-rect.getRot(), factor * (rect.getPos().x - camera.getPos().x), factor * (rect.getPos().y - camera.getPos().y));
 
@@ -257,7 +298,6 @@ public class Renderer {
 
     public void renderPolygon(Polygon polygon, Graphics2D g) {
 
-        g.setColor(polygon.getColor());
 
         Path2D outline = new Path2D.Float();
         outline.moveTo(factor * (polygon.getPos().x - camera.getPos().x),factor * (polygon.getPos().y - camera.getPos().y));
@@ -269,7 +309,15 @@ public class Renderer {
         outline.lineTo(factor * (vertices[0].x - camera.getPos().x) ,factor * (vertices[0].y - camera.getPos().y));
         outline.closePath();
 
-        g.draw(outline);
+        if (!wireframeDisplay && polygon.getFillColor() != null) {
+            g.setColor(polygon.getFillColor());
+            g.fill(outline);
+        }
+
+        if (polygon.getOutlineColor() != null) {
+            g.setColor(polygon.getOutlineColor());
+            g.draw(outline);
+        }
 
         if (renderEntitiesAABB) {
             g.setColor(Color.green);
@@ -279,7 +327,6 @@ public class Renderer {
             g.setColor(Color.red);
             g.draw(new Ellipse2D.Double((polygon.getPos().x - camera.getPos().x) * factor - 2.5f, (polygon.getPos().y - camera.getPos().y) * factor - 2.5f, 5f, 5f));
         }
-
     }
 
     /**
@@ -525,6 +572,16 @@ public class Renderer {
     public void setWorldBoundsColor(Color worldBoundsColor) {
 
         this.worldBoundsColor = worldBoundsColor;
+    }
+
+    public boolean isDisplayModeWireframe() {
+
+        return wireframeDisplay;
+    }
+
+    public void setWireframeDisplay(boolean wireframeDisplay) {
+
+        this.wireframeDisplay = wireframeDisplay;
     }
 
     public String toString() {

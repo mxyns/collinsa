@@ -71,7 +71,7 @@ public abstract class Entity {
     /**
      * Couleur de l'entité
      */
-    private Color color;
+    private Color outlineColor, fillColor;
 
     /**
      * Défini si une entité est activée, si elle ne l'est pas, sa vitesse, position, etc. ne sont pas mis à jour et elle ignore les collisions
@@ -88,7 +88,8 @@ public abstract class Entity {
         vel = Vec2f.zero();
         acc = Vec2f.zero();
         aabb = new AABB(0, 0, 0, 0);
-        color = Color.black;
+        outlineColor = Color.black;
+        fillColor = null;
 
         inertia = new Inertia();
         setMaterial(Material.DUMMY.copy());
@@ -266,18 +267,41 @@ public abstract class Entity {
      * Renvoie la couleur de l'entité
      * @return couleur de l'entité
      */
-    public Color getColor() {
+    public Color getOutlineColor() {
 
-        return color;
+        return outlineColor;
+    }
+
+    /**
+     * Renvoie la couleur de l'entité
+     * @return couleur de l'entité
+     */
+    public Color getFillColor() {
+
+        return fillColor;
     }
 
     /**
      * Redéfini la couleur de l'entité
      * @param color nouvelle couleur
      */
+    public void setOutlineColor(Color color) {
+
+        this.outlineColor = color;
+    }
+     /**
+     * Redéfini la couleur de l'entité
+     * @param color nouvelle couleur
+     */
+    public void setFillColor(Color color) {
+
+        this.fillColor = color;
+    }
+
     public void setColor(Color color) {
 
-        this.color = color;
+        this.fillColor = color;
+        this.outlineColor = color.brighter();
     }
 
     /**
@@ -369,7 +393,8 @@ public abstract class Entity {
     public void setMaterial(Material material) {
 
         this.material = material;
-        this.color = material.getColor();
+        this.outlineColor = material.getOutlineColor();
+        this.fillColor = material.getFillColor();
         this.inertia.update(this);
     }
 

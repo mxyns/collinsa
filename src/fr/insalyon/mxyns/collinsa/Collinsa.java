@@ -5,11 +5,12 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.presets.Preset;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
-import fr.insalyon.mxyns.collinsa.ui.frames.Interface;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 
 import java.awt.Toolkit;
+
+import static java.lang.Thread.State.TIMED_WAITING;
 
 // TODO:
 //  - Layering to ignore collisions between some objects / objects types
@@ -71,9 +72,6 @@ public class Collinsa {
         System.out.println("World: " + INSTANCE.getPhysics());
         System.out.println("Renderer: " + INSTANCE.getRenderer());
 
-        // On ouvre la GUI.
-            new Interface(1200, 800);
-
         // Démarre le programme (Simulation & Rendu)
         INSTANCE.start();
     }
@@ -107,6 +105,11 @@ public class Collinsa {
      */
     public void start() {
 
+        if (physics.getProcessingThread().isAlive() || renderer.getRenderingThread().isAlive() || mainFrame.getSandboxPanel().getRefreshingThread().isAlive()) {
+            System.out.println("[Error] Already running");
+            return;
+        }
+
         physics.begin();
         renderer.begin();
 
@@ -116,6 +119,7 @@ public class Collinsa {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         mainFrame.getSandboxPanel().beginRefresh();
     }
 
@@ -140,9 +144,19 @@ public class Collinsa {
      */
     public void stop() {
 
+        System.out.println("[Shutdown] Global shutdown requested. Trying to terminate Threads safely.");
+
         physics.stop();
+        while (!physics.getProcessingThread().isInterrupted()) {}
+        System.out.println("[Shutdown] Physics engine stopped.");
+
         renderer.stop();
+        while (!renderer.getRenderingThread().isInterrupted()) {}
+        System.out.println("[Shutdown] Rendering engine stopped.");
+
         mainFrame.getSandboxPanel().stopRefresh();
+        while (!mainFrame.getSandboxPanel().getRefreshingThread().isInterrupted()) {}
+        System.out.println("[Shutdown] Display refreshing stopped.");
     }
 
     /**
@@ -169,7 +183,12 @@ public class Collinsa {
     public void pause(long delay) throws InterruptedException {
 
         physics.pause(delay);
+        while(!physics.getProcessingThread().getState().equals(TIMED_WAITING)) {}
+        System.out.println("[Pause] Physics engine paused for ~" + delay +"ms");
+
         renderer.pause(delay);
+        while(!renderer.getRenderingThread().getState().equals(TIMED_WAITING)) {}
+        System.out.println("[Pause] Rendering engine paused for ~" + delay +"ms");
     }
 
     /**
@@ -187,7 +206,7 @@ public class Collinsa {
         getMainFrame().getSandboxPanel().setRenderer(renderer);
 
         // Ce sera toujours le cas ici puisqu'on utilise cette méthode uniquement une fois juste après l'instanciation du Renderer
-        // Mais dans certains cas il serait possible de changer de Renderer périodiquement par exemple si on veut plusieurs caméra mais avec des échelles de rendu différents (pas faisable seulement en interchangeant les caméras)
+        // Mais dans certains cas il serait possible de changer de Renderer périodiquement par exemple si on veut plusieurs caméra mais avec des échelles de rendu différents (pas faisable seulement en interchangeant les caméras puisque l'échelle est définie dans le Renderer)
         if (renderer.getRenderingThread() == null)
             renderer.setRenderingThread(new RenderingThread(INSTANCE.getPhysics(), new MillisClock(), renderer, 60));
 

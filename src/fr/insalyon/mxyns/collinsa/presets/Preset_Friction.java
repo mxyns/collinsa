@@ -93,6 +93,8 @@ public class Preset_Friction extends Preset {
             vy*=5;
 
             Circle circle = new Circle(x, y, (int) (2 * Math.random()) + 2);
+            circle.setFillColor(null);
+            circle.setOutlineColor(Color.yellow);
             Utils.applyParameter("--m", 1f, args, circle.getInertia()::setMass);
             circle.setVel(vx, vy);
             Utils.applyParameter("--e", Material.DUMMY.getRestitution(), args, circle.getMaterial()::setRestitution);
