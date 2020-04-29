@@ -7,13 +7,23 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.event.MouseEvent;
 
+/**
+ * Outil qui permet de désactiver une entité cliquée
+ */
 public class FreezeEntityTool extends Tool{
 
+
+    /**
+     * Constructeur qui précise le nom, le tooltip et le chemin de l'icone de l'outil
+     */
     public FreezeEntityTool() {
 
         super("Freeze Entity", "Click on an entity to (de)activate it", "/timer.png");
     }
 
+    /**
+     * Trouve l'entité la plus proche du point cliqué et la désactive
+     */
     @Override
     public void onClick(MouseEvent e) {
 

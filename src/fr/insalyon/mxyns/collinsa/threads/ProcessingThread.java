@@ -88,7 +88,7 @@ public class ProcessingThread extends ClockedThread {
             // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
             if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
                 if (entity.isActivated()) {
-                    entity.updateMillis(deltaTime);
+                    entity.update(deltaTime * clock.toSec());
 
                     if (!entity.isKinematic()) {
                         entity.setAcc(0, 0);
@@ -107,9 +107,10 @@ public class ProcessingThread extends ClockedThread {
 
             // 1-ter étape : on applique les forces globales (on le fait ici pour éviter de re-parcourir une deuxième fois la liste des entités
             for (Force globalForce : physics.globalForces) {
-
-                globalForce.setTarget(entity);
-                globalForce.apply();
+                if (!globalForce.affects(entity)) { // on évite d'appliquer la force d'un objet sur lui même
+                    globalForce.setTarget(entity);
+                    globalForce.apply();
+                }
             }
 
             // 2ème étape : détection de collisions

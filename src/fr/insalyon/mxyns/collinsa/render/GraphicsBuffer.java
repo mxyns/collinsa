@@ -152,11 +152,21 @@ public class GraphicsBuffer {
         return imageSize;
     }
 
+    /**
+     * Renvoie la couleur de fond à appliquer sur les images rendues
+     *
+     * @return backgroundColor
+     */
     public Color getBackgroundColor() {
 
         return backgroundColor;
     }
 
+    /**
+     * Redéfinit la couleur de fond des images rendues
+     *
+     * @param backgroundColor nouvelle couleur de fond
+     */
     public void setBackgroundColor(Color backgroundColor) {
 
         this.backgroundColor = backgroundColor;

@@ -7,17 +7,38 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 
+/**
+ * Outil permettant de déplacer une entité dans la simulation en la déplaçant avec la souris
+ * Clic-gauche désactive l'entité pendant le déplacement pour ignorer les collision tandis que clic droit laisse l'entité activée. Avec un clic droit l'entité pousse donc les autres quand on la déplace
+ */
 public class EntityDragTool extends Tool {
 
+    /**
+     * Comme pour la caméra, point (sur l'écran <=> en pixels) d'origine de chaque déplacement
+     */
     private Point dragOrigin;
+
+    /**
+     * Ancien état (activé / désactivé) de l'entité déplacée
+     */
     private boolean previousState;
+
+    /**
+     * Entité en train d'être déplacée
+     */
     private Entity grabbedEntity;
 
+    /**
+     * Constructeur qui précise le nom, le tooltip et le chemin de l'icone de l'outil
+     */
     public EntityDragTool() {
 
         super("Entity drag", "Translates the currently selected entity", "/drag.png");
     }
 
+    /**
+     * Enregistre la position du premier clic à partir du MouseEvent donné
+     */
     @Override
     public void onMousePressed(MouseEvent e) {
 
@@ -37,6 +58,9 @@ public class EntityDragTool extends Tool {
         }
     }
 
+    /**
+     * Déplace l'entité et replace l'origine pour le prochain déplacement
+     */
     @Override
     public void onDrag(MouseEvent e) {
 
@@ -49,6 +73,9 @@ public class EntityDragTool extends Tool {
         dragOrigin = e.getPoint();
     }
 
+    /**
+     * Réactive (s'il le faut) l'entité qui était attrapée par l'outil quand on relache la souris et remet les variables dans leur état initial
+     */
     @Override
     public void onMouseReleased(MouseEvent e) {
 

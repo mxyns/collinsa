@@ -15,6 +15,9 @@ public class Camera {
 
     /**
      * La caméra appartient au monde donc toutes les dimensions doivent être en mètres
+     * pos est la position du coin supérieur-gauche de la caméra dans le monde
+     * width la largeur de la caméra
+     * height la hauteur
      */
     private Vec2f pos;
     private double width, height;
@@ -222,11 +225,21 @@ public class Camera {
         return ratio;
     }
 
+    /**
+     * Renvoie l'entité suivie par la caméra
+     *
+     * @return followedEntity or null
+     */
     public Entity getFollowedEntity() {
 
         return followedEntity;
     }
 
+    /**
+     * Indique à la caméra de suivre une entité
+     *
+     * @param entity entité à suivre. si null, la caméra est libre
+     */
     public void follow(Entity entity) {
 
         this.followedEntity = entity;

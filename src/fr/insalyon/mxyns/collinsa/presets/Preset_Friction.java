@@ -11,6 +11,9 @@ import fr.insalyon.mxyns.collinsa.utils.Utils;
 
 import java.awt.Color;
 
+/**
+ * Un preset qui montre le fonctionnement des frottements avec un objet vert rebondissant et un objet rouge collant
+ */
 public class Preset_Friction extends Preset {
 
     private Rect mill;

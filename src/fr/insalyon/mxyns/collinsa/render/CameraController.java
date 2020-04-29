@@ -375,26 +375,53 @@ public class CameraController extends MouseAdapter implements KeyListener {
             renderer.forceRender();
     }
 
+    /**
+     * Renvoie la CyclicList des caméras
+     *
+     * @return cameras
+     */
     public CyclicList<Camera> getCameraList() {
 
         return cameras;
     }
 
+    /**
+     * Ajoute une caméra à la liste si elle n'existe pas déjà
+     *
+     * @param camera caméra à ajouter
+     * @return true si la caméra a été ajoutée, false sinon.
+     */
     public boolean addCamera(Camera camera) {
 
         return cameras.add(camera);
     }
 
+    /**
+     * Passe à la caméra suivante
+     *
+     * @return la nouvelle camera sélectionnée
+     */
     public Camera nextCamera() {
 
         return setCamera(cameras.next());
     }
 
+    /**
+     * Passe à la caméra précédente
+     *
+     * @return la nouvelle camera sélectionnée
+     */
     public Camera previousCamera() {
 
         return setCamera(cameras.prev());
     }
 
+    /**
+     * Définit la caméra sélectionnée
+     *
+     * @param camera la camera a sélectionner
+     * @return la nouvelle camera sélectionnée
+     */
     private Camera setCamera(Camera camera) {
 
         renderer.camera = camera;

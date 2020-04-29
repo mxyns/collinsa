@@ -5,18 +5,17 @@ import fr.insalyon.mxyns.collinsa.physics.Material;
 import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType;
 import fr.insalyon.mxyns.collinsa.physics.collisions.CollisionListener;
-import fr.insalyon.mxyns.collinsa.render.Renderer;
+import fr.insalyon.mxyns.collinsa.render.Renderable;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Représente une Entité (un objet ou un élément de la simulation) de manière générale
  */
-public abstract class Entity {
+public abstract class Entity implements Renderable {
 
     /**
      * Vec2f position de l'entité
@@ -69,7 +68,7 @@ public abstract class Entity {
     final private Inertia inertia;
 
     /**
-     * Couleur de l'entité
+     * Couleur de l'entité (outline => bord, fill => intérieur)
      */
     private Color outlineColor, fillColor;
 
@@ -78,7 +77,10 @@ public abstract class Entity {
      */
     private boolean activated = true;
 
-    final private LinkedList<CollisionListener> listeners = new LinkedList<>();
+    /**
+     * Liste des listeners associés à l'entité. LinkedList car on la parcourt de proche en proche (pas d'accès aléatoire).
+     */
+    final private LinkedHashSet<CollisionListener> listeners = new LinkedHashSet<>();
 
     /**
      * Constructeur global
@@ -91,7 +93,7 @@ public abstract class Entity {
         outlineColor = Color.black;
         fillColor = null;
 
-        inertia = new Inertia();
+        inertia = new Inertia(this);
         setMaterial(Material.DUMMY.copy());
     }
 
@@ -117,13 +119,6 @@ public abstract class Entity {
     }
 
     /**
-     * Méthode abstraite de rendu. Unique à chaque type d'entité
-     * @param renderer renderer utilisé pour le rendu
-     * @param g graphics associé au panel pour dessin
-     */
-    public abstract void render(Renderer renderer, Graphics2D g);
-
-    /**
      * Méthode abstraite donnant la taille maximale d'une entité (permet de définir la taille des Chunks)
      * @return maximum size of an entity, even after rotation
      */
@@ -146,31 +141,19 @@ public abstract class Entity {
      */
     public abstract void updateAABB();
 
+    /**
+     * Donne le numéro identifiant le type d'Entité (utilisé dans Collider)
+     */
     public abstract short cardinal();
 
     /**
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
-     * @param elapsed temps en ms
+     * @param elapsed temps en sec
      */
-    public void updateMillis(long elapsed) {
+    public void update(double elapsed) {
 
-        vel.add(acc, elapsed * 1e-3f);
-        pos.add(vel, elapsed * 1e-3f);
-
-        angVel += angAcc * elapsed * 1e-3f;
-        rot += angVel * elapsed * 1e-3f;
-
-        updateAABB();
-    }
-
-    /**
-     * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
-     * @param elapsed temps en ns
-     */
-    public void updateNano(long elapsed) {
-
-        vel.add(acc, elapsed * 1e-9f);
-        pos.add(vel, elapsed * 1e-9f);
+        vel.add(acc, elapsed);
+        pos.add(vel, elapsed);
 
         angVel += angAcc * elapsed;
         rot += angVel * elapsed;
@@ -298,10 +281,15 @@ public abstract class Entity {
         this.fillColor = color;
     }
 
+    /**
+     * Donne une couleur de remplissage et de contour à partir d'une couleur
+     * La couleur de bordure est la couleur de remplissage maisen plus clair
+     * @param color nouvelle couleur de fond
+     */
     public void setColor(Color color) {
 
         this.fillColor = color;
-        this.outlineColor = color.brighter();
+        this.outlineColor = color.brighter().brighter();
     }
 
     /**
@@ -385,40 +373,74 @@ public abstract class Entity {
         this.collisionType = collisionType;
     }
 
+    /**
+     * Renvoie le matériau de l'entité
+     * @return material
+     */
     public Material getMaterial() {
 
         return material;
     }
 
+    /**
+     * Redéfinit le matériau de l'entité et applique les modifications nécessaires (nouvelles couleurs, mise à jour de l'inertie pour prendre en compte la nouvelle densité)
+     *
+     * @param material nouveau matériau
+     */
     public void setMaterial(Material material) {
 
         this.material = material;
         this.outlineColor = material.getOutlineColor();
         this.fillColor = material.getFillColor();
-        this.inertia.update(this);
+        this.inertia.update();
     }
 
+    /**
+     * Renvoie l'objet Inertia contenant les informations d'inertie (masse, moment d'inertie, etc.) de l'entité
+     *
+     * @return inertia
+     */
     public Inertia getInertia() {
 
         return inertia;
     }
 
+    /**
+     * Informe de si l'entité l'entité est activée ou non
+     *
+     * @return activated
+     */
     public boolean isActivated() {
 
         return activated;
     }
 
+    /**
+     * Active ou désactive l'entité
+     *
+     * @param activated nouvel état
+     */
     public void setActivated(boolean activated) {
 
         this.activated = activated;
     }
 
+    /**
+     * Ajoute un CollisionListener à la liste des listeners de l'entité
+     *
+     * @param listener listener à ajouter
+     */
     public void addCollisionListener(CollisionListener listener) {
 
         listeners.add(listener);
     }
 
-    public List<CollisionListener> getCollisionListeners() {
+    /**
+     * Renvoie la liste des listeners actifs sur l'entité
+     *
+     * @return listeners
+     */
+    public Set<CollisionListener> getCollisionListeners() {
 
         return listeners;
     }

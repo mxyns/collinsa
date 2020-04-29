@@ -7,14 +7,15 @@ import java.awt.Graphics2D;
 
 /**
  * Polygone concave à décomposer en polygones convexes pour analyse
+ * Pas utilisé pour l'instant
  */
+@Deprecated
 public class ConcavePoly extends Polygon {
 
     public ConcavePoly(Vec2f pos, int n) {
 
         super(pos, n);
     }
-
 
     @Override
     public void render(Renderer renderer, Graphics2D g) {

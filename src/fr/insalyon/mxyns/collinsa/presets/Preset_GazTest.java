@@ -14,6 +14,10 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 
+/**
+ * Un preset qui devait modéliser un gaz à la base. Au final on a juste quelques cercles et un élément qui les pousse (Triangle)
+ * Permet de montrer le fonctionnement des collisions polygones / cercles et le fonctionnement des caméras de suivi (la caméra #159 suit le pusher)
+ */
 public class Preset_GazTest extends Preset {
 
     private Entity pusher;

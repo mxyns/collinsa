@@ -25,7 +25,7 @@ public class Circle extends Entity {
         super(pos);
         this.r = r;
 
-        getInertia().update(this);
+        getInertia().update();
         updateAABB();
     }
 
@@ -41,7 +41,7 @@ public class Circle extends Entity {
 
         this.r = r;
 
-        getInertia().update(this);
+        getInertia().update();
         updateAABB();
     }
 
@@ -54,12 +54,14 @@ public class Circle extends Entity {
     @Override
     public float computeJ() {
 
+        // J = r²m/2
         return 0.5f * getInertia().getMass() * this.r * this.r;
     }
 
     @Override
     public float getVolume() {
 
+        // PIr² ( * 1m de profondeur)
         return (float) (Math.PI * this.r * this.r * 1);
     }
 
@@ -84,15 +86,25 @@ public class Circle extends Entity {
         return 0;
     }
 
+    /**
+     * Renvoie la valeur du rayon de ce cercle
+     *
+     * @return r le rayon en mètres
+     */
     public float getR() {
 
         return r;
     }
 
+    /**
+     * Redéfinit le rayon de ce cercle
+     *
+     * @param r
+     */
     public void setR(float r) {
 
         this.r = r;
-        this.getInertia().update(this);
+        this.getInertia().update();
     }
 
     public String toString() {

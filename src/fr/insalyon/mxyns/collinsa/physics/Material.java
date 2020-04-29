@@ -32,7 +32,9 @@ public class Material {
     float dynamicFriction;
 
     /**
-     * Couleur par défaut d'un objet ayant ce matériau
+     * Couleurs par défaut d'un objet ayant ce matériau.
+     * outlineColor => couleur des bordures
+     * fillColor => couleur du fond
      */
     Color outlineColor, fillColor;
 
@@ -61,7 +63,7 @@ public class Material {
     }
 
     /**
-     * Renvoie la couleur par défaut du matériau. Peut être modifiée ou remplacée manuellement avec Entity.setColor()
+     * Renvoie la couleur de bordures par défaut du matériau. Peut être modifiée ou remplacée manuellement avec Entity.setOutlineColor()
      * @return couleur par défaut du matériau
      */
     public Color getOutlineColor() {
@@ -69,7 +71,7 @@ public class Material {
         return outlineColor;
     }
     /**
-     *   Renvoie la couleur par défaut du matériau. Peut être modifiée ou remplacée manuellement avec Entity.setColor()
+     *   Renvoie la couleur de fond par défaut du matériau. Peut être modifiée ou remplacée manuellement avec Entity.setFillColor()
      * @return couleur par défaut du matériau
      */
     public Color getFillColor() {

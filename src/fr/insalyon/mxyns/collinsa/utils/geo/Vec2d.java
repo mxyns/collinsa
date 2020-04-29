@@ -262,6 +262,8 @@ public class Vec2d {
     public Vec2d normalize() {
 
         double mag = Math.sqrt(x*x + y*y);
+
+        if (mag == 0) return null;
         this.x /= mag;
         this.y /= mag;
 
@@ -277,6 +279,9 @@ public class Vec2d {
     public Vec2d setMag(double mult) {
 
         double mag = Math.sqrt(x*x+y*y);
+
+        if (mag == 0) return null;
+
         this.x *= mult/mag;
         this.y *= mult/mag;
 
@@ -289,6 +294,15 @@ public class Vec2d {
      * @return angle(rad) formé par les deux vecteurs
      */
     public double angleWith(Vec2d other) {
+
+        return Math.atan2(x*other.x + y*other.y, x*other.y - other.x*y);
+    }
+    /**
+     * Calcule la valeur de l'angle formé entre le vecteur courant et un autre vecteur
+     * @param other autre vecteur formant l'angle
+     * @return angle(rad) formé par les deux vecteurs
+     */
+    public double angleWith(Vec2f other) {
 
         return Math.atan2(x*other.x + y*other.y, x*other.y - other.x*y);
     }
@@ -307,6 +321,21 @@ public class Vec2d {
         y = sin * lx + cos*y;
 
         return this;
+    }
+
+    /**
+     * Tourne le vecteur courant d'un angle 'angle' orienté dans le sens direct
+     *
+     * @param angle angle de rotation
+     *
+     * @return vecteur courant tourné
+     */
+    public Vec2d rotateOut(double angle) {
+
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
+
+        return new Vec2d(cos * x - sin * y, sin * x + cos * y);
     }
 
     /**

@@ -15,7 +15,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Field;
 
-
+/**
+ * Fenêtre qui permet de créer de nouveaux objets
+ */
 public class Creation extends JFrame implements ActionListener {
     // création des deux boutons déroulants pour choisir la forme et le matériau
     private JComboBox forme;
@@ -31,7 +33,12 @@ public class Creation extends JFrame implements ActionListener {
     JButton ok = new JButton("OK");
     JPanel panel = buildContentPanel();
 
-    public Creation(String nom, int width, int height) {
+    /**
+     * Méthode qui crée la fenêtre création
+     * @param width largeur de la fenêtre
+     * @param height hauteur de la fenêtre
+     */
+    public Creation(int width, int height) {
 
         super("Création");
         setSize(width, height);
@@ -42,6 +49,10 @@ public class Creation extends JFrame implements ActionListener {
         setVisible(true);
     }
 
+    /**
+     * Panel composé des éléments nécessaires à la création d'un objet
+     * @return panel
+     */
     private JPanel buildContentPanel() {
 
         JPanel panel = new JPanel();
@@ -52,13 +63,13 @@ public class Creation extends JFrame implements ActionListener {
         collision = new JComboBox();
 
         // JSpinner qui renseigne sur la position de l'objet
-        SpinnerNumberModel xModel = new SpinnerNumberModel(Collinsa.INSTANCE.getPhysics().getWidth() / 2, 0, 1000, .1);
+        SpinnerNumberModel xModel = new SpinnerNumberModel(Collinsa.INSTANCE.getPhysics().getWidth() / 2, 0, Collinsa.INSTANCE.getPhysics().getWidth(), .1);
         x = new JSpinner(xModel);
         x.setModel(xModel);
         x.setBounds(650 ,100,100,40);
         x.setBorder(BorderFactory.createTitledBorder("Abscisse"));
         panel.add(x);
-        SpinnerNumberModel yModel = new SpinnerNumberModel(Collinsa.INSTANCE.getPhysics().getHeight() / 2, 0, 700, .1);
+        SpinnerNumberModel yModel = new SpinnerNumberModel(Collinsa.INSTANCE.getPhysics().getHeight() / 2, 0, Collinsa.INSTANCE.getPhysics().getHeight(), .1);
         y = new JSpinner(xModel);
         y.setModel(yModel);
         y.setBounds(650,200,100,40);
@@ -171,7 +182,10 @@ public class Creation extends JFrame implements ActionListener {
         return panel;
     }
 
-    // méthode qui construit l'objet que l'utilisateur séléctionne
+    /**
+     * méthode qui construit l'objet que l'utilisateur séléctionne
+     * @return resultat une entité choisi
+     */
     public Entity creerEntite() {
 
         Entity resultat = panelCreation.creerEntite();
@@ -195,7 +209,10 @@ public class Creation extends JFrame implements ActionListener {
         return resultat;
     }
 
-    // si on clique sur ok, on lance création de l'objet, sinon, on affiche un aperçu de l'objet
+    /**
+     * si on clique sur ok, on lance création de l'objet, si on change d'objet, on ouvre un panel spécifique à chaque objet
+     * @param event
+     */
     public void actionPerformed(ActionEvent event) {
 
         if (event.getSource() == ok) {
@@ -222,9 +239,6 @@ public class Creation extends JFrame implements ActionListener {
             panel.updateUI();
 
 
-        } else {
-            // on ajoute un aperçu de l'objet dans le pane
-            // panel.add(creerEntite()); // TODO comment afficher dans panel ???
         }
     }
 }

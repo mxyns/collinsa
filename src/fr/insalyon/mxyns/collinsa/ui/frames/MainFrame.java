@@ -22,7 +22,6 @@ public class MainFrame extends JFrame {
     final private SandboxPanel sandboxPanel;
 
     public SelectionTool selectionTool;
-    private MoveCameraTool moveCameraTool;
     private JToolBar toolbar;
 
     Color my = new Color(93,155,155);
@@ -84,7 +83,7 @@ public class MainFrame extends JFrame {
         parametres.addActionListener(e -> ouvrirParametres());
 
         toolbar = new JToolBar(); ButtonGroup toolGroup = new ButtonGroup();
-        Tool[] tools = new Tool[] { selectionTool = new SelectionTool(), new EntityDragTool(), new FreezeEntityTool(), moveCameraTool = new MoveCameraTool() };
+        Tool[] tools = new Tool[] { selectionTool = new SelectionTool(), new EntityDragTool(), new FreezeEntityTool(), new MoveCameraTool(), new ForcesTool() };
         for (Tool tool : tools) {
             toolGroup.add(tool);
             toolbar.add(tool);
@@ -105,17 +104,17 @@ public class MainFrame extends JFrame {
 
         // TODO on supprime l'objet et on rouvre la page création
         if (selectionTool.getSelectedEntity() != null)
-            new Creation ("Création", 1200, 800);
+            new Creation(1200, 800);
     }
 
     public void ouvrirPageCreation() {
 
-        new Creation ("Création", 800, 800);
+        new Creation (800, 800);
     }
 
     public void ouvrirParametres() {
 
-        new Parametres(800, 500);
+        new Parametres();
     }
 
 
@@ -128,6 +127,10 @@ public class MainFrame extends JFrame {
         return sandboxPanel;
     }
 
+    /**
+     * Renvoie l'outil sélectionné dans la Toolbar
+     * @return outil sélectionné
+     */
     public Tool getSelectedTool() {
 
         for (Component component : toolbar.getComponents())

@@ -7,22 +7,32 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 
+/**
+ * Outil permettant de sélectionner une entité (pour la modifier / supprimer ou juste mieux la voir)
+ */
 public class SelectionTool extends Tool {
 
+    /**
+     * Entité actuellement sélectionnée
+     */
     Entity selected = null;
-    Color oldOutlineColor;
 
+    /**
+     * Constructeur qui précise le nom, le tooltip et le chemin de l'icone de l'outil
+     */
     public SelectionTool() {
 
         super("Selection", "Select an entity", "/select.png");
     }
 
+    /**+
+     * Trouve l'entité la plus proche du clic et la garde dans 'selected'
+     * Clic gauche pour sélectionner
+     * Clic droit pour désélectionner
+     */
     @Override
     public void onClick(MouseEvent e) {
 
@@ -37,22 +47,20 @@ public class SelectionTool extends Tool {
         selected = physics.getClosestEntity(posInWorld, .1f);
     }
 
+    /**
+     * Redéfinit la valeur de 'selected', l'entité sélectionnée par l'outil
+     * @param entity nouvelle entité sélectionnée
+     */
     public void setSelectedEntity(Entity entity) {
 
-        if (this.selected != null && oldOutlineColor != null)
-            this.selected.setOutlineColor(oldOutlineColor);
-
         this.selected = entity;
-
-        /*oldOutlineColor = entity.getOutlineColor();
-        Color backgroundColor = Collinsa.INSTANCE.getRenderer().getGraphicsBuffer().getBackgroundColor();
-        Color fill = entity.getFillColor() != null ? entity.getFillColor() : (entity.getOutlineColor() != null ? entity.getOutlineColor() : backgroundColor);
-        Color outline = entity.getOutlineColor() != null ? entity.getOutlineColor() : fill;
-
-        Color contrastColor = Utils.getHighContrastColor(backgroundColor, fill, outline);
-        this.selected.setOutlineColor(contrastColor);*/
     }
 
+    /**
+     * Dessine une bordure en pointillés autour de l'entité sélectionnée
+     * @see fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel#paint(Graphics)
+     * @param renderer renderer utilisé pour récupérer l'image à modifier
+     */
     public void drawSelectedEntityOutline(Renderer renderer) {
 
         if (getSelectedEntity() == null)
@@ -77,6 +85,10 @@ public class SelectionTool extends Tool {
         selected.setFillColor(oldColors[1]);
     }
 
+    /**
+     * Renvoie l'entité actuellement sélectionnée
+     * @return selectedEntity
+     */
     public Entity getSelectedEntity() {
 
         return selected;

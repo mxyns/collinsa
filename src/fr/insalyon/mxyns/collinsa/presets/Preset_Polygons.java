@@ -9,6 +9,10 @@ import fr.insalyon.mxyns.collinsa.physics.entities.*;
 import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
+/**
+ * Preset montrant les collisions cercles / polygones et polygones / polygones ainsi que le fonctionnement des CollisionListener
+ * On remarque un problème de collision entre le pentagone qui tombe et le petit triangle en bas. C'est dû à la précision des float qui mettent en échec l'algorithme de calcul de normale / points de contacts avec certains angles d'incidence faibles
+ */
 public class Preset_Polygons extends Preset {
 
     @Override
@@ -48,6 +52,7 @@ public class Preset_Polygons extends Preset {
                                             new Vec2f(-40, -20),
                                             new Vec2f(-5f, 30)
         );
+        convexPoly.setCollisionType(Collision.CollisionType.KINEMATIC);
         physics.addEntity(convexPoly);
 
         Circle boule = new Circle(triangle.getPos().copy(), 20);

@@ -28,7 +28,7 @@ public class Rect extends ConvexPoly {
         this.size = size;
         this.local_vertices = Geometry.getRectangeLocalCorners(this);
 
-        getInertia().update(this);
+        getInertia().update();
         updateVertices();
     }
 
@@ -59,7 +59,9 @@ public class Rect extends ConvexPoly {
     public void setSize(Vec2f size) {
 
         this.size = size;
-        getInertia().update(this);
+        this.local_vertices = Geometry.getRectangeLocalCorners(this);
+
+        getInertia().update();
     }
 
     @Override

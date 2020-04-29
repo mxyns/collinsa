@@ -8,22 +8,35 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+/**
+ * Classe générique représentant un outil utilisé dans la MainFrame
+ */
 public abstract class Tool extends JToggleButton {
 
+    /**
+     * Nom de l'outil
+     */
     public String name;
 
+    /**
+     * Constructeur générique d'un outil
+     * @param name nom de l'outil
+     * @param tooltip tooltip à afficher
+     * @param iconPath chemin d'accès de son icone. si null, on prend la première lettre du nom comme icone
+     */
     public Tool(String name, String tooltip, String iconPath) {
 
         this.name = name;
-
         setToolTipText(tooltip);
 
-        try {
-
-            setIcon(new ImageIcon(ImageIO.read(Tool.class.getResource(iconPath)).getScaledInstance(16, 16, BufferedImage.SCALE_SMOOTH)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if (iconPath != null)
+            try {
+                setIcon(new ImageIcon(ImageIO.read(Tool.class.getResource(iconPath)).getScaledInstance(16, 16, BufferedImage.SCALE_SMOOTH)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        else
+            setText(String.valueOf(name.charAt(0)));
 
         addItemListener(e -> {
 
@@ -36,10 +49,34 @@ public abstract class Tool extends JToggleButton {
     }
 
     // Ces méthodes ne sont pas abstraites elles ne sont pas toutes utilisée par chaque outil. Il est plus pratique que l'outil Override seulement les méthodes qui lui sont utiles.
+
+    /**
+     * Appelée quand l'outil est sélectionné dans la barre d'outils
+     */
     public void onSelected() {}
+
+    /**
+     * Appelée quand l'outil est désélectionné dans la barre d'outils
+     */
     public void onDeselected() {}
+
+    /**
+     * Appelée quand un bouton de la souris est enfoncé et que l'outil est sélectionné
+     */
     public void onMousePressed(MouseEvent e) {}
+
+    /**
+     * Appelée quand un bouton de la souris est relaché et que l'outil est sélectionné
+     */
     public void onMouseReleased(MouseEvent e) {}
+
+    /**
+     * Appelée lors d'un clic souris et que l'outil est sélectionné
+     */
     public void onClick(MouseEvent e) {}
+
+    /**
+     * Appelée lors d'un drag (cliqué-glissé) et que l'outil est sélectionné
+     */
     public void onDrag(MouseEvent e) {}
 }

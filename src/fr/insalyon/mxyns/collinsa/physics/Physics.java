@@ -165,6 +165,8 @@ public class Physics {
     public void removeEntity(Entity entity) {
 
         entity.setActivated(false);
+
+        forces.removeIf(force -> force.affects(entity));
         entities.remove(entity);
     }
 
@@ -262,6 +264,12 @@ public class Physics {
         return (int)(x / chunkSize.x) + (int)chunkCount.x * (int)(y / chunkSize.y);
     }
 
+    /**
+     * Renvoie l'entité la plus proche d'un point dans un certain rayon
+     * @param pos centre de la recherche
+     * @param radius rayon de recherche
+     * @return entité trouvée s'il y en a une
+     */
     public Entity getClosestEntity(Vec2f pos, float radius) {
 
         final Entity[] selected = new Entity[1];
@@ -299,6 +307,13 @@ public class Physics {
 
         return selected[0];
     }
+
+    /**
+     * Renvoie l'entité la plus proche d'une autre (avec intersection d'AABB)
+     *
+     * @param entity cible
+     * @return entité trouvée ou null
+     */
     public Entity getClosestAABBIntersectingEntity(Entity entity) {
 
         float minDistance = Float.POSITIVE_INFINITY, tmp;
@@ -344,8 +359,8 @@ public class Physics {
     }
 
     /**
-     * Calcule la normale et les points de contacts entre un cercle et un rectangle avant d'appliquer une bounceImpulse et une frictionImpulse
-     * @param toResolve collision entre les deux objets (cercle en source et rectangle en target)
+     * Calcule la normale et les points de contacts entre un cercle et un rectangle.
+     * @param toResolve collision entre les deux objets (cercle en reference et rectangle en incident)
      */
     public static boolean generateCircleRectangleManifold(Collision toResolve) {
 
@@ -382,6 +397,10 @@ public class Physics {
         return true;
     }
 
+    /**
+     * Calcule la normale et les points de contacts entre deux polygones.
+     * @param toResolve collision entre les deux polygones
+     */
     public static boolean generatePolygonPolygonManifold(Collision toResolve) {
 
         Polygon source = (Polygon) toResolve.getReference();
@@ -478,6 +497,10 @@ public class Physics {
         return true;
     }
 
+    /**
+     * Calcule la normale et les points de contacts entre un cercle et un polygone.
+     * @param toResolve collision entre le cercle et le polygone
+     */
     public static boolean generateCirclePolygonManifold(Collision toResolve) {
 
         Circle circle = (Circle) toResolve.getIncident();
@@ -565,15 +588,22 @@ public class Physics {
         return true;
     }
 
+    /**
+     * Déplace les deux entités en sens opposé selon la direction d'une normale
+     *
+     * @param normalBtoA normale allant de B vers A
+     * @param penetration distance de penetration entre les deux entités
+     * @param isKinematic un deux deux est-il cinématique ? si oui, on ne le déplace pas
+     */
     public static void displace(Entity entityA, Entity entityB, Vec2f normalBtoA, float penetration, boolean isKinematic) {
 
         Vec2f displacementVector = normalBtoA.multOut(penetration);
 
         if (!isKinematic) {
-            displacementVector.div(entityA.getInertia().getMass() + entityB.getInertia().getMass());
+            displacementVector.div(entityA.getInertia().getMassInv() + entityB.getInertia().getMassInv());
 
-            entityA.getPos().add(displacementVector, entityA.getInertia().getMass());
-            entityB.getPos().add(displacementVector, -entityB.getInertia().getMass());
+            entityA.getPos().add(displacementVector, entityA.getInertia().getMassInv());
+            entityB.getPos().add(displacementVector, -entityB.getInertia().getMassInv());
 
             return;
         }
@@ -737,6 +767,10 @@ public class Physics {
         this.height = height;
     }
 
+    /**
+     * Redimensionne le monde. Mieux vaut le faire pendant que la simulation est en pause pour éviter les ConcurrentModificationException liées à l'ArrayList des Chunks
+     * @param newSize nouvelle taille du monde
+     */
     public void resize(Vec2f newSize) {
 
         setWidth(newSize.x);

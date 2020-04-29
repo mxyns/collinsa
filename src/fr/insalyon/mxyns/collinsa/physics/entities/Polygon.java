@@ -8,11 +8,21 @@ import java.awt.Graphics2D;
 
 public abstract class Polygon extends Entity {
 
-
+    /**
+     * Position des points du polygone dans le repère local
+     */
     public Vec2f[] local_vertices;
 
+    /**
+     * Liste des points, des vecteurs directeurs de chaque arête du polygone, et des normales à ces arêtes
+     */
     protected Vec2f[] vertices, edges, normals;
 
+    /**
+     * Constructeur générique pour un polygone quelconque à n côtés
+     * @param pos position du polygone dans le monde
+     * @param n nombre de côtés / de points
+     */
     protected Polygon(Vec2f pos, int n) {
 
         super(pos);
@@ -21,6 +31,13 @@ public abstract class Polygon extends Entity {
         this.normals = new Vec2f[n];
         this.local_vertices = new Vec2f[n];
     }
+
+    /**
+     * Constructeur d'un polygone quelconque à partir d'un ensemble de points dans le repère local (relatif par rapport au centre)
+     *
+     * @param pos position du polygone dans le monde
+     * @param local_vertices tableau contenant les points du polygone dans son repère local
+     */
     public Polygon(Vec2f pos, Vec2f[] local_vertices) {
 
         this(pos, local_vertices.length);
@@ -32,21 +49,7 @@ public abstract class Polygon extends Entity {
             this.local_vertices[i] = local_vertices[i].copy().sub(barycenter);
 
         updateVertices();
-        getInertia().update(this);
-    }
-
-    public Polygon(Vec2f pos, int n, float r) {
-
-        this(pos, n);
-
-        local_vertices = new Vec2f[n];
-
-        float a = 360f / n;
-        for (int i = 0; i < n; ++i)
-            local_vertices[i] = new Vec2f(r, 0).rotate((float) Math.toRadians(-a * i));
-
-        updateVertices();
-        getInertia().update(this);
+        getInertia().update();
     }
 
     @Override
@@ -58,12 +61,12 @@ public abstract class Polygon extends Entity {
     @Override
     public float computeJ() {
 
+        //TODO : use https://mathoverflow.net/questions/73556/calculating-moment-of-inertia-in-2d-planar-polygon
         if (local_vertices == null)
             return 0;
 
         return getInertia().getMass() * local_vertices[0].squaredMag();
     }
-    //TODO : use https://mathoverflow.net/questions/73556/calculating-moment-of-inertia-in-2d-planar-polygon
 
     @Override
     public float getVolume() {
@@ -85,6 +88,9 @@ public abstract class Polygon extends Entity {
         return (float) area;
     }
 
+    /**
+     * Met à jour les valeurs des points 'vertices' (dans le repère global) à partir des local_vertices.
+     */
     public void updateVertices() {
 
         for (int i = 0; i < vertices.length; ++i)
@@ -93,16 +99,28 @@ public abstract class Polygon extends Entity {
         Geometry.getNormalsAndEdges(vertices, edges, normals);
     }
 
+    /**
+     * Renvoie la liste des points du polygone dans le repère global
+     * @return vertices
+     */
     public Vec2f[] getVertices() {
 
         return vertices;
     }
 
+    /**
+     * Renvoie la liste des vecteurs directeurs de chaque côté du polygone dans le repère global
+     * @return vertices
+     */
     public Vec2f[] getEdges() {
 
         return edges;
     }
 
+    /**
+     * Renvoie la liste des normales aux côtés du polygone dans le repère global
+     * @return vertices
+     */
     public Vec2f[] getNormals() {
 
         return normals;

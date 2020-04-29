@@ -19,6 +19,9 @@ public class ClockedThread extends Thread {
      */
     long delay;
 
+    /**
+     * Indique au Thread de se stopped au prochain tour de boucle. Evite les InterruptedException causées par un interrupt() lors d'une pause du Thread
+     */
     private boolean mustStop;
 
     /**
@@ -47,15 +50,7 @@ public class ClockedThread extends Thread {
     public void run() {
 
         // Tant que le Thread n'est pas stoppé
-        while(!isInterrupted()) {
-
-            // On patiente le temps d'un delay avant 'tick' car cette méthode peut décider de mettre fin au Thread.
-            // On évite alors une ThreadInterruptedException à l'appel de 'sleep' qui se produirait si on appelait 'sleep' après 'tick'
-
-            if (mustStop) {
-                interrupt();
-                return;
-            }
+        while(!mustStop && !isInterrupted()) {
 
             try {
                 if (delay > 0)
@@ -103,6 +98,9 @@ public class ClockedThread extends Thread {
         mustStop = false;
     }
 
+    /**
+     * Marque le Thread comme "à arrêter". Au prochain tick, il se stoppera
+     */
     public void queryStop() {
 
         mustStop = true;

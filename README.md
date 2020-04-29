@@ -11,7 +11,6 @@ From `src` folder :
       - `-s [preset_name]` to run a preset, check [EPreset](https://github.com/mxyns/collinsa/blob/master/src/fr/insalyon/mxyns/collinsa/presets/Preset.java) for a list of available presets
    
    - Engine Settings : Tickrates and World size
-      - `--scale (float)` to set the rendering scale in px/m
       - `--worldSize (Vec2f)` size of the world on the x and y coordinates
       - `--width (float)` world's width in meters (overwrites worldSize)
       - `--height (float)` world's height in meters (overwrites worldSize)
@@ -23,12 +22,16 @@ From `src` folder :
       - `--fpsd (int)` change the refresh rates of number of display refresh/repaint (per sec)
 
    - Render Settings : Aesthetics & Debug
+      - `--scale (float)` to set the rendering scale in px/m
+      - `--forceScale (float)` to set the force rendering scale in px/N
       - `--showAABB [false|true]` to enable the display of the entities' axis aligned bounding boxes
-      - `--aabbColor (Color)` to change their color (e.g. : `--aabbColor BLUE`)
       - `--showAxes [false|true]` to display the x and y axes
       - `--showChunks [false|true]` to display the chunks' bounds
-      - `--chunkColor (Color)` to change their color (works like aabbColor)
       - `--showWorldBounds [false|true]` to display the world's boundaries
+      - `--showForces [false|true]` to display forces
+      -- `--wireframe [false|true]` to turn wireframe display (shapes not filled) on or off
+      - `--aabbColor (Color)` to change their color (e.g. : `--aabbColor BLUE`)
+      - `--chunkColor (Color)` to change their color (works like aabbColor)
       - `--worldBoundsColor (Color)` to change their color (works like aabbColor)
       - `--bgColor (Color)` to change the background's color (works like aabbColor)
       - `--useDebugColor [false|true]` to display use collision-related colors (AABB collision / confirmed collision / etc.)

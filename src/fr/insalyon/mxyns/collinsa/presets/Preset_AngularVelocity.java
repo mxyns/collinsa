@@ -9,6 +9,14 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 
+/**
+ * Un preset pour tester les frottements et la prise en compte de la vitesse angulaire dans leur calcul
+ * Paramètres :
+ *    . --angle (float) -> angle (rad) d'inclinaison de la piste / rectangle
+ *    . --vel (float) -> vitesse angulaire initiale du cercle
+ *    . --df (float) -> coefficient de frottement dynamique du cercle
+ *    . --sf (float) -> coefficient de frottement statique du cercle
+ */
 public class Preset_AngularVelocity extends Preset {
 
     Rect rect; Circle circle;
@@ -34,10 +42,6 @@ public class Preset_AngularVelocity extends Preset {
         physics.addEntity(rect);
         physics.addEntity(circle);
         physics.globalForces.add(new PlanetGravity(1));
-    }
-
-    @Override
-    public void loop(String[] args, Collinsa collinsa) {
 
         System.out.println(rect.getInertia());
         System.out.println(circle.getInertia());

@@ -45,4 +45,10 @@ public class MillisClock extends Clock {
 
         return lastTime - System.currentTimeMillis();
     }
+
+    @Override
+    public double toSec() {
+
+        return 1e-3f;
+    }
 }

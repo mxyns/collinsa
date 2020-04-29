@@ -109,4 +109,9 @@ public abstract class Clock {
 
         return running;
     }
+
+    /**
+     * Renvoie le coefficient par lequel multiplier les temps donnés par la Clock pour avoir une valeur en secondes
+     */
+    public abstract double toSec();
 }

@@ -30,6 +30,20 @@ public class Vec2f {
 
         return this;
     }
+    /**
+     * Ajout d'un Vec2d au vecteur courant
+     *
+     * @param other Vec2d à ajouter
+     *
+     * @return vecteur courant modifié
+     */
+    public Vec2f add(Vec2d other) {
+
+        x += other.x;
+        y += other.y;
+
+        return this;
+    }
 
     /**
      * Ajout d'un Vec2f multiplié, sans le modifier, au vecteur courant
@@ -45,6 +59,20 @@ public class Vec2f {
 
         return this;
     }
+    /**
+     * Ajout d'un Vec2f multiplié, sans le modifier, au vecteur courant
+     *
+     * @param other Vec2f à ajouter
+     *
+     * @return vecteur courant modifié
+     */
+    public Vec2f add(Vec2f other, double mult) {
+
+        x += other.x * mult;
+        y += other.y * mult;
+
+        return this;
+    }
 
     /**
      * Ajout d'un Vec2d multiplié, sans le modifier, au vecteur courant
@@ -54,6 +82,20 @@ public class Vec2f {
      * @return vecteur courant modifié
      */
     public Vec2f add(Vec2d other, float mult) {
+
+        x += other.x * mult;
+        y += other.y * mult;
+
+        return this;
+    }
+    /**
+     * Ajout d'un Vec2d multiplié, sans le modifier, au vecteur courant
+     *
+     * @param other Vec2d à ajouter
+     *
+     * @return vecteur courant modifié
+     */
+    public Vec2f add(Vec2d other, double mult) {
 
         x += other.x * mult;
         y += other.y * mult;
@@ -222,6 +264,20 @@ public class Vec2f {
      * @return vecteur courant modifié
      */
     public Vec2f mult(float mult) {
+
+        this.x *= mult;
+        this.y *= mult;
+
+        return this;
+    }
+    /**
+     * Multiplication du vecteur courant par un facteur
+     *
+     * @param mult facteur multiplicateur
+     *
+     * @return vecteur courant modifié
+     */
+    public Vec2f mult(double mult) {
 
         this.x *= mult;
         this.y *= mult;

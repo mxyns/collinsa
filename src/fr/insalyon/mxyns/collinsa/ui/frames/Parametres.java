@@ -1,69 +1,81 @@
 package fr.insalyon.mxyns.collinsa.ui.frames;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
+import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.forces.Force;
+import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
+import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import javax.swing.*;
 
+/**
+ * Frame qui contient les paramètres que l'on peut modifier
+ */
 public class Parametres extends JFrame {
+
+    PlanetGravity gravite;
+
     // Ouverture d'une nouvelle fenêtre lorsqu'on clique sur le bouton paramètres qui permet de désactiver la gravité,
     // d'afficher les bounding boxes et les chunks'bounds, de changer la couleur de l'arrière plan ou encore de changer l'échelle des temps...
 
-    // TODO: ajouter le mode de rendu wireframe (checkbox -> Collinsa.INSTANCE.getRenderer().setWireframeDisplay( true / false ))
-    public Parametres (int width, int height) {
+    /**
+     * Création d'un Panel paramètre
+     */
+    public Parametres () {
 
         super("Paramètres");
-        setSize(width, height);
+        setSize(800, 555);
         setLocationRelativeTo(null);
+        setResizable(false);
         setLayout(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // hauteur, largeur du monde
-        // nombre de chunks en horizontal et vertical
 
-        SpinnerNumberModel largeurModel = new SpinnerNumberModel(Collinsa.INSTANCE.getPhysics().getWidth(), .1, 1440, .1);
+        Renderer renderer = Collinsa.INSTANCE.getRenderer();
+        Physics physics = Collinsa.INSTANCE.getPhysics();
+
+        // hauteur, largeur du monde
+        SpinnerNumberModel largeurModel = new SpinnerNumberModel(physics.getWidth(), .1, 1440, .1);
         JSpinner largeur = new JSpinner(largeurModel);
         largeur.setModel(largeurModel);
         largeur.setBounds(500,15,200,50);
         largeur.setBorder(BorderFactory.createTitledBorder("Largeur du monde"));
         add(largeur);
 
-        SpinnerNumberModel hauteurModel = new SpinnerNumberModel(Collinsa.INSTANCE.getPhysics().getHeight(), .1, 1440, .1);
+        SpinnerNumberModel hauteurModel = new SpinnerNumberModel(physics.getHeight(), .1, 1440, .1);
         JSpinner hauteur = new JSpinner(hauteurModel);
         hauteur.setBounds(500,85,200,50);
         hauteur.setModel(hauteurModel);
         hauteur.setBorder(BorderFactory.createTitledBorder("Hauteur du monde"));
         add(hauteur);
 
-        SpinnerNumberModel modelNbChunksH = new SpinnerNumberModel((int)Collinsa.INSTANCE.getPhysics().getChunkCount().x, 1, 50, 1);
+        // nombre de chunks en horizontal et vertical
+        SpinnerNumberModel modelNbChunksH = new SpinnerNumberModel((int)physics.getChunkCount().x, 1, 50, 1);
         JSpinner nbChunksH = new JSpinner(modelNbChunksH);
         nbChunksH.setModel(modelNbChunksH);
         nbChunksH.setBounds(500,155,200,50);
         nbChunksH.setBorder(BorderFactory.createTitledBorder("Nombre de chunks (Horizontal)"));
         add(nbChunksH);
 
-        SpinnerNumberModel modelNbChunksV = new SpinnerNumberModel((int)Collinsa.INSTANCE.getPhysics().getChunkCount().y, 1, 50, 1);
+        SpinnerNumberModel modelNbChunksV = new SpinnerNumberModel((int)physics.getChunkCount().y, 1, 50, 1);
         JSpinner nbChunksV = new JSpinner(modelNbChunksV);
         nbChunksV.setModel(modelNbChunksV);
         nbChunksV.setBounds(500,225,200,50);
         nbChunksV.setBorder(BorderFactory.createTitledBorder("Nombre de chunks (Vertical)"));
         add(nbChunksV);
 
-        JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
-        sep.setBounds(450, 15, 10, 500);
-        add(sep);
-
         //on rajoute un bouton pour activer les paramètres ci-dessus
         JButton appliquer = new JButton("Appliquer");
-        appliquer.setBounds(600,300,100,100);
+        appliquer.setBounds(550,300,100,30);
         appliquer.addActionListener(e -> {
 
             try {
-                Collinsa.INSTANCE.pause(300);
+                Collinsa.INSTANCE.pause(1000);
 
-                Collinsa.INSTANCE.getPhysics().setChunkCount(new Vec2f((float) (int) nbChunksH.getValue(), (float) (int) nbChunksV.getValue()));
-                Collinsa.INSTANCE.getPhysics().resize(new Vec2d((double) largeur.getValue(), (double) hauteur.getValue()).toFloat());
+                physics.setChunkCount(new Vec2f((float) (int) nbChunksH.getValue(), (float) (int) nbChunksV.getValue()));
+                physics.resize(new Vec2d((double) largeur.getValue(), (double) hauteur.getValue()).toFloat());
 
             } catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
@@ -71,51 +83,92 @@ public class Parametres extends JFrame {
         });
         add(appliquer);
 
-        JCheckBox axes = new JCheckBox("Afficher les axes", Collinsa.INSTANCE.getRenderer().doesRenderCoordinateSystem());
+        //on peut afficher différents axes
+        JCheckBox axes = new JCheckBox("Afficher les axes", renderer.doesRenderCoordinateSystem());
         axes.setBounds(0, 45, 200, 15);
-        axes.addActionListener(e -> Collinsa.INSTANCE.getRenderer().setRenderCoordinateSystem(axes.isSelected()));
+        axes.addActionListener(e -> renderer.setRenderCoordinateSystem(axes.isSelected()));
         add(axes);
 
-        JCheckBox chunks = new JCheckBox("Afficher les chunks", Collinsa.INSTANCE.getRenderer().doesRenderChunksBounds());
+        JCheckBox chunks = new JCheckBox("Afficher les chunks", renderer.doesRenderChunksBounds());
         chunks.setBounds(0, 65, 200, 15);
-        chunks.addActionListener(e -> Collinsa.INSTANCE.getRenderer().setRenderChunksBounds(chunks.isSelected()));
+        chunks.addActionListener(e -> renderer.setRenderChunksBounds(chunks.isSelected()));
         add(chunks);
 
-        JCheckBox world = new JCheckBox("Afficher les limites du monde", Collinsa.INSTANCE.getRenderer().doesRenderWorldBounds());
+        JCheckBox world = new JCheckBox("Afficher les limites du monde", renderer.doesRenderWorldBounds());
         world.setBounds(0, 85, 200, 15);
-        world.addActionListener(e -> Collinsa.INSTANCE.getRenderer().setRenderWorldBounds(world.isSelected()));
+        world.addActionListener(e -> renderer.setRenderWorldBounds(world.isSelected()));
         add(world);
 
-        JSlider graviteSlider = new JSlider(JSlider.HORIZONTAL, 1, 2000, 100);
+        gravite = null;
+        // On récupère le dernier PlanetGravity global et on considère que c'est le seul présent
+        for (Force force : physics.globalForces)
+            if (force instanceof PlanetGravity)
+                gravite = (PlanetGravity) force;
+
+        //On peut modifier l'intensité de la gravité
+        JSlider graviteSlider = new JSlider(JSlider.HORIZONTAL, -2000, 2000, gravite == null ? 100 : (int) (100 * gravite.gFactor));
         graviteSlider.setBorder(BorderFactory.createTitledBorder("Intensité de la gravité : " + graviteSlider.getValue() / 100f + "g"));
-        graviteSlider.setBounds(200, 2, 190, 40);
+        graviteSlider.setBounds(200, 2, 200, 40);
         graviteSlider.addChangeListener(e -> {
 
             graviteSlider.setBorder(BorderFactory.createTitledBorder("Intensité de la gravité : " + graviteSlider.getValue() / 100f + "g"));
+            if (gravite != null)
+                gravite.gFactor = graviteSlider.getValue() / 100f;
         });
         add(graviteSlider);
-
-        JCheckBox gravite = new JCheckBox("Gravité", true);
+        
+        JCheckBox gravite = new JCheckBox("Gravité", this.gravite != null);
         gravite.setBounds(0, 5, 200, 15);
-        gravite.addActionListener(e -> graviteSlider.setEnabled(gravite.isSelected()));
+        gravite.addActionListener(e -> {
+
+            if (this.gravite != null && !gravite.isSelected()) {
+                physics.globalForces.remove(this.gravite);
+                this.gravite = null;
+            } else {
+                physics.globalForces.add(this.gravite = new PlanetGravity(1));
+                graviteSlider.setValue(100);
+            }
+
+            graviteSlider.setEnabled(gravite.isSelected());
+        });
         add(gravite);
 
-        JCheckBox boxes = new JCheckBox("Afficher les boîtes de collision", Collinsa.INSTANCE.getRenderer().doesRenderEntitiesAABB());
+        JCheckBox boxes = new JCheckBox("Afficher les boîtes de collision", renderer.doesRenderEntitiesAABB());
         boxes.setBounds(0, 25, 200, 15);
-        boxes.addActionListener(e -> Collinsa.INSTANCE.getRenderer().setRenderEntitiesAABB(boxes.isSelected()));
+        boxes.addActionListener(e -> renderer.setRenderEntitiesAABB(boxes.isSelected()));
         add(boxes);
 
-        JCheckBox realtime = new JCheckBox("Temps réel", Collinsa.INSTANCE.getPhysics().isRealtime());
+        JCheckBox realtime = new JCheckBox("Temps réel", physics.isRealtime());
         realtime.setBounds(0, 105, 200, 15);
-        realtime.addActionListener(e -> Collinsa.INSTANCE.getPhysics().setRealtime(realtime.isSelected()));
+        realtime.addActionListener(e -> physics.setRealtime(realtime.isSelected()));
         add(realtime);
 
+        JCheckBox forces = new JCheckBox("Afficher les forces", renderer.doesRenderForces());
+        forces.setBounds(0, 125, 200, 15);
+        forces.addActionListener(e -> renderer.setRenderForces(forces.isSelected()));
+        add(forces);
 
-        JSlider scale = new JSlider(JSlider.HORIZONTAL, 1, 200, (int) (Collinsa.INSTANCE.getRenderer().getRenderScale() * 100));
+        JSlider forcesSlider = new JSlider(JSlider.HORIZONTAL, 1, 50000, (int) (renderer.getForceScale() * 5000));
+        forcesSlider.setBorder(BorderFactory.createTitledBorder("Echelle des forces (px/N) : " + forcesSlider.getValue() / 5000f ));
+        forcesSlider.setBounds(200, 108, 200, 40);
+        forcesSlider.addChangeListener(e -> {
+            renderer.setForceScale(forcesSlider.getValue() / 5000f);
+
+            forcesSlider.setBorder(BorderFactory.createTitledBorder("Echelle des forces (px/N) : " + forcesSlider.getValue() / 5000f ));
+        });
+        add(forcesSlider);
+
+        JCheckBox wireFrame = new JCheckBox("Activer le mode wireframe", renderer.isDisplayModeWireframe());
+        wireFrame.setBounds(0, 145, 200, 15);
+        wireFrame.addActionListener(e ->renderer.setWireframeDisplay(wireFrame.isSelected()));
+        add(wireFrame);
+
+
+        JSlider scale = new JSlider(JSlider.HORIZONTAL, 1, 200, (int) (renderer.getRenderScale() * 100));
         scale.setBorder(BorderFactory.createTitledBorder("Echelle : " + scale.getValue() / 100f));
-        scale.setBounds(0, 125, 400, 70);
+        scale.setBounds(0, 165, 400, 60);
         scale.addChangeListener(e -> {
-            Collinsa.INSTANCE.getRenderer().setRenderScale(scale.getValue() / 100f);
+            renderer.setRenderScale(scale.getValue() / 100f);
             scale.setBorder(BorderFactory.createTitledBorder("Echelle : " + scale.getValue() / 100f));
         });
         scale.setMajorTickSpacing(scale.getMaximum() - scale.getMinimum());
@@ -123,43 +176,61 @@ public class Parametres extends JFrame {
         scale.setPaintLabels(true);
         add(scale);
 
-        JSlider fpsp = new JSlider(JSlider.HORIZONTAL, 1, 240, Collinsa.INSTANCE.getPhysics().getProcessingThread().getRefreshRate());
-        fpsp.setBorder(BorderFactory.createTitledBorder("Nombre de fois qu'on met à jour la simulation par seconde : "+ fpsp.getValue()));
-        fpsp.setBounds(0, 275, 400, 70);
-        fpsp.addChangeListener(e -> {
-            fpsp.setBorder(BorderFactory.createTitledBorder("Nombre de fois qu'on met à jour la simulation par seconde : "+ fpsp.getValue()));
-            Collinsa.INSTANCE.getPhysics().getProcessingThread().setRefreshRate(fpsp.getValue());
-        });
-        fpsp.setMajorTickSpacing(fpsp.getMaximum() - fpsp.getMinimum());
-        fpsp.setPaintTicks(false);
-        fpsp.setPaintLabels(true);
-        add(fpsp);
-
-        JSlider dt = new JSlider(JSlider.HORIZONTAL, 1, 200,  Collinsa.INSTANCE.getPhysics().getFixedDeltaTime());
+        JSlider dt = new JSlider(JSlider.HORIZONTAL, 1, 200,  physics.getFixedDeltaTime());
         dt.setBorder(BorderFactory.createTitledBorder("Pas de temps (temps réel = false) : "+ dt.getValue()));
-        dt.setBounds(0, 200, 400, 70);
+        dt.setBounds(0, 235, 400, 60);
         dt.addChangeListener(e -> {
             dt.setBorder(BorderFactory.createTitledBorder("Pas de temps (temps réel = false) : " + dt.getValue()));
-            Collinsa.INSTANCE.getPhysics().setFixedDeltaTime(dt.getValue());
+            physics.setFixedDeltaTime(dt.getValue());
         });
         dt.setMajorTickSpacing(dt.getMaximum() - dt.getMinimum());
         dt.setPaintTicks(false);
         dt.setPaintLabels(true);
         add(dt);
 
-        JSlider fpsr = new JSlider(JSlider.HORIZONTAL, 1, 240, Collinsa.INSTANCE.getRenderer().getRenderingThread().getFramerate());
+        //on peut choisir la fréquence à laquelle on met à jour la simulation
+        JSlider fpsp = new JSlider(JSlider.HORIZONTAL, 1, 240, physics.getProcessingThread().getRefreshRate());
+        fpsp.setBorder(BorderFactory.createTitledBorder("Nombre de fois qu'on met à jour la simulation par seconde : "+ fpsp.getValue()));
+        fpsp.setBounds(0, 310, 400, 60);
+        fpsp.addChangeListener(e -> {
+            fpsp.setBorder(BorderFactory.createTitledBorder("Nombre de fois qu'on met à jour la simulation par seconde : "+ fpsp.getValue()));
+            Collinsa.INSTANCE.setTickrate(fpsp.getValue());
+        });
+        fpsp.setMajorTickSpacing(fpsp.getMaximum() - fpsp.getMinimum());
+        fpsp.setPaintTicks(false);
+        fpsp.setPaintLabels(true);
+        add(fpsp);
+
+        JSlider fpsr = new JSlider(JSlider.HORIZONTAL, 1, 240, renderer.getRenderingThread().getFramerate());
         fpsr.setBorder(BorderFactory.createTitledBorder("Nombre d'images créées par seconde : "+ fpsr.getValue()));
-        fpsr.setBounds(0, 350, 400, 70);
+        fpsr.setBounds(0, 380, 400, 60);
         fpsr.addChangeListener(e -> {
             fpsr.setBorder(BorderFactory.createTitledBorder("Nombre d'images créées par seconde : "+ fpsr.getValue()));
-            Collinsa.INSTANCE.getRenderer().getRenderingThread().setFramerate(fpsr.getValue());
-            Collinsa.INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().setRefreshRate(fpsr.getValue());
+            Collinsa.INSTANCE.setFramerate(fpsr.getValue());
         });
         fpsr.setMajorTickSpacing(fpsr.getMaximum() - fpsr.getMinimum());
         fpsr.setPaintTicks(false);
         fpsr.setPaintLabels(true);
         add(fpsr);
 
+        JSlider fpsd = new JSlider(JSlider.HORIZONTAL, 1, 240, Collinsa.INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().getRefreshRate());
+        fpsd.setBorder(BorderFactory.createTitledBorder("Nombre d'images affichées par seconde : "+ fpsd.getValue()));
+        fpsd.setBounds(0, 450, 400, 60);
+        fpsd.addChangeListener(e -> {
+            fpsd.setBorder(BorderFactory.createTitledBorder("Nombre d'images affichées par seconde : "+ fpsd.getValue()));
+            Collinsa.INSTANCE.getMainFrame().getSandboxPanel().getRefreshingThread().setRefreshRate(fpsd.getValue());
+        });
+        fpsd.setMajorTickSpacing(fpsd.getMaximum() - fpsd.getMinimum());
+        fpsd.setPaintTicks(false);
+        fpsd.setPaintLabels(true);
+        add(fpsd);
+
         setVisible(true);
+
+        // On le fait après le setVisible puisqu'avant les Insets ne sont pas encore calculés et valent tous 0
+        JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
+        sep.setBounds(450, 10, 10, getHeight() - getInsets().top - getInsets().bottom - 20);
+        add(sep);
+
     }
 }

@@ -7,18 +7,22 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.physics.forces.Force;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
+import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
+import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.LinkedHashSet;
 
 import static fr.insalyon.mxyns.collinsa.Collinsa.INSTANCE;
 
 /**
- * Renderer s'occupe de créer un visuel correspondant à l'état de la Sandbox visible par sa Camera et à l'afficher sur son panel de destination
+ * Renderer s'occupe de créer un visuel correspondant à l'état de la Sandbox visible par sa Camera qui est accessible depuis son GraphicsBuffer
  */
 public class Renderer {
 
@@ -47,22 +51,27 @@ public class Renderer {
     /**
      * Scale est l'échelle de rendu en pixels / m, toutes les valeurs dans le programme sont en SI donc les distances en m.
      */
-    private float scale = 1.0f /* pixels / m */;
+    private float scale = 1.0f /* pixels / metre */, forceScale = 1.0f /* pixels / newton */;
 
     /**
      * Factor est le multiplicateur de rendu, prenant en compte l'échelle et le zoom de la camera
      **/
-    private double factor = 1.0f;
+    private double factor = 1.0f, forceFactor = 1.0;
 
     /**
      * Détermine si le Renderer dessine les contours des Chunks, les AABB, les bords du monde et le repère utilisé.
      */
-    private boolean renderChunksBounds = false, renderEntitiesAABB = false, renderWorldBounds = true, renderCoordinateSystem = false, wireframeDisplay = false;
+    private boolean renderChunksBounds = false, renderEntitiesAABB = false, renderWorldBounds = true, renderCoordinateSystem = false, renderForces = false, wireframeDisplay = false;
 
     /**
      * Couleur des bordures de Chunks (si dessinées), des bounding boxes des entités et des bords du monde
      */
     private Color chunkBoundsColor = Color.black, AABBBoundsColor = Color.yellow, worldBoundsColor = Color.black;
+
+    /**
+     * Les extras à rendre. Des éléments n'appartenant pas au moteur physique à afficher en plus du rendu classique.
+     */
+    final private LinkedHashSet<Renderable> extras = new LinkedHashSet<>();
 
     /**
      * Crée un Renderer vide inutilisable. Besoin de définir une destination de rendu.
@@ -124,6 +133,7 @@ public class Renderer {
      */
     public void renderSandbox(Physics physics, Graphics2D g) {
 
+        // Antialiasing pour avoir rendu bien lisse
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
@@ -154,12 +164,25 @@ public class Renderer {
             int axesSize = (int) (0.1 * Math.min(physics.getWidth(), physics.getHeight()));
 
             g.setColor(Color.red);
-            g.draw(new Line2D.Float(-camera.getPos().x, -camera.getPos().y, axesSize-camera.getPos().x, -camera.getPos().y));
+            g.draw(new Line2D.Double(-camera.getPos().x * factor, -camera.getPos().y * factor, (axesSize - camera.getPos().x) * factor, -camera.getPos().y * factor));
             g.setColor(Color.green);
-            g.draw(new Line2D.Float(-camera.getPos().x, -camera.getPos().y, -camera.getPos().x, axesSize-camera.getPos().y));
+            g.draw(new Line2D.Double(factor * -camera.getPos().x, factor * -camera.getPos().y, factor * -camera.getPos().x, factor * (axesSize-camera.getPos().y)));
         }
 
-        // On affiche les différents compteurs de FPS
+        if (renderForces) {
+
+            // On met à jour le facteur de rendu des forces.
+            forceFactor = factor / scale * forceScale;
+
+            for (Force force : physics.forces)
+                force.render(this, g);
+        }
+
+        // On affiche les extras
+        for (Renderable extra : extras)
+            extra.render(this, g);
+
+        // HUD : On affiche les différents compteurs de FPS
         Rectangle2D textBox = new Rectangle2D.Float(0, 0, 90, 45);
 
         g.setColor(graphicsBuffer.getBackgroundColor());
@@ -183,7 +206,7 @@ public class Renderer {
         g.fill(textBox);
 
         g.setColor(worldBoundsColor);
-        g.drawString("Camera #" + getCameraController().getCameraList().getIndex() + " / " + getCameraController().getCameraList().size(), 5, imageSize.height - 3);
+        g.drawString("Camera #" + (getCameraController().getCameraList().getIndex() + 1) + " / " + getCameraController().getCameraList().size(), 5, imageSize.height - 3);
         g.draw(textBox);
 
         textBox.setRect(textBox.getX() + textBox.getWidth(), textBox.getY(), 76, 15);
@@ -296,8 +319,12 @@ public class Renderer {
             g.drawString("corner #"+i, (float)factor*(rect.getCorners()[i].x - camera.getPos().x), (float)factor*(rect.getCorners()[i].y - camera.getPos().y));*/
     }
 
+    /**
+     * Rendu d'un Polygon via le Graphics2D
+     * @param polygon Polygon à rendre
+     * @param g graphics2d utilisé
+     */
     public void renderPolygon(Polygon polygon, Graphics2D g) {
-
 
         Path2D outline = new Path2D.Float();
         outline.moveTo(factor * (polygon.getPos().x - camera.getPos().x),factor * (polygon.getPos().y - camera.getPos().y));
@@ -327,6 +354,65 @@ public class Renderer {
             g.setColor(Color.red);
             g.draw(new Ellipse2D.Double((polygon.getPos().x - camera.getPos().x) * factor - 2.5f, (polygon.getPos().y - camera.getPos().y) * factor - 2.5f, 5f, 5f));
         }
+    }
+
+    /**
+     * Rendu d'un vecteur via le Graphics2D
+     * @param pos point de départ du vecteur
+     * @param vector vecteur à dessiner
+     * @param scale facteur par lequel multiplier le vecteur
+     * @param color couleur du vecteur
+     * @param g graphics2d utilisé
+     */
+    public void renderVector(Vec2f pos, Vec2d vector, double scale, Color color, Graphics2D g) {
+
+        g.setColor(color);
+        g.draw(new Line2D.Double((pos.x - camera.getPos().x) * factor, (pos.y - camera.getPos().y) * factor, (pos.x - camera.getPos().x) * factor + vector.x * scale, (pos.y - camera.getPos().y) * factor + vector.y * scale));
+    }
+
+    /**
+     * Rendu d'un vecteur avec un texte via le Graphics2D
+     * @param text texte à ajouter au vecteur
+     * @param pos point de départ du vecteur
+     * @param vector vecteur à dessiner
+     * @param scale facteur par lequel multiplier le vecteur
+     * @param color couleur du vecteur
+     * @param g graphics2d utilisé
+     */
+    public void renderVector(String text, Vec2f pos, Vec2d vector, double scale, Color color, Graphics2D g) {
+
+        g.setColor(color);
+        g.draw(new Line2D.Double((pos.x - camera.getPos().x) * factor, (pos.y - camera.getPos().y) * factor, (pos.x - camera.getPos().x) * factor + vector.x * scale, (pos.y - camera.getPos().y) * factor + vector.y * scale));
+
+        if (text != null && text.length() > 0) {
+
+            Vec2f textPos = pos.copy().sub(camera.getPos()).mult(factor).add(vector, scale * .5);
+            double angle = vector.angleWith(new Vec2f(0,1));
+            g.rotate(angle, textPos.x, textPos.y);
+            g.drawString(text, textPos.x, textPos.y);
+            g.rotate(-angle, textPos.x, textPos.y);
+        }
+    }
+
+    /**
+     * Rendu d'un ressort
+     * @param firstEnd première extrémité du ressort
+     * @param secondEnd seconde extrémité du ressort
+     * @param tension tension dans le ressort (norme de la force qu'il applique aux entités auxquelles il est relié)
+     * @param SPRING_CONSTANT constante de raideur du ressort
+     * @param REST_LENGTH longueur au repos du ressort
+     * @param g graphics2d utilisé
+     */
+    public void renderSpring(Vec2f firstEnd, Vec2f secondEnd, double tension, double SPRING_CONSTANT, double REST_LENGTH, Graphics2D g) {
+
+        // On copie le graphics pour ne pas modifier le Stroke de l'ancien graphics
+        g = (Graphics2D) g.create();
+
+        g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND,
+                                    BasicStroke.JOIN_MITER, 10, new float[] { 1f + (float) Math.abs(REST_LENGTH / SPRING_CONSTANT - tension / 500f) }, 0.0f));
+
+        g.setColor(Utils.lerpColor(Color.magenta, new Color(40, 0, 56), .3 * (1 + tension / (SPRING_CONSTANT * REST_LENGTH)) + .25));
+        g.draw(new Line2D.Double(  (firstEnd.x - camera.getPos().x) * factor, (firstEnd.y - camera.getPos().y) * factor, (secondEnd.x - camera.getPos().x) * factor, (secondEnd.y - camera.getPos().y) * factor));
     }
 
     /**
@@ -405,6 +491,44 @@ public class Renderer {
     void setRenderFactor(double newFactor) {
 
         this.factor = newFactor;
+        this.forceFactor = factor / scale * forceScale;
+    }
+
+    /**
+     * Redéfinit le facteur utilisé pour le rendu des forces
+     * @param newFactor nouveau facteur de rendu des forces
+     */
+    void setForceFactor(double newFactor) {
+
+        this.forceFactor = newFactor;
+    }
+
+    /**
+     * Renvoie le facteur utilisé pour le rendu des forces
+     * @return forceFactor
+     */
+    public double getForceFactor() {
+
+        return forceFactor;
+    }
+
+    /**
+     * Renvoie l'échelle utilisée pour le rendu des forces
+     * @return forceScale
+     */
+    public float getForceScale() {
+
+        return forceScale;
+    }
+
+    /**
+     * Redéfinit l'échelle utilisée pour le rendu des forces
+     * @param forceScale nouvelle échelle en px/N
+     */
+    public void setForceScale(float forceScale) {
+
+        setForceFactor(this.forceFactor * forceScale / this.forceScale);
+        this.forceScale = forceScale;
     }
 
     /**
@@ -416,6 +540,10 @@ public class Renderer {
         return cameraController;
     }
 
+    /**
+     * Renvoie la caméra utilisée actuellent par le Renderer
+     * @return camera <=> cameraController.cameras.current()
+     */
     public Camera getCamera() {
 
         return camera;
@@ -503,12 +631,30 @@ public class Renderer {
     }
 
     /**
-     * Redéfinit renderCoordinateSystem, qui détermine si le Renderer dessiner le système de coordonnées
+     * Redéfinit renderCoordinateSystem, qui détermine si le Renderer doit dessiner le système de coordonnées
      * @param renderCoordinateSystem true si le Renderer doit dessiner le repère
      */
     public void setRenderCoordinateSystem(boolean renderCoordinateSystem) {
 
         this.renderCoordinateSystem = renderCoordinateSystem;
+    }
+
+    /**
+     * Renvoie true si le Renderer dessine les vecteurs de forces à l'écran
+     * @return renderForces
+     */
+    public boolean doesRenderForces() {
+
+        return renderForces;
+    }
+
+    /**
+     * Redéfinit renderForces, qui détermine si le Renderer doit dessiner les vecteurs de forces
+     * @param renderForces true si le Renderer doit dessiner les vecteurs forces
+     */
+    public void setRenderForces(boolean renderForces) {
+
+        this.renderForces = renderForces;
     }
 
     /**
@@ -574,14 +720,42 @@ public class Renderer {
         this.worldBoundsColor = worldBoundsColor;
     }
 
+    /**
+     * Renvoie true si le mode d'affichage est wireframe, c'est-à-dire qu'on ne dessine que les bords des entités et pas leur fond
+     * @return wireframeDisplay
+     */
     public boolean isDisplayModeWireframe() {
 
         return wireframeDisplay;
     }
 
+    /**
+     * Redéfinit wireframeDisplay qui détermine si le Renderer doit dessiner le remplissage / couleur de fond des entités
+     * @param wireframeDisplay true pour dessiner uniquement les bords
+     */
     public void setWireframeDisplay(boolean wireframeDisplay) {
 
         this.wireframeDisplay = wireframeDisplay;
+    }
+
+    /**
+     * Ajoute un élément Renderable aux extras
+     * @see #extras
+     * @param renderable élément à ajouter
+     */
+    public void addExtra(Renderable renderable) {
+
+        extras.add(renderable);
+    }
+
+    /**
+     * Supprime un élément Renderable des extras
+     * @see #extras
+     * @param renderable élément à supprimer
+     */
+    public void removeExtra(Renderable renderable) {
+
+        extras.remove(renderable);
     }
 
     public String toString() {

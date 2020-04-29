@@ -39,6 +39,10 @@ public class Collider {
      */
     private final LinkedHashSet<Collision> collisions;
 
+    /**
+     * Tableau regroupant les méthodes à utiliser pour checker les collisions entre chaque type d'entité. La position dans la table est donnée par le cardinal de la classe de l'entité
+     * Par exemple pour une collision Cercle(cardinal 0) / Polygone(cardinal 2) on utilise collisionChecksJumpTable[0][2]
+     */
     private final BiConsumer<Entity, Entity>[][] collisionChecksJumpTable = new BiConsumer[][] {
         { this::checkForCircleCircleCollision, this::checkForCircleRectCollision, this::checkForCirclePolyCollision }, // Circle
         { (r, c) -> checkForCircleRectCollision(c, r), this::checkForRectRectCollision, this::checkForPolyPolyCollision }, // Rectangle
@@ -212,6 +216,11 @@ public class Collider {
             logCollision(reference, incident, Physics::generateCircleRectangleManifold);
     }
 
+    /**
+     * Méthode enregistrant une collision entre deux polygones si elle a bien lieu
+     * @param entity premier rectangle pour la vérification
+     * @param target deuxième rectangle pour la vérification
+     */
     public void checkForPolyPolyCollision(Object entity, Object target) {
 
         Polygon reference = (Polygon) entity;
@@ -220,11 +229,11 @@ public class Collider {
             logCollision(reference, incident, Physics::generatePolygonPolygonManifold);
     }
 
-    // TODO use for raycasting
-    public void checkForCircleSegmentCollision(Circle entity, Circle target) {
-
-    }
-
+    /**
+     * Méthode enregistrant une collision entre un polygone et un cercle. Vérifie plus tard si elle a lieu et annule la collision s'il le faut
+     * @param circle premier rectangle pour la vérification
+     * @param polygon deuxième rectangle pour la vérification
+     */
     private void checkForCirclePolyCollision(Object circle, Object polygon) {
 
         // No smart checks, they are done while computing the normal and contact point. Collision is dismissed (generateCirclePolygonManifold returns false) if they aren't intersecting
@@ -240,6 +249,12 @@ public class Collider {
     public void logCollision(Entity reference, Entity incident, Function<Collision, Boolean> resolvingFunction) {
 
         collisions.add(new Collision(reference, incident, resolvingFunction));
+    }
+
+    // TODO use for raycasting
+    @Deprecated
+    public void checkForCircleSegmentCollision(Circle entity, Circle target) {
+
     }
 
     /**
@@ -259,11 +274,26 @@ public class Collider {
         this.collisions.clear();
     }
 
+    /**
+     * Informe si la détection de collision change la couleur des entités
+     * - gris si la collision est ignorée
+     * - vert si on a vérifié la collision entre deux objets mais que leurs AABB ne sont pas en intersection
+     * - rose si les AABB sont en intersection
+     * - rouge si la détection est confirmée (pour le Cercle-Polygone, la collision est tjr confirmée, mais annulée plus tard)
+     *
+     * @return true si les couleurs doivent être modifiées pour donner une information sur les collisions. false sinon
+     */
     public boolean doesDisplayCollisionColor() {
 
         return displayCollisionColor;
     }
 
+    /**
+     * Détermine si la détection de collision change la couleur des entités
+     * @see Collider#doesDisplayCollisionColor
+     *
+     * @param displayCollisionColor true si les couleurs doivent être modifiées pour donner une information sur les collisions. false sinon
+     */
     public void setDisplayCollisionColor(boolean displayCollisionColor) {
 
         this.displayCollisionColor = displayCollisionColor;

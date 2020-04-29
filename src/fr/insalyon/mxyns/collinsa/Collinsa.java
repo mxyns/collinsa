@@ -244,7 +244,7 @@ public class Collinsa {
      *
      * @param refreshRate refreshRate voulu
      */
-    public void setRefreshRate(short refreshRate) {
+    public void setTickrate(short refreshRate) {
 
         INSTANCE.getPhysics().getProcessingThread().setRefreshRate(refreshRate);
     }
@@ -254,7 +254,7 @@ public class Collinsa {
      *
      * @param refreshRate refreshRate voulu
      */
-    public void setRefreshRate(int refreshRate) {
+    public void setTickrate(int refreshRate) {
 
         INSTANCE.getPhysics().getProcessingThread().setRefreshRate(refreshRate);
     }

@@ -25,10 +25,19 @@ public class Collision {
      */
     Function<Collision, Boolean> manifoldFunction;
 
+    /**
+     * Normale à la surface de la collision de l'incident vers la référence
+     */
     public Vec2f normal;
 
-    // Reference <=> Source // Incident <=> Target
+    /**
+     * Vecteurs allant du centre de l'entité vers le point de contact (pour chaque point de contact).
+     */
     public Vec2f[] centerToContactReference, centerToContactIncident;
+
+    /**
+     * Tableau des pénétrations (pour chaque point de contact)
+     */
     public float[] penetrations;
 
     /**
@@ -58,11 +67,10 @@ public class Collision {
         // On évite donc des calculs inutiles puisque les résultats ne seront pas utilisés. Par contre, on peut réagir à la détection de la collision (utilisation d'objets comme trigger box par exemple)
         if (reference.isActivated() && incident.isActivated() && (type = CollisionType.resultingType(reference.getCollisionType(), incident.getCollisionType())) != CollisionType.IGNORE) {
 
-            // Generate manifold
-
-            // Resolve
+            // Generate manifold. If collision detection & resolution fails, apply returns false and collision is skipped
             if (manifoldFunction.apply(this)) {
 
+                // Notify listeners of collision detection
                 for (CollisionListener listener : reference.getCollisionListeners())
                     listener.collisionDectected(reference, incident, this);
 
@@ -77,10 +85,13 @@ public class Collision {
                     return;
                 }
 
+                // Push entities away to prevent them from intersecting
                 Physics.displace(reference, incident, normal, Utils.max(penetrations), getType() == CollisionType.KINEMATIC);
 
+                // Foreach contact
                 for (int i = 0; i < contactCount; ++i) {
 
+                    // Apply bounce-off if non-kinematic
                     float i_n = Physics.bounceImpulseAmplitude(reference, incident, centerToContactReference[i], centerToContactIncident[i], normal) / contactCount;
 
                     if (!reference.isKinematic())
@@ -89,16 +100,18 @@ public class Collision {
                     if (!incident.isKinematic())
                         Physics.applyImpulse(incident, centerToContactIncident[i], normal.multOut(-i_n));
 
+                    // Apply friction
                     Vec2f frictionImpulse = Physics.frictionImpulseVector(reference, incident, centerToContactReference[i], centerToContactIncident[i], normal, i_n);
-                    if (frictionImpulse == null)
-                        continue;
+                    if (frictionImpulse != null) {
 
-                    if (!reference.isKinematic())
-                        Physics.applyImpulse(reference, centerToContactReference[i], frictionImpulse);
+                        if (!reference.isKinematic())
+                            Physics.applyImpulse(reference, centerToContactReference[i], frictionImpulse);
 
-                    if (!incident.isKinematic())
-                        Physics.applyImpulse(incident, centerToContactIncident[i], frictionImpulse.neg());
+                        if (!incident.isKinematic())
+                            Physics.applyImpulse(incident, centerToContactIncident[i], frictionImpulse.neg());
+                    }
 
+                    // Notify listeners of resolution
                     for (CollisionListener listener : reference.getCollisionListeners())
                         listener.collisionResolved(reference, incident, this);
 
@@ -108,6 +121,7 @@ public class Collision {
             }
         } else {
 
+            // Notify listeners of collision ignored
             for (CollisionListener listener : reference.getCollisionListeners())
                 listener.collisionIgnored(reference, incident, this);
 

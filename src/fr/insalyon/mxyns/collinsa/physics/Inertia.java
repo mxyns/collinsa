@@ -8,6 +8,11 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 public class Inertia {
 
     /**
+     * Entité concernée par cet objet Inertie
+     */
+    private final Entity entity;
+
+    /**
      * Masse en kg de l'entité
      */
     private float mass;
@@ -27,16 +32,15 @@ public class Inertia {
      */
     private float inv_J;
 
-    public Inertia() {
+    public Inertia(Entity entity) {
 
-        super();
+        this.entity = entity;
     }
 
     /**
      * Met à jour la masse et le moment d'inertie d'une entité à partir de la densité de son matériau et de ses dimensions actuelles
-     * @param entity entité référence pour les calculs
      */
-    public void update(Entity entity) {
+    public void update() {
 
         setMass(entity.getMaterial().getDensity() * entity.getVolume());
         setJ(entity.computeJ());

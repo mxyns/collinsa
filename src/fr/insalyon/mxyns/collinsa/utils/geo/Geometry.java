@@ -164,6 +164,9 @@ public class Geometry {
         return new Vec2f(min, max);
     }
 
+    /**
+     * Les trois prochaines méthodes calculent les points supports, les axes de pénétration minimum et la face incidente tels que décrits par Erin Catto dans "SAT and Support Points"
+     */
     public static Vec2f getSupport(Vec2f[] vertices, Vec2f axis) {
 
         Vec2f result = vertices[0];
@@ -206,33 +209,6 @@ public class Geometry {
         return bestDistance;
     }
 
-    public static Vec2f getEdge(Vec2f[] vertices, int i) {
-
-        return vertices[(i + 1) % vertices.length].copy().sub(vertices[i]);
-    }
-
-    public static Vec2f[] getEdgesVectors(Vec2f... vertices) {
-
-        Vec2f[] result = new Vec2f[vertices.length];
-
-        for (int i = 0; i < result.length; ++i)
-            result[i] = vertices[(i + 1) % result.length].copy().sub(vertices[i]);
-
-        return result;
-    }
-
-    public static Vec2f[] getEdgesCenters(Vec2f[] corners, Vec2f[] edges) {
-
-        Vec2f[] edgesCenters = new Vec2f[corners.length];
-        for (int i = 0; i < corners.length; ++i) {
-            Vec2f edge = edges[i];
-            Vec2f corner = corners[i];
-            edgesCenters[i] = corner.copy().add(edge.copy().mult(0.5f));
-        }
-
-        return edgesCenters;
-    }
-
     public static void findIncidentFace(Vec2f[] v, Polygon reference, Polygon incident, int referenceIndex) {
 
         Vec2f referenceNormal = reference.getNormals()[referenceIndex];
@@ -254,6 +230,55 @@ public class Geometry {
         v[1] = incident.getVertices()[incidentFace];
     }
 
+    /**
+     * Renvoie un vecteur directeur du i-ème côté d'un polygone défini par les points 'vertices'
+     * @param vertices points délimitant le polygone
+     * @param i indice du côté à calculer
+     * @return vecteur directeur du i-ème côté
+     */
+    public static Vec2f getEdge(Vec2f[] vertices, int i) {
+
+        return vertices[(i + 1) % vertices.length].copy().sub(vertices[i]);
+    }
+
+    /**
+     * Renvoie les vecteurs directeurs des côtés d'un polygone défini par les points 'vertices'
+     * @param vertices points délimitant le polygone
+     * @return tableau des vecteurs directeurs des côtés à remplir
+     */
+    public static Vec2f[] getEdgesVectors(Vec2f... vertices) {
+
+        Vec2f[] result = new Vec2f[vertices.length];
+
+        for (int i = 0; i < result.length; ++i)
+            result[i] = vertices[(i + 1) % result.length].copy().sub(vertices[i]);
+
+        return result;
+    }
+
+    /**
+     * Renvoie les positions des centres des côtés d'un polygone défini par les points 'vertices'
+     * @param vertices points délimitant le polygone
+     * @param edges tableau des vecteurs directeurs des côtés à remplir
+     * @return tableau des vecteurs position des centres des côtés du polygones
+     */
+    public static Vec2f[] getEdgesCenters(Vec2f[] vertices, Vec2f[] edges) {
+
+        Vec2f[] edgesCenters = new Vec2f[vertices.length];
+        for (int i = 0; i < vertices.length; ++i) {
+            Vec2f edge = edges[i];
+            Vec2f corner = vertices[i];
+            edgesCenters[i] = corner.copy().add(edge.copy().mult(0.5f));
+        }
+
+        return edgesCenters;
+    }
+
+    /**
+     * Renvoie les normales des côtés d'un polygone défini par les points 'vertices'
+     * @param vertices points délimitant le polygone
+     * @return un tableau de vecteurs Vec2f normaux aux côtés du polygone
+     */
     public static Vec2f[] getNormals(Vec2f... vertices) {
 
         Vec2f[] result = new Vec2f[vertices.length];
@@ -264,6 +289,12 @@ public class Geometry {
         return result;
     }
 
+    /**
+     * Calcule les vecteurs directeurs des côtés d'un polygone défini par les points 'vertices' ainsi que les normales à ces côtés
+     * @param vertices points délimitant le polygone
+     * @param edges tableau des vecteurs directeurs des côtés à remplir
+     * @param normals tableau des normales à remplir
+     */
     public static void getNormalsAndEdges(Vec2f[] vertices, Vec2f[] edges, Vec2f[] normals) {
 
         for (int i = 0; i < vertices.length; ++i) {
@@ -272,6 +303,11 @@ public class Geometry {
         }
     }
 
+    /**
+     * Renvoie le barycentre des points donnés s'ils ont tous la même pondération
+     * @param vertices points dont il faut trouver le barycentre
+     * @return barycentre des points
+     */
     public static Vec2f getBarycenter(Vec2f[] vertices) {
 
         float x = 0, y = 0;
@@ -284,18 +320,37 @@ public class Geometry {
         return new Vec2f(x, y).div(vertices.length);
     }
 
+    /**
+     * Produit vectoriel restreint à R². 
+     * @see Vec2f#cross(Vec2f, float) 
+     */
     public static Vec2f cross(Vec2f vec, float s) {
 
         return new Vec2f(s*vec.y, -s*vec.x);
     }
+    /**
+     * Produit vectoriel restreint à R². 
+     * @see Vec2f#cross(float, Vec2f) 
+     */
     public static Vec2f cross(float s, Vec2f vec) {
 
         return new Vec2f(-s*vec.y, s*vec.x);
     }
+    /**
+     * Produit vectoriel restreint à R². 
+     * @see Vec2f#cross(Vec2f, Vec2f) 
+     */
     public static float cross(Vec2f a, Vec2f b) {
         return a.x * b.y - a.y * b.x;
     }
 
+    /**
+     * Sutherland-Hodgman Clipping Algorithm
+     * @param normal axe de clipping délimitant le semi-espace
+     * @param c valeur donnée par le produit scalaire (ordonnée à l'origine de l'axe)
+     * @param face les deux points à clipper 
+     * @return nombre de points clippés
+     */
     public static int clip(Vec2f normal, float c, Vec2f[] face) {
 
         int sp = 0;
@@ -321,6 +376,7 @@ public class Geometry {
 
         return sp;
     }
+    
     /**
      * Ces méthodes font tourner un point (P) autour d'un autre (O) selon la formule :
      *
@@ -390,6 +446,12 @@ public class Geometry {
                          clamp(y, rect.getPos().y - rect.getSize().y * 0.5, rect.getPos().y + rect.getSize().y * 0.5));
     }
 
+    /**
+     * Comme clampPointToRect mais quand l'objet est à l'intérieur du Rectangle
+     * @param point point à clamp
+     * @param rect rectangle sur lequel clamp le point
+     * @return point clampé
+     */
     public static Vec2d clampPointInsideRect(Vec2d point, Rect rect) {
 
         Vec2d[] possibilities = {
@@ -401,6 +463,13 @@ public class Geometry {
 
         return nearestPoint(point, possibilities);
     }
+
+    /**
+     * Renvoie quel point est le plus proche d'un point cible parmis un ensemble de points
+     * @param from point cible T
+     * @param points ensemble E de de points
+     * @return le point de E le plus proche de T
+     */
     public static Vec2d nearestPoint(Vec2d from, Vec2d... points) {
 
         double dist = points[0].sqrdDist(from);
@@ -451,6 +520,12 @@ public class Geometry {
         return (float) Math.sqrt(sqrdDist(x1, y1, x2, y2));
     }
 
+    /**
+     * Separating Axis Theorem : détermine si deux polygones convexes sont en intersection
+     * @param entity premier polygone
+     * @param target deuxieme polygone
+     * @return true si il y a intersection
+     */
     public static boolean SAT(Polygon entity, Polygon target) {
 
         Vec2f[] axes = new Vec2f[entity.getVertices().length + target.getVertices().length];

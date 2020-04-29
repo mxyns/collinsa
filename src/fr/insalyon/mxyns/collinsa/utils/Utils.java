@@ -178,6 +178,7 @@ public class Utils {
         Utils.applyParameter("--chunkColor", Color.black, args, collinsa.getRenderer()::setChunkBoundsColor);
         Utils.applyParameter("--showWorldBounds", true, args, collinsa.getRenderer()::setRenderWorldBounds);
         Utils.applyParameter("--scale", 1f, args, collinsa.getRenderer()::setRenderScale);
+        Utils.applyParameter("--forceScale", 1f, args, collinsa.getRenderer()::setForceScale);
         Utils.applyParameter("--realtime", false, args, collinsa.getPhysics()::setRealtime);
         Utils.applyParameter("--dt", 10, args, collinsa.getPhysics()::setFixedDeltaTime);
         Utils.applyParameter("--fpsp", 60, args, collinsa.getPhysics().getProcessingThread()::setRefreshRate);
@@ -187,6 +188,7 @@ public class Utils {
         Utils.applyParameter("--worldBoundsColor", Color.black, args, collinsa.getRenderer()::setWorldBoundsColor);
         Utils.applyParameter("--useDebugColors", false, args, collinsa.getPhysics().getCollider()::setDisplayCollisionColor);
         Utils.applyParameter("--wireframe", false, args, collinsa.getRenderer()::setWireframeDisplay);
+        Utils.applyParameter("--showForces", false, args, collinsa.getRenderer()::setRenderForces);
 
         Utils.applyParameter("--chunkCount", new Vec2f(3, 3), args, collinsa.getPhysics()::setChunkCount);
         Utils.applyParameter("--worldSize", new Vec2f(1440, 810), args, collinsa.getPhysics()::resize);
@@ -291,6 +293,28 @@ public class Utils {
         return Math.min(Math.max(min, value), max);
     }
 
+    /**
+     * Limite une valeur à un intervalle. Identique à constrain en Processing
+     *
+     * @param value valeur à constrain
+     * @param min   minimum de l'intervalle
+     * @param max   maximum de l'intervalle
+     *
+     * @return valeur contrainte à l'intervalle
+     */
+    public static double constrain(double value, double min, double max) {
+
+        if (min > max)
+            return constrain(value, max, min);
+
+        return Math.min(Math.max(min, value), max);
+    }
+
+    /**
+     * Moyenne des valeurs données
+     * @param values valeurs
+     * @return moyenne
+     */
     public static float mean(float... values) {
 
         if (values.length == 0) return 0;
@@ -302,6 +326,40 @@ public class Utils {
         return sum / values.length;
     }
 
+    /**
+     * Interpolation linéaire
+     * @param a départ
+     * @param b fin
+     * @param v avancement [0,1]
+     * @return a + (b-a) * v
+     */
+    public static int lerp(int a, int b, double v) {
+
+        return (int) (a + (b - a) * v);
+    }
+
+    /**
+     * Interpolation linéaire pour les trois composantes d'une couleur RGB
+     * @see #lerp(int, int, double)
+     *
+     * @param a couleur de départ
+     * @param b couleur d'arrivée
+     * @param v avancement [0,1]
+     * @return rgb(lerp(red), lerp(green), lerp(blue))
+     */
+    public static Color lerpColor(Color a, Color b, double v) {
+
+        return new Color(constrain(lerp(a.getRed(), b.getRed(), v), 0, 255),
+                         constrain(lerp(a.getGreen(), b.getGreen(), v), 0, 255),
+                         constrain(lerp(a.getBlue(), b.getBlue(), v), 0, 255));
+    }
+
+    /**
+     * Essaye de calculer une couleur qui est bien différentiable à l'oeil de la couleur donnée en arguments
+     *  (inverse la couleur)
+     * @param color couleur à éviter
+     * @return couleur bien différente de 'color'
+     */
     public static Color getHighContrastColor(Color color) {
 
         return new Color(255 - color.getRed(), 255 - color.getGreen(), 255 - color.getBlue());

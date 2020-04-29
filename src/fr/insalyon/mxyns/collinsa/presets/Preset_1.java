@@ -9,6 +9,9 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 
+/**
+ * Un preset avec deux gros rectangles et des cercles positionnés aléatoirement
+ */
 public class Preset_1 extends Preset {
 
     @Override

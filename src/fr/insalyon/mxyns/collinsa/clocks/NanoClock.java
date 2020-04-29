@@ -46,4 +46,10 @@ public class NanoClock extends Clock {
 
         return lastElapsed - System.nanoTime();
     }
+
+    @Override
+    public double toSec() {
+
+        return 1e-9d;
+    }
 }

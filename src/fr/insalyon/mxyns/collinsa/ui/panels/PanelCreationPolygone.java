@@ -9,11 +9,17 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+/**
+ * panel qui permet la création d'un polygone
+ */
 public class PanelCreationPolygone extends PanelCreation {
 
     JSlider cotes;
     JSpinner rayon;
 
+    /**
+     * permet de modifier le nombre de côtés et le rayon
+     */
     public PanelCreationPolygone() {
 
         super();
@@ -27,7 +33,7 @@ public class PanelCreationPolygone extends PanelCreation {
         add(cotes);
 
         rayon = new JSpinner();
-        SpinnerNumberModel rayonModel = new SpinnerNumberModel(10, 1, 100, .1);
+        SpinnerNumberModel rayonModel = new SpinnerNumberModel(10, .1, 500, .1);
         rayon.setModel(rayonModel);
         rayon.setBorder(BorderFactory.createTitledBorder("Rayon"));
         rayon.setBounds(100,200,20,20);
@@ -37,7 +43,10 @@ public class PanelCreationPolygone extends PanelCreation {
     }
 
 
-    // on crée un polygone
+    /**
+     * crée un polygone
+     * @return un nouveau polygone
+     */
     public Entity creerEntite() {
 
         int c = cotes.getValue();

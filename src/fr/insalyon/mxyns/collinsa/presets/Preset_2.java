@@ -11,6 +11,13 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 
+/**
+ * Un preset avec un rectangle qui tourne et des cercles
+ * Paramètres :
+ *    . --e (float) -> restitution des cercles
+ *    . --n (int) -> nombre de cercles
+ *    . --m (float) -> masse des cercles
+ */
 public class Preset_2 extends Preset {
 
     @Override

@@ -7,6 +7,7 @@ import java.util.Collection;
 /**
  * Fonctionne comme une liste normale, mais permet en plus de pouvoir cycler à l'infini sur les éléments, dans les deux sens et de choisir si on autorise l'ajout de doublons ou non.
  *
+ *
  * @param <E>
  */
 public class CyclicList<E> extends ArrayList<E> {
