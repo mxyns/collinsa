@@ -25,7 +25,7 @@ public class SelectionTool extends Tool {
      */
     public SelectionTool() {
 
-        super("Selection", "Select an entity", "/select.png");
+        super("Selection", "Select an entity", "/icons/select.png");
     }
 
     /**+

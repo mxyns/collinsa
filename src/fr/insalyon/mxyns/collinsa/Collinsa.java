@@ -43,7 +43,7 @@ public class Collinsa {
      * Crée une unique instance du programme.
      */
     public static void main(String[] args) {
-
+        
         // Crée l'INSTANCE unique du programme (Collinsa)
         INSTANCE = new Collinsa(1440, (int) (1440 / screenRatio));
 

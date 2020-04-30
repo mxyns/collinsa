@@ -2,9 +2,10 @@
 Moteur physique simulant des collisions entre formes géométriques primitives.
 
 ## Compiling and running
-From `src` folder :  
-   1. compile code : `javac -sourcepath . fr/insalyon/mxyns/collinsa/Collinsa.java`  
-   2. run preset (here preset_2) : `java fr/insalyon/mxyns/collinsa/Collinsa -s preset_2`
+   1. build jar using : `build.bat`  
+   2. run jar : 
+        - classic run : use `run.bat`
+        - run a preset : `java -jar Collinsa.jar -s globalForces`
 
 ## Available commands
    - Running
@@ -46,5 +47,5 @@ From `src` folder :
        
 ## Upcoming tasks, fixes and issues
     
-   The planned fixes and functionalities can be found on [my Trello board](https://trello.com/b/O4Y18YMN/collinsa)  
+   The planned fixes and features can be found on [my Trello board](https://trello.com/b/O4Y18YMN/collinsa)  
    Please report any problem or suggest any feature you'd like implemented with Github's [issues](https://github.com/mxyns/collinsa/issues) section 

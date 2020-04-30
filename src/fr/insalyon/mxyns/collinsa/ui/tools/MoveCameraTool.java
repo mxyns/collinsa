@@ -31,7 +31,7 @@ public class MoveCameraTool extends Tool {
      */
     public MoveCameraTool() {
 
-        super("Move Camera", "Controls the cameras", "/move_camera.png");
+        super("Move Camera", "Controls the cameras", "/icons/move_camera.png");
     }
     
     /**

@@ -7,6 +7,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Classe générique représentant un outil utilisé dans la MainFrame
@@ -31,7 +32,13 @@ public abstract class Tool extends JToggleButton {
 
         if (iconPath != null)
             try {
-                setIcon(new ImageIcon(ImageIO.read(Tool.class.getResource(iconPath)).getScaledInstance(16, 16, BufferedImage.SCALE_SMOOTH)));
+                InputStream iconUrl = Tool.class.getResourceAsStream(iconPath);
+                if (iconUrl == null) {
+
+                    setText(String.valueOf(name.charAt(0)));
+                    System.out.println("Couldn't load " + iconPath);
+                } else
+                    setIcon(new ImageIcon(ImageIO.read(iconUrl).getScaledInstance(16, 16, BufferedImage.SCALE_SMOOTH)));
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -33,7 +33,7 @@ public class EntityDragTool extends Tool {
      */
     public EntityDragTool() {
 
-        super("Entity drag", "Translates the currently selected entity", "/drag.png");
+        super("Entity drag", "Translates the currently selected entity", "/icons/drag.png");
     }
 
     /**
