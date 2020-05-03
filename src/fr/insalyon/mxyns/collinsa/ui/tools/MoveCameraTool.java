@@ -31,7 +31,15 @@ public class MoveCameraTool extends Tool {
      */
     public MoveCameraTool() {
 
-        super("Move Camera", "Controls the cameras", "/icons/move_camera.png");
+        super("Contrôles caméras", "<html>Quand actif :<br>" +
+                                   "Clavier :<br>" +
+                                   "   - flèches directionnelles : déplacer la caméra<br>" +
+                                   "   - PAGEUP / PAGEDOWN : changer de caméra<br><br>" +
+                                   "Souris :<br>" +
+                                   "   - clic gauche : suivre l'entité visée<br>" +
+                                   "   - clic droit : arrêt du suivi<br>" +
+                                   "   - cliqué-glissé : déplace la caméra<br>" +
+                                   "   - molette : zoom</html>", "/icons/move_camera.png");
     }
     
     /**

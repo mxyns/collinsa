@@ -18,7 +18,7 @@ public class FreezeEntityTool extends Tool{
      */
     public FreezeEntityTool() {
 
-        super("Freeze Entity", "Click on an entity to (de)activate it", "/icons/timer.png");
+        super("Freeze une entité", "Clic sur une entité pour l'activer/désactiver", "/icons/timer.png");
     }
 
     /**

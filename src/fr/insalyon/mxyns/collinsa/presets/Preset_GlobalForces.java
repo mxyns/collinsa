@@ -21,7 +21,6 @@ public class Preset_GlobalForces extends Preset {
 
         Physics physics = collinsa.getPhysics();
 
-        physics.getChunkCount().mult(3);
         physics.resize(new Vec2f(physics.getWidth(), physics.getHeight()));
 
         Circle attractor = new Circle(new Vec2f(physics.getWidth() * .5f, physics.getHeight() * .5f), 50);

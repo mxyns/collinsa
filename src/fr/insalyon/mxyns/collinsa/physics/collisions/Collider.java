@@ -301,6 +301,6 @@ public class Collider {
 
     public String toString() {
 
-        return "Collider[JumpTable##=" + collisionChecksJumpTable.length + "x" + collisionChecksJumpTable[0].length + ", displayCollisionColor=" + this.displayCollisionColor + ", preciseCollisionResolution=" + this.preciseResolution + "]";
+        return "Collider[JumpTable=Mat[" + collisionChecksJumpTable.length + "x" + collisionChecksJumpTable[0].length + "], displayCollisionColor=" + this.displayCollisionColor + ", preciseCollisionResolution=" + this.preciseResolution + "]";
     }
 }

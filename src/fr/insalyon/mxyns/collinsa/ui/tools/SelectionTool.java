@@ -7,7 +7,11 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 /**
@@ -18,14 +22,22 @@ public class SelectionTool extends Tool {
     /**
      * Entité actuellement sélectionnée
      */
-    Entity selected = null;
+    private Entity selected = null;
 
     /**
      * Constructeur qui précise le nom, le tooltip et le chemin de l'icone de l'outil
      */
     public SelectionTool() {
 
-        super("Selection", "Select an entity", "/icons/select.png");
+        super("Selection", "<html>Sélectionne une entité pour suppression / modification<br>"
+                            + "Souris : <br>"
+                            + "   - Clic gauche pour sélectionner<br>"
+                            + "   - Clic droit pour désélectionner<br>"
+                            + "<br>Clavier : <br>"
+                            + "   - ENTER pour modifier<br>"
+                            + "   - ESC pour désélectionner<br>"
+                            + "   - SUPPR / DEL pour supprimer"
+                            + "</html>", "/icons/select.png");
     }
 
     /**+
@@ -48,6 +60,21 @@ public class SelectionTool extends Tool {
     }
 
     /**
+     * Contrôles au clavier
+     */
+    @Override
+    public void onKeyPressed(KeyEvent e) {
+
+        if (selected != null)
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+                setSelectedEntity(null);
+            else if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                Collinsa.INSTANCE.getMainFrame().supprimer();
+            } else if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                Collinsa.INSTANCE.getMainFrame().ouvrirPageModification(selected);
+    }
+
+    /**
      * Redéfinit la valeur de 'selected', l'entité sélectionnée par l'outil
      * @param entity nouvelle entité sélectionnée
      */
@@ -61,25 +88,25 @@ public class SelectionTool extends Tool {
      * @see fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel#paint(Graphics)
      * @param renderer renderer utilisé pour récupérer l'image à modifier
      */
-    public void drawSelectedEntityOutline(Renderer renderer) {
+    public void drawSelectedEntityOutline(Renderer renderer, Graphics2D g) {
 
-        if (getSelectedEntity() == null)
+        if (selected == null)
             return;
 
-        Graphics2D g2 = (Graphics2D) renderer.getGraphicsBuffer().getImage().getGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // On fait une copie du Graphics pour ne pas affecter le reste du rendu
+        g = (Graphics2D) g.create();
 
         Entity selected = getSelectedEntity();
 
-        Color[] oldColors = {selected.getOutlineColor(), selected.getFillColor()};
+        Color[] oldColors = { selected.getOutlineColor(), selected.getFillColor()};
         Color newColor = Utils.getHighContrastColor(selected.getFillColor() != null ? selected.getFillColor() : selected.getOutlineColor());
         selected.setOutlineColor(newColor);
         selected.setFillColor(null);
 
-        g2.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT,
-                                     BasicStroke.JOIN_MITER, 10, new float[] { (float) (selected.getMaximumSize() * .1) }, 0.0f));
+        g.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT,
+                                    BasicStroke.JOIN_MITER, 10, new float[] { (float) (selected.getMaximumSize() * .1) }, 0.0f));
 
-        selected.render(renderer, g2);
+        selected.render(renderer, g);
 
         selected.setOutlineColor(oldColors[0]);
         selected.setFillColor(oldColors[1]);

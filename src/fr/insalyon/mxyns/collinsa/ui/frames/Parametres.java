@@ -71,6 +71,10 @@ public class Parametres extends JFrame {
         appliquer.setBounds(550,300,100,30);
         appliquer.addActionListener(e -> {
 
+            // Si on ne choisit pas OUI dans le Dialog.
+            if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this, "<html>Modifier la taille du monde ou le nombre de chunks pendant la simulation est une opération risquée qui peut mener à un crash du logiciel. <br> Ces paramètres sont les seuls à ne pas être appliqués en temps-réel. <br> Êtes-vous sûr de vouloir continuer ?</html>", "Opération dangereuse", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE))
+                return;
+
             try {
                 Collinsa.INSTANCE.pause(1000);
 
@@ -99,12 +103,6 @@ public class Parametres extends JFrame {
         world.addActionListener(e -> renderer.setRenderWorldBounds(world.isSelected()));
         add(world);
 
-        gravite = null;
-        // On récupère le dernier PlanetGravity global et on considère que c'est le seul présent
-        for (Force force : physics.globalForces)
-            if (force instanceof PlanetGravity)
-                gravite = (PlanetGravity) force;
-
         //On peut modifier l'intensité de la gravité
         JSlider graviteSlider = new JSlider(JSlider.HORIZONTAL, -2000, 2000, gravite == null ? 100 : (int) (100 * gravite.gFactor));
         graviteSlider.setBorder(BorderFactory.createTitledBorder("Intensité de la gravité : " + graviteSlider.getValue() / 100f + "g"));
@@ -116,11 +114,16 @@ public class Parametres extends JFrame {
                 gravite.gFactor = graviteSlider.getValue() / 100f;
         });
         add(graviteSlider);
-        
+
+        gravite = null;
+        // On récupère le dernier PlanetGravity global et on considère que c'est le seul présent
+        for (Force force : physics.globalForces)
+            if (force instanceof PlanetGravity)
+                gravite = (PlanetGravity) force;
+
         JCheckBox gravite = new JCheckBox("Gravité", this.gravite != null);
         gravite.setBounds(0, 5, 200, 15);
         gravite.addActionListener(e -> {
-
             if (this.gravite != null && !gravite.isSelected()) {
                 physics.globalForces.remove(this.gravite);
                 this.gravite = null;

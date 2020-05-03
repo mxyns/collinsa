@@ -1,13 +1,11 @@
 package fr.insalyon.mxyns.collinsa.ui.frames;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
+import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 import fr.insalyon.mxyns.collinsa.ui.tools.*;
 
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JToolBar;
+import javax.swing.*;
 import java.awt.Color;
 import java.awt.Component;
 
@@ -21,9 +19,24 @@ public class MainFrame extends JFrame {
      */
     final private SandboxPanel sandboxPanel;
 
+    /**
+     * La JFrame des Paramètres, utilisé pour n'en n'ouvrir qu'une seule à la fois
+     */
+    private Parametres parametres = null;
+
+    /**
+     * Outil de sélection. Accessible de partout pour récupérer l'objet sélectionné (notamment utilisé dans Renderer)
+     */
     public SelectionTool selectionTool;
+
+    /**
+     * Barre d'outils
+     */
     private JToolBar toolbar;
 
+    /**
+     * Couleur des boutons
+     */
     Color my = new Color(93,155,155);
 
     public MainFrame (int width, int height) {
@@ -66,14 +79,14 @@ public class MainFrame extends JFrame {
         supprimer.setBounds((int)(0.87*width),(int)(0.06*height+0.17*height),(int)(0.1*width),(int)(0.15*height));
         supprimer.setBackground(my);
         supprimer.setForeground(Color.black);
-        supprimer.addActionListener(e -> Supprimer());
+        supprimer.addActionListener(e -> supprimer());
 
         JButton modifier = new JButton("Modifier");
         add(modifier);
         modifier.setBounds((int)(0.87*width),(int)(0.06*height+2*0.17*height),(int)(0.1*width),(int)(0.15*height));
         modifier.setBackground(my);
         modifier.setForeground(Color.black);
-        modifier.addActionListener(e -> ouvrirPageModification());
+        modifier.addActionListener(e -> ouvrirPageModification(selectionTool.getSelectedEntity()));
 
         JButton parametres = new JButton("Paramètres");
         add(parametres);
@@ -94,27 +107,50 @@ public class MainFrame extends JFrame {
         add(toolbar);
     }
 
-    private void Supprimer() {
+    /**
+     * méthode qui permet de supprimer un objet qu'on sélectionne
+     */
+    public void supprimer() {
 
-        if (selectionTool.getSelectedEntity() != null)
+        if (selectionTool.getSelectedEntity() != null) {
             Collinsa.INSTANCE.getPhysics().removeEntity(selectionTool.getSelectedEntity());
+            selectionTool.setSelectedEntity(null);
+        } else
+            JOptionPane.showMessageDialog(this, "Aucun entité sélectionnée", "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 
-    private void ouvrirPageModification() {
+    /**
+     * méthode qui permet de modifier l'élément sélectionné
+     * on veut récupérer les paramètres de l'objet à modifier et les rouvrir dans la page création
+     * @param aModifier l'entité à modifier
+     */
+    public void ouvrirPageModification(Entity aModifier) {
 
-        // TODO on supprime l'objet et on rouvre la page création
-        if (selectionTool.getSelectedEntity() != null)
-            new Creation(1200, 800);
+        if (aModifier != null)
+            new Creation(790, 490, aModifier);
+        else
+            JOptionPane.showMessageDialog(this, "Aucun entité sélectionnée", "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * méthode qui permet d'ouvrir la fenêtre qui sert à créer un objet
+     */
     public void ouvrirPageCreation() {
 
-        new Creation (800, 800);
+        new Creation (790, 490);
+
     }
 
+    /**
+     * méthode qui permet de changer les paramètres de simulation
+     */
     public void ouvrirParametres() {
 
-        new Parametres();
+        if (parametres == null || !parametres.isDisplayable())
+            parametres = new Parametres();
+
+        parametres.setState(JFrame.ICONIFIED);
+        parametres.setState(JFrame.NORMAL);
     }
 
 

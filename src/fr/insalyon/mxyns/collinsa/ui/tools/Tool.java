@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JToggleButton;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -86,4 +87,14 @@ public abstract class Tool extends JToggleButton {
      * Appelée lors d'un drag (cliqué-glissé) et que l'outil est sélectionné
      */
     public void onDrag(MouseEvent e) {}
+
+    /**
+     * Appelée lors de la pression d'une touche (enfoncement de la touche)
+     */
+    public void onKeyPressed(KeyEvent e) {}
+
+    /**
+     * Appelée lors du relachement d'une touche pressée
+     */
+    public void onKeyReleased(KeyEvent e) {}
 }

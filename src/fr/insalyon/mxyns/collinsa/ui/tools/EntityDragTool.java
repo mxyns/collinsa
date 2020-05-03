@@ -9,7 +9,8 @@ import java.awt.event.MouseEvent;
 
 /**
  * Outil permettant de déplacer une entité dans la simulation en la déplaçant avec la souris
- * Clic-gauche désactive l'entité pendant le déplacement pour ignorer les collision tandis que clic droit laisse l'entité activée. Avec un clic droit l'entité pousse donc les autres quand on la déplace
+ * Clic-gauche désactive l'entité pendant le déplacement pour ignorer les collision tandis que clic droit laisse l'entité activée.
+ * Avec un clic droit l'entité pousse donc les autres quand on la déplace
  */
 public class EntityDragTool extends Tool {
 
@@ -33,7 +34,7 @@ public class EntityDragTool extends Tool {
      */
     public EntityDragTool() {
 
-        super("Entity drag", "Translates the currently selected entity", "/icons/drag.png");
+        super("Déplacement d'entité", "<html>Déplace l'entité cliquée<br>Clic gauche désactive l'entité avant déplacement<br>Clic droit laisse l'entité active (elle continue de pousser les autres)</html>", "/icons/drag.png");
     }
 
     /**
@@ -68,7 +69,9 @@ public class EntityDragTool extends Tool {
             return;
 
         double renderFactor = Collinsa.INSTANCE.getRenderer().getRenderFactor();
+
         grabbedEntity.getPos().sub((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderFactor), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderFactor));
+        grabbedEntity.update(0);
 
         dragOrigin = e.getPoint();
     }

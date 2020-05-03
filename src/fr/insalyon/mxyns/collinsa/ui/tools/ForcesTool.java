@@ -39,7 +39,12 @@ public class ForcesTool extends Tool {
      */
     public ForcesTool() {
 
-        super("Forces", "Add a force to the selected item", null);
+        super("Forces", "<html>Ajoute une forces entre des entités<br>" +
+                        "Sélectionnez une ou deux entités selon la force voulue<br><br>" +
+                        "Sélection : <br>" +
+                        "   - Clic gauche : sélectionne une entité<br>" +
+                        "   - Clic droit : sélectionne une entité (la force est globale si 1er clic).<br>" +
+                        "Un clic dans le vide signifie aussi qu'on veut créer une force globale</html>", null);
         forces.add("Gravité");
         forcesFunctions.add(this::makeGravity);
         forces.add("Gravité Planète");

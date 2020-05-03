@@ -169,6 +169,7 @@ public class Renderer {
             g.draw(new Line2D.Double(factor * -camera.getPos().x, factor * -camera.getPos().y, factor * -camera.getPos().x, factor * (axesSize-camera.getPos().y)));
         }
 
+        // On affiche les forces si voulu (renderForces = true)
         if (renderForces) {
 
             // On met à jour le facteur de rendu des forces.
@@ -181,6 +182,11 @@ public class Renderer {
         // On affiche les extras
         for (Renderable extra : extras)
             extra.render(this, g);
+
+
+        // On dessine l'entité sélectionée par l'outil de sélection
+        INSTANCE.getMainFrame().selectionTool.drawSelectedEntityOutline(this, g);
+
 
         // HUD : On affiche les différents compteurs de FPS
         Rectangle2D textBox = new Rectangle2D.Float(0, 0, 90, 45);

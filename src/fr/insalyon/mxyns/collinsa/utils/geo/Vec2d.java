@@ -295,7 +295,7 @@ public class Vec2d {
      */
     public double angleWith(Vec2d other) {
 
-        return Math.atan2(x*other.x + y*other.y, x*other.y - other.x*y);
+        return Math.atan2(y, x) - Math.atan2(other.y, other.x);
     }
     /**
      * Calcule la valeur de l'angle formé entre le vecteur courant et un autre vecteur

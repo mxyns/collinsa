@@ -462,7 +462,7 @@ public class Vec2f {
      */
     public float angleWith(Vec2f other) {
 
-        return (float) Math.atan2(x * other.x + y * other.y, x * other.y - other.x * y);
+        return (float) (Math.atan2(y, x) - Math.atan2(other.y, other.x));
     }
 
     /**

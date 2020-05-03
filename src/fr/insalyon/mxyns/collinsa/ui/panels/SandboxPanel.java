@@ -9,20 +9,16 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 
 /**
- * Panel dans lequel est affiché le monde.
- * C'est un panel ordinaire à quelques choses près :
- *    - Il écoute les mouvements/clics/molette de souris, la prise/perte de focus et transmet les infos pour déplacer la caméra du renderer qui lui est associé
- *    - Il se redessine automatiquement grâce au refreshingThread
+ * Panel dans lequel est affiché le monde. C'est un panel ordinaire à quelques choses près : - Il écoute les
+ * mouvements/clics/molette de souris, la prise/perte de focus et transmet les infos pour déplacer la caméra du renderer
+ * qui lui est associé - Il se redessine automatiquement grâce au refreshingThread
  */
 public class SandboxPanel extends JPanel implements FocusListener {
 
-    private MainFrame mainFrame;
+    private final MainFrame mainFrame;
 
     /**
      * Renderer associé au panel, utilisé pour recupérer l'image
@@ -30,8 +26,8 @@ public class SandboxPanel extends JPanel implements FocusListener {
     private Renderer renderer;
 
     /**
-     * RefreshingThread associé au panel, il sert à forcer l'affichage à se mettre à jour automatiquement
-     * (c'est-à-dire qu'il force le repaint du panel périodiquement)
+     * RefreshingThread associé au panel, il sert à forcer l'affichage à se mettre à jour automatiquement (c'est-à-dire
+     * qu'il force le repaint du panel périodiquement)
      */
     private RefreshingThread refreshingThread;
 
@@ -50,11 +46,12 @@ public class SandboxPanel extends JPanel implements FocusListener {
 
         addFocusListener(this);
 
+
+        // On transmet tous les événements importants aux outils
         MouseAdapter toolEventTransmitter = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                super.mouseClicked(e);
                 mainFrame.getSandboxPanel().requestFocus();
                 mainFrame.getSelectedTool().onClick(e);
             }
@@ -62,7 +59,6 @@ public class SandboxPanel extends JPanel implements FocusListener {
             @Override
             public void mouseDragged(MouseEvent e) {
 
-                super.mouseDragged(e);
                 mainFrame.getSelectedTool().onDrag(e);
                 mainFrame.getSandboxPanel().requestFocus();
             }
@@ -70,7 +66,6 @@ public class SandboxPanel extends JPanel implements FocusListener {
             @Override
             public void mousePressed(MouseEvent e) {
 
-                super.mousePressed(e);
                 mainFrame.getSandboxPanel().requestFocus();
                 mainFrame.getSelectedTool().onMousePressed(e);
             }
@@ -78,13 +73,25 @@ public class SandboxPanel extends JPanel implements FocusListener {
             @Override
             public void mouseReleased(MouseEvent e) {
 
-                super.mouseReleased(e);
                 mainFrame.getSandboxPanel().requestFocus();
                 mainFrame.getSelectedTool().onMouseReleased(e);
             }
         };
         addMouseListener(toolEventTransmitter);
         addMouseMotionListener(toolEventTransmitter);
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+                mainFrame.getSelectedTool().onKeyPressed(e);
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+                mainFrame.getSelectedTool().onKeyReleased(e);
+            }
+        });
     }
 
     @Override
@@ -93,17 +100,16 @@ public class SandboxPanel extends JPanel implements FocusListener {
         super.paint(g);
 
         // On dessine la dernière image générée accessible dans le buffer
-        if (renderer != null) {
-
-            mainFrame.selectionTool.drawSelectedEntityOutline(renderer);
+        if (renderer != null)
             g.drawImage(renderer.getGraphicsBuffer().getImage(), 0, 0, null);
-        }
 
+        // On redessine les bordures pour savoir si le panel est focusé ou pas
         this.getBorder().paintBorder(this, g, 0, 0, getWidth(), getHeight());
     }
 
     /**
      * Renvoie le renderer associé au panel
+     *
      * @return renderer utilisé pour le rendu du panel
      */
     public Renderer getRenderer() {
@@ -113,6 +119,7 @@ public class SandboxPanel extends JPanel implements FocusListener {
 
     /**
      * Défini le Renderer associé à ce panel, ne pas utiliser sans redéfinir le panel associé au renderer.
+     *
      * @param renderer le nouveau renderer associé
      */
     public void setRenderer(Renderer renderer) {
@@ -138,6 +145,7 @@ public class SandboxPanel extends JPanel implements FocusListener {
 
     /**
      * Renvoie le RefreshingThread associé au panel
+     *
      * @return refreshingThread
      */
     public RefreshingThread getRefreshingThread() {
@@ -147,6 +155,7 @@ public class SandboxPanel extends JPanel implements FocusListener {
 
     /**
      * Redéfinit le RefreshingThread associé au panel
+     *
      * @param refreshingThread nouveau thread de rafraichissement
      */
     private void setRefreshingThread(RefreshingThread refreshingThread) {

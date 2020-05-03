@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics;
 
 import java.awt.Color;
+import java.lang.reflect.Field;
 
 /**
  * Classe représentant un matériau et ses propriétés
@@ -10,10 +11,21 @@ public class Material {
     /**
      * Matériaux par défaut
      */
-    public static Material DUMMY = new Material(1, 0.7f, 0.2f, 0.1f, Color.blue);
-    public static Material STICKY = new Material(1, 0.5f, 1f, 0.9f, new Color(120, 0, 0));
-    public static Material BOUNCY = new Material(1, 3f, 0.05f, 0.025f, new Color(0, 120, 0));
-    public static Material SLIDY = new Material(1, 0.1f, 0.05f, 0.025f, Color.cyan);
+    public static Material DUMMY = new Material(.5f, 0.7f, 0.2f, 0.1f, Color.blue);
+    public static Material STICKY = new Material(.5f, 0.5f, 1f, 0.9f, new Color(120, 0, 0));
+    public static Material BOUNCY = new Material(.5f, 3f, 0.05f, 0.025f, new Color(0, 120, 0));
+    public static Material SLIDY = new Material(.5f, 0.1f, 0.05f, 0.025f, Color.cyan);
+    /**
+     * Matériaux réels
+     * @link https://fr.wikiversity.org/wiki/Frottement_et_adh%C3%A9rence/Coefficient_de_frottement_a_(ou_f)
+     * @link https://owl-ge.ch/IMG/pdf/frottement.pdf
+     * @link https://www.physlink.com/reference/frictioncoefficients.cfm
+      */
+    public static Material ROCK = new Material(0.6f, 0.1f, 0.38f, 0.2f, Color.gray, Color.darkGray);
+    public static Material WOOD = new Material(0.3f, 0.2f, .5f, .3f, new Color(82, 59, 32), new Color(191, 143, 89));
+    public static Material METAL = new Material(1.2f, 0.05f, .1f, .07f, Color.lightGray, Color.gray);
+    public static Material COTTON = new Material(0.1f, 0.2f, .03f, .01f, Color.white, Color.gray);
+
 
     /**
      * Coefficient de restitution, représente l'élasticité ou la "bounciness" / rebond
@@ -175,5 +187,62 @@ public class Material {
     public Material copy() {
 
         return new Material(density, restitution, staticFriction, dynamicFriction, outlineColor, fillColor);
+    }
+
+    /**
+     * Donne le nom d'un matériau à partir du nom de son champs dans Material. Créer un attribut "name" serait plus pratique mais bon... ça permet de détecter les matériaux customisés
+     * @param material matériau dont il faut récupérer le nom
+     * @return soit le nom du matériau. soit Material@xxxxx s'il n'est pas un matériau par défaut
+     */
+    public static String getMaterialName(Material material) {
+
+        if (material == null)
+            return ""; // On voudrait pas causer des NullPointerException un peu partout par inadvertance
+
+        for (Field field : Material.class.getFields()) {
+            try {
+                if (field.get(null).equals(material))
+                    return field.getName();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return material.toString().substring(material.toString().lastIndexOf('.') + 1);
+    }
+
+    /**
+     * Renvoie un matériau à partir de son nom. C'est l'inverse de Material.getMaterialName(...)
+     * @param name nom du matériau
+     * @return Materiau correpondant ou null
+     */
+    public static Material getMaterialFromName(String name) {
+
+        for (Field field : Material.class.getFields()) {
+            try {
+                if (field.getName().equalsIgnoreCase(name) && field.getType().equals(Material.class))
+                    return (Material) field.get(null);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Redéfinition du equals.
+     * @param obj object to test
+     * @return true if 'obj' has same fields values
+     */
+    @Override
+    public boolean equals(Object obj) {
+
+        if (!(obj instanceof Material))
+            return false;
+
+        Material mat = (Material) obj;
+
+        return mat.restitution == restitution && mat.density == density && mat.dynamicFriction == dynamicFriction && mat.staticFriction == staticFriction && mat.outlineColor.equals(outlineColor) && mat.fillColor.equals(fillColor);
     }
 }

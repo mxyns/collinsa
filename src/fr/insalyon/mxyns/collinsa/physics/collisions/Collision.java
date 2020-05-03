@@ -81,7 +81,7 @@ public class Collision {
                 int contactCount = centerToContactIncident.length;
 
                 if (contactCount == 0) {
-                    System.out.println("no penetration, skip");
+                    System.out.println("[Collisions.resolve] no penetration, skip");
                     return;
                 }
 

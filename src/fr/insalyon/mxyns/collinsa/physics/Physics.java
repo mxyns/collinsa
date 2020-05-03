@@ -443,7 +443,7 @@ public class Physics {
         Vec2f v2 = reference.getVertices()[referenceIndex];
 
         if (refFaceNormal.normalize() == null) {
-            System.out.println("null faceNormal");
+            System.out.println("[Physics.generatePolygonPolygonManifold] null faceNormal");
             return false;
         }
 
@@ -455,7 +455,7 @@ public class Physics {
         //FIXME, use doubles ?
         if ((clipped += Geometry.clip(referenceFaceTangent, posSide, incidentFace)) < 2 || (clipped += Geometry.clip(referenceFaceTangent.multOut(-1), negSide, incidentFace)) < 4) {
 
-            System.out.println("skip, clipped="+clipped);
+            System.out.println("[Physics.generatePolygonPolygonManifold] skip, clipped="+clipped);
             return false;
         }
 
@@ -508,14 +508,15 @@ public class Physics {
 
         Vec2f circlePos = Geometry.rotatePointAboutCenter(circle.getPos(), polygon.getPos(), -polygon.getRot()).toFloat().sub(polygon.getPos());
 
-        Vec2f[] normals = Geometry.getNormals(polygon.local_vertices);
+        Vec2f[] local_vertices = polygon.getLocalVertices();
+        Vec2f[] normals = Geometry.getNormals(local_vertices);
 
         float separation = Float.NEGATIVE_INFINITY;
         int faceNormal = 0;
         for (int i = 0; i < polygon.getVertices().length; ++i) {
 
             Vec2f normal = normals[i];
-            float s = Vec2f.dot(normal, polygon.local_vertices[i].copy().sub(circlePos));
+            float s = Vec2f.dot(normal, local_vertices[i].copy().sub(circlePos));
 
             if (s > circle.getR())
                 return false;
@@ -528,8 +529,8 @@ public class Physics {
 
         Vec2f normal = polygon.getNormals()[faceNormal];
 
-        Vec2f v1 = polygon.local_vertices[faceNormal];
-        Vec2f v2 = polygon.local_vertices[(faceNormal + 1) % polygon.getVertices().length];
+        Vec2f v1 = local_vertices[faceNormal];
+        Vec2f v2 = local_vertices[(faceNormal + 1) % polygon.getVertices().length];
 
         if (separation < 0) { // Center inside polygon
 

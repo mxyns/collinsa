@@ -11,7 +11,7 @@ public abstract class Polygon extends Entity {
     /**
      * Position des points du polygone dans le repère local
      */
-    public Vec2f[] local_vertices;
+    protected Vec2f[] local_vertices;
 
     /**
      * Liste des points, des vecteurs directeurs de chaque arête du polygone, et des normales à ces arêtes
@@ -93,6 +93,12 @@ public abstract class Polygon extends Entity {
      */
     public void updateVertices() {
 
+        if (vertices.length != local_vertices.length) {
+            vertices = Vec2f.arrayOf(local_vertices.length);
+            edges = Vec2f.arrayOf(local_vertices.length);
+            normals = Vec2f.arrayOf(local_vertices.length);
+        }
+
         for (int i = 0; i < vertices.length; ++i)
             vertices[i] = local_vertices[i].rotateOut(getRot()).add(pos);
 
@@ -106,6 +112,17 @@ public abstract class Polygon extends Entity {
     public Vec2f[] getVertices() {
 
         return vertices;
+    }
+
+    public Vec2f[] getLocalVertices() {
+
+        return local_vertices;
+    }
+
+    public void setLocalVertices(Vec2f... local_vertices) {
+
+        this.local_vertices = local_vertices;
+        updateVertices();
     }
 
     /**

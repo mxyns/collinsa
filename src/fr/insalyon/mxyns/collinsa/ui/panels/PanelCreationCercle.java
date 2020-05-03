@@ -3,7 +3,11 @@ package fr.insalyon.mxyns.collinsa.ui.panels;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
+import java.awt.Dimension;
 
 /**
  * panel qui permet la création d'un cercle
@@ -16,13 +20,15 @@ public class PanelCreationCercle extends PanelCreation {
     /**
      * crée le panel où l'on peut modifier le rayon
      */
-    public PanelCreationCercle() {
+    public PanelCreationCercle(ChangeListener frame) {
 
-        super();
-        SpinnerNumberModel rayonModel = new SpinnerNumberModel(10, .1, 500, .1);
+        super(frame);
+        SpinnerNumberModel rayonModel = new SpinnerNumberModel(10, .1, Float.MAX_VALUE, .1);
         rayon.setModel(rayonModel);
-        rayon.setBounds(100,200,150,20);
+        rayon.setSize(150, 40);
+        rayon.setPreferredSize(new Dimension(100, 40));
         rayon.setBorder(BorderFactory.createTitledBorder("Rayon"));
+        rayon.addChangeListener(listener);
         add(rayon);
 
         setBorder(BorderFactory.createTitledBorder("Cercle"));
@@ -32,10 +38,24 @@ public class PanelCreationCercle extends PanelCreation {
      * On crée un cercle
      * @return un nouveau cercle dans le monde
      */
+    @Override
     public Entity creerEntite() {
 
-        double radius = (double) rayon.getValue();
+        return new Circle(0, 0, (float)(double) rayon.getValue());
+    }
 
-        return new Circle(0, 0, (float) radius);
+    @Override
+    public void editEntity(Entity entity) {
+
+        if (entity instanceof Circle)
+            ((Circle)entity).setR( (float)(double) rayon.getValue());
+    }
+
+    @Override
+    public void loadEntity(Entity entity) {
+
+        if (entity instanceof Circle)
+            rayon.setValue( (double) ((Circle) entity).getR());
+
     }
 }
