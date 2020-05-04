@@ -297,7 +297,7 @@ public class Physics {
             addEntity(circle);
 
             try {
-                Thread.sleep(2 * processingThread.getDelay());
+                Thread.sleep((long) (2 * processingThread.getClock().getLastElapsed() * processingThread.getClock().toSec() * 1000));
             } catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
             }

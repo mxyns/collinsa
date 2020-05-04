@@ -65,7 +65,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
         setVisible(true);
         setResizable(false);
 
-        updatePreview();
+        updatePreview(true);
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -336,7 +336,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
     /**
      * Met à jour l'aperçu
      */
-    public void updatePreview() {
+    public void updatePreview(boolean updatePos) {
 
         if (preview == null) {
             preview = creerEntite();
@@ -344,7 +344,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
         }
 
         panelCreation.editEntity(preview);
-        editEntity(preview, false);
+        editEntity(preview, updatePos);
         Collinsa.INSTANCE.getMainFrame().selectionTool.setSelectedEntity(preview);
     }
 
@@ -425,7 +425,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
         }
 
         // On met à jour l'aperçu
-        updatePreview();
+        updatePreview(false);
     }
 
     /**
@@ -436,7 +436,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
 
         if (e.getSource() == ok) return;
 
-        updatePreview();
+        updatePreview(aModifier == null);
 
         if (!checkBoxMasse.isSelected())
             choixMasse.setValue( (double) creerEntite().getInertia().getMass());
