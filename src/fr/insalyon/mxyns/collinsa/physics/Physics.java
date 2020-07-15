@@ -1,5 +1,6 @@
 package fr.insalyon.mxyns.collinsa.physics;
 
+import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
@@ -69,6 +70,8 @@ public class Physics {
      * Détermine si la simulation doit être mise à jour en temps réel (peut provoquer des incohérences, la simulation n'est plus déterministe)
      */
     private boolean isRealtime;
+
+    public double totalElapsedTime = 0;
 
     /**
      * ArrayList des entités présentes dans la simulation.
@@ -166,8 +169,9 @@ public class Physics {
 
         entity.setActivated(false);
 
-        forces.removeIf(force -> force.affects(entity));
         entities.remove(entity);
+        forces.removeIf(force -> force.affects(entity));
+        Collinsa.INSTANCE.getMonitoring().entityMonitoring.stopMonitoring(entity);
     }
 
     /**
@@ -346,9 +350,9 @@ public class Physics {
         // la normale de la collision
         Vec2f normal = circleA.getPos().copy().sub(circleB.getPos());
 
-        toResolve.penetrations = new float[] {circleA.getR() + circleB.getR() - normal.mag()};
+        toResolve.penetrations = new float[] { circleA.getR() + circleB.getR() - normal.mag() };
 
-        if(normal.normalize() == null) // résout les pbs d'infini
+        if (normal.normalize() == null) // résout les pbs d'infini
             return false;
 
         toResolve.normal = normal;
@@ -867,6 +871,24 @@ public class Physics {
     public void setRealtime(boolean realtime) {
 
         isRealtime = realtime;
+    }
+
+    /**
+     * Renvoie la position du centre du monde
+     * @return vec2f(width/2, height/2)
+     */
+    public Vec2f getCenterPos() {
+
+        return new Vec2f(width, height).mult(.5f);
+    }
+
+    /**
+     * Renvoie la taille du monde
+     * @return vec2f(width, height)
+     */
+    public Vec2f getSize() {
+
+        return new Vec2f(width, height);
     }
 
     public String toString() {

@@ -111,4 +111,14 @@ public class Circle extends Entity {
 
         return "Circle["+pos+", "+r+"]";
     }
+
+    @Override
+    public Entity copy() {
+
+        Circle copy = new Circle(this.pos, this.r);
+        copyTo(copy);
+        copy.setR(r);
+
+        return copy;
+    }
 }

@@ -118,4 +118,13 @@ public class Rect extends ConvexPoly {
 
         return "Rect[center=" + pos + ", size=" + size + "]";
     }
+
+    @Override
+    public Entity copy() {
+
+        Rect copy = new Rect(pos, size);
+        copyTo(copy);
+
+        return copy;
+    }
 }

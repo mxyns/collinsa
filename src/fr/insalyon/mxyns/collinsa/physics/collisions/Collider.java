@@ -151,7 +151,6 @@ public class Collider {
             }
 
             // Not firing collision ignored yet. Will be done after in Collision.resolve when the if condition will fail bc of CollisionType == IGNORE
-
         }
 
         // Broad phase

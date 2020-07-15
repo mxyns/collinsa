@@ -55,4 +55,11 @@ public class ConvexPoly extends Polygon {
 
         return "ConvexPoly[local_vertices=" + Arrays.toString(local_vertices) +", vertices=" + Arrays.toString(vertices) +"]";
     }
+
+    @Override
+    public Entity copy() {
+
+        ConvexPoly copy = new ConvexPoly(pos, local_vertices);
+        return copyTo(copy);
+    }
 }

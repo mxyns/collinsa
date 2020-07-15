@@ -1,5 +1,6 @@
 package fr.insalyon.mxyns.collinsa.physics.entities;
 
+import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Inertia;
 import fr.insalyon.mxyns.collinsa.physics.Material;
 import fr.insalyon.mxyns.collinsa.physics.collisions.AABB;
@@ -46,6 +47,11 @@ public abstract class Entity implements Renderable {
      * Accélération angulaire de l'entité
      */
     private float angAcc;
+
+    /**
+     * Durée vécue et durée de vie de l'entité
+     */
+    public double lived = 0, lifespan = Double.POSITIVE_INFINITY;
 
     /**
      * Type de collision, détermine si l'objet aura des collisions elastiques ou non avec les autres objets
@@ -150,7 +156,10 @@ public abstract class Entity implements Renderable {
      * Permet de mettre à jour la position, l'angle de rotation, etc. d'une entité
      * @param elapsed temps en sec
      */
-    public void update(double elapsed) {
+    public boolean update(double elapsed) {
+
+        if ((lived += elapsed) > lifespan)
+            return false;
 
         vel.add(acc, elapsed);
         pos.add(vel, elapsed);
@@ -159,6 +168,8 @@ public abstract class Entity implements Renderable {
         rot += angVel * elapsed;
 
         updateAABB();
+
+        return true;
     }
 
     // GETTERS & SETTERS
@@ -443,5 +454,29 @@ public abstract class Entity implements Renderable {
     public Set<CollisionListener> getCollisionListeners() {
 
         return listeners;
+    }
+
+    public abstract Entity copy();
+
+    protected Entity copyTo(Entity dest) {
+
+        dest.pos.set(pos);
+        dest.vel.set(vel);
+        dest.acc.set(acc);
+        dest.setRot(rot);
+        dest.setAngVel(angVel);
+        dest.setAngAcc(angAcc);
+        dest.setFillColor(new Color(fillColor.getRGB()));
+        dest.setOutlineColor(new Color(outlineColor.getRGB()));
+        dest.setCollisionType(collisionType);
+        dest.setMaterial(material.copy());
+        dest.setActivated(activated);
+        dest.lifespan = lifespan;
+        dest.lived = lived;
+
+        if (Collinsa.INSTANCE.getMonitoring().entityMonitoring.isMonitored(this))
+            Collinsa.INSTANCE.getMonitoring().monitor(dest);
+
+        return dest;
     }
 }

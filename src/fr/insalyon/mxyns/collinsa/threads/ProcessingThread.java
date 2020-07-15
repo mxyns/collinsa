@@ -1,5 +1,6 @@
 package fr.insalyon.mxyns.collinsa.threads;
 
+import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.clocks.Clock;
 import fr.insalyon.mxyns.collinsa.clocks.MillisClock;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
@@ -7,6 +8,8 @@ import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.forces.Force;
+import fr.insalyon.mxyns.collinsa.utils.monitoring.EntityMonitoring;
+import fr.insalyon.mxyns.collinsa.utils.monitoring.Monitoring;
 
 import java.awt.Color;
 
@@ -24,6 +27,8 @@ public class ProcessingThread extends ClockedThread {
      *  Collider représentant le détecteur de collisions associé à la simulation
      */
     private Collider collider;
+
+    private Monitoring monitoring;
 
     /**
      * Nombre de tick par secondes à générer visé par le Thread, s'il y arrive, il se fixe autour.
@@ -82,13 +87,25 @@ public class ProcessingThread extends ClockedThread {
         // Sélection du temps à utiliser
         deltaTime = physics.isRealtime() ? elapsedTime : physics.getFixedDeltaTime();
 
+        physics.totalElapsedTime += deltaTime;
+
+        EntityMonitoring entityMonitoring = Collinsa.INSTANCE.getMonitoring().entityMonitoring;
+
         // Test de mise à jour des positions, vitesses, accélérations
         for (Entity entity : physics.getEntities()) {
             // 1ère étape : mettre à jour les éléments
             // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
             if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
                 if (entity.isActivated()) {
-                    entity.update(deltaTime * clock.toSec());
+
+                    if (entity.update(deltaTime * clock.toSec())) {
+                        if (entityMonitoring.isMonitored(entity)) {
+                            entityMonitoring.logScalarInfo(entity, physics.totalElapsedTime);
+                            entityMonitoring.logVectorialInfo(entity, physics.totalElapsedTime);
+                        }
+                    } else
+                        physics.removeEntity(entity);
+
 
                     if (!entity.isKinematic()) {
                         entity.setAcc(0, 0);

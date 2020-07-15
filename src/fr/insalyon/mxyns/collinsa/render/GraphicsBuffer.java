@@ -50,11 +50,11 @@ public class GraphicsBuffer {
      */
     public GraphicsBuffer(int width, int height) {
 
-        buffer[0] = new BufferedImage(width, height, imageType);
-            buffer[0].getGraphics().setColor(backgroundColor);
+        for (int i = 0; i < buffer.length; ++i) {
 
-        buffer[1] = new BufferedImage(width, height, imageType);
-            buffer[1].getGraphics().setColor(backgroundColor);
+            buffer[i] = new BufferedImage(width, height, imageType);
+            buffer[i].getGraphics().setColor(backgroundColor);
+        }
 
         this.imageSize = new Dimension(width, height);
     }
@@ -75,14 +75,15 @@ public class GraphicsBuffer {
      */
     public void resize(int width, int height) {
 
-        BufferedImage newFrontBuffer = new BufferedImage(width, height, imageType);
-        newFrontBuffer.getGraphics().setColor(backgroundColor);
-        newFrontBuffer.getGraphics().drawImage(buffer[1].getScaledInstance(width, height, Image.SCALE_DEFAULT), 0, 0, null);
+        for (int i = 0; i < buffer.length; ++i) {
 
+            BufferedImage scaledImage = new BufferedImage(width, height, imageType);
+            scaledImage.getGraphics().setColor(backgroundColor);
+            scaledImage.getGraphics().drawImage(buffer[i].getScaledInstance(width, height, Image.SCALE_DEFAULT), 0, 0, null);
 
-        BufferedImage newBackBuffer = new BufferedImage(width, height, imageType);
-        newBackBuffer.getGraphics().setColor(backgroundColor);
-        newBackBuffer.getGraphics().drawImage(buffer[0].getScaledInstance(width, height, Image.SCALE_DEFAULT), 0, 0, null);
+            buffer[i].flush();
+            buffer[i] = scaledImage;
+        }
 
         this.imageSize = new Dimension(width, height);
     }

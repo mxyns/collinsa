@@ -7,6 +7,7 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
+import fr.insalyon.mxyns.collinsa.utils.monitoring.Monitoring;
 
 import java.awt.Toolkit;
 
@@ -31,6 +32,7 @@ public class Collinsa {
      */
     private Physics physics;
     private Renderer renderer;
+    private Monitoring monitoring;
     final private MainFrame mainFrame;
 
     /**
@@ -95,6 +97,9 @@ public class Collinsa {
 
         // On crée une page contenant un panel sur lequel rendre le contenu du moteur physique. A la création du panel, le CameraController lui est associé, puis il recupère le focus
         mainFrame = new MainFrame(1440, (int) (1440 / screenRatio));
+
+        // On crée une instance pour surveiller le monde
+        monitoring = new Monitoring();
 
         // Maintenant que le panel est prêt à être utilisé (défini et affiché à l'écran), on peut préparer le renderer au rendu. Le panel est par la même occasion notifié du "changement" de renderer.
         setRenderer(renderer);
@@ -288,5 +293,10 @@ public class Collinsa {
     public Physics getPhysics() {
 
         return INSTANCE.physics;
+    }
+
+    public Monitoring getMonitoring() {
+
+        return monitoring;
     }
 }

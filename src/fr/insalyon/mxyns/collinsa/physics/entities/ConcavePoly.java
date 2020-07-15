@@ -33,4 +33,10 @@ public class ConcavePoly extends Polygon {
 
     }
 
+    @Override
+    public Entity copy() {
+
+        return null;
+    }
+
 }

@@ -39,6 +39,8 @@ public abstract class Preset {
         Poly(new Preset_Polygons()),
         GazTest(new Preset_GazTest()),
         GlobalForces(new Preset_GlobalForces()),
+        Huge(new Preset_Huge()),
+        Tests(new Presets_Tests()),
         Force(new Preset_Force());
 
         private final Preset presetInstance;

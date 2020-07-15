@@ -37,14 +37,14 @@ public class Parametres extends JFrame {
         Physics physics = Collinsa.INSTANCE.getPhysics();
 
         // hauteur, largeur du monde
-        SpinnerNumberModel largeurModel = new SpinnerNumberModel(physics.getWidth(), .1, 1440, .1);
+        SpinnerNumberModel largeurModel = new SpinnerNumberModel(physics.getWidth(), .1, Float.MAX_VALUE, .1);
         JSpinner largeur = new JSpinner(largeurModel);
         largeur.setModel(largeurModel);
         largeur.setBounds(500,15,200,50);
         largeur.setBorder(BorderFactory.createTitledBorder("Largeur du monde"));
         add(largeur);
 
-        SpinnerNumberModel hauteurModel = new SpinnerNumberModel(physics.getHeight(), .1, 1440, .1);
+        SpinnerNumberModel hauteurModel = new SpinnerNumberModel(physics.getHeight(), .1, Float.MAX_VALUE, .1);
         JSpinner hauteur = new JSpinner(hauteurModel);
         hauteur.setBounds(500,85,200,50);
         hauteur.setModel(hauteurModel);
@@ -52,14 +52,14 @@ public class Parametres extends JFrame {
         add(hauteur);
 
         // nombre de chunks en horizontal et vertical
-        SpinnerNumberModel modelNbChunksH = new SpinnerNumberModel((int)physics.getChunkCount().x, 1, 50, 1);
+        SpinnerNumberModel modelNbChunksH = new SpinnerNumberModel((int)physics.getChunkCount().x, 1, Integer.MAX_VALUE, 1);
         JSpinner nbChunksH = new JSpinner(modelNbChunksH);
         nbChunksH.setModel(modelNbChunksH);
         nbChunksH.setBounds(500,155,200,50);
         nbChunksH.setBorder(BorderFactory.createTitledBorder("Nombre de chunks (Horizontal)"));
         add(nbChunksH);
 
-        SpinnerNumberModel modelNbChunksV = new SpinnerNumberModel((int)physics.getChunkCount().y, 1, 50, 1);
+        SpinnerNumberModel modelNbChunksV = new SpinnerNumberModel((int)physics.getChunkCount().y, 1, Integer.MAX_VALUE, 1);
         JSpinner nbChunksV = new JSpinner(modelNbChunksV);
         nbChunksV.setModel(modelNbChunksV);
         nbChunksV.setBounds(500,225,200,50);

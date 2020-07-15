@@ -46,6 +46,12 @@ public class Ray extends Entity {
     }
 
     @Override
+    public Entity copy() {
+
+        return null;
+    }
+
+    @Override
     public void render(Renderer renderer, Graphics2D g) {
 
     }
