@@ -2,6 +2,7 @@ package fr.insalyon.mxyns.collinsa.physics.forces;
 
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
@@ -28,21 +29,23 @@ public class Motor extends Force {
     /**
      * S'applique seulement à target donc on simplifie la méthode
      * @return true si appliquée
+     * @param readTick
      */
     @Override
-    public boolean apply() {
+    public boolean apply(Tick readTick) {
 
         if (target.getCollisionType() == Collision.CollisionType.CLASSIC)
-            applyMoment(target, computeMoment(null, null));
+            applyMoment(target, computeMoment(readTick, null, null));
 
         return true;
     }
 
     /**
      * @return F = 0 car la résultante d'un moteur couple est nulle
+     * @param readTick
      */
     @Override
-    protected Vec2d computeValue() {
+    protected Vec2d computeValue(Tick readTick) {
 
         return Vec2d.zero();
     }
@@ -63,8 +66,14 @@ public class Motor extends Force {
      * @return torque
      */
     @Override
-    protected double computeMoment(Vec2d GM, Vec2d value) {
+    protected double computeMoment(Tick readTick, Vec2d GM, Vec2d value) {
 
         return torque;
+    }
+
+    @Override
+    public Motor copy() {
+
+        return new Motor(target, torque);
     }
 }

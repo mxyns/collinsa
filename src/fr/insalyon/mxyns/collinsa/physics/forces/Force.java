@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.forces;
 
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.render.Renderable;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
@@ -8,6 +9,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.UUID;
 
 import static fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType.CLASSIC;
 
@@ -35,7 +37,7 @@ public abstract class Force implements Renderable {
     /**
      * Dernière valeur de la force calculée. Permet de ne pas avoir à recalculer la valeur pour rendu
      */
-    protected Vec2d lastValue;
+    public Vec2d lastValue;
 
     /**
      * Couleur par défaut pour le rendu des forces. Modifiable pour chaque force par la suite
@@ -46,18 +48,32 @@ public abstract class Force implements Renderable {
      * Méthode abstraite. Calcule la valeur de la force donc différente pour chaque force
      *
      * @return Vec2d vecteur force (direction et norme)
+     * @param readTick tick utilisé pour les calculs
      */
-    protected abstract Vec2d computeValue();
+    protected abstract Vec2d computeValue(Tick readTick);
+
+    public abstract Force copy();
+
+    public Force copy(Entity readSource, Entity readTarget) {
+
+        Force copy = this.copy();
+        copy.target = readTarget;
+        copy.source = readSource;
+
+        return copy;
+    }
 
     /**
      * Calcule le moment créé par la force lors de son application en un point M
      *
+     *
+     * @param readTick
      * @param GM vecteur G(centre de l'entité) ->  M (point d'application)
      * @param value vecteur force appliqué
      *
      * @return valeur du moment autour de l'axe (Gz)
      */
-    protected double computeMoment(Vec2d GM, Vec2d value) {
+    protected double computeMoment(Tick readTick, Vec2d GM, Vec2d value) {
 
         return Vec2d.cross(GM, value);
     }
@@ -66,12 +82,13 @@ public abstract class Force implements Renderable {
      * Applique une force aux entités 'source' et 'target'
      *
      * @return true si la force a été appliquée
+     * @param readTick tick utilisé pour les calculs
      */
-    public boolean apply() {
+    public boolean apply(Tick readTick) {
 
         if (target == null || (target.isKinematic() && source.isKinematic()) && lastValue == null) return false;
 
-        lastValue = computeValue();
+        lastValue = computeValue(readTick);
         toSourceApplicationPoint = toSourceApplicationPointLocal.rotateOut(source.getRot());
         toTargetApplicationPoint = toTargetApplicationPointLocal.rotateOut(target.getRot());
 
@@ -81,13 +98,13 @@ public abstract class Force implements Renderable {
         if (target.getCollisionType() == CLASSIC) {
 
             applyForce(target, lastValue);
-            applyMoment(target, computeMoment(toTargetApplicationPoint, lastValue));
+            applyMoment(target, computeMoment(readTick, toTargetApplicationPoint, lastValue));
         }
 
         if (source != null && source.getCollisionType() == CLASSIC) {
 
             applyForce(source, lastValue.neg());
-            applyMoment(source, computeMoment(toSourceApplicationPoint, lastValue));
+            applyMoment(source, computeMoment(readTick, toSourceApplicationPoint, lastValue));
             lastValue.neg();
         }
 
@@ -165,5 +182,19 @@ public abstract class Force implements Renderable {
     public boolean affects(Entity entity) {
 
         return entity == source || entity == target;
+    }
+    public boolean affects(UUID uuid) {
+
+        return uuid == source.uuid || uuid == target.uuid;
+    }
+
+    public Entity getTarget() {
+
+        return target;
+    }
+
+    public Entity getSource() {
+
+        return source;
     }
 }

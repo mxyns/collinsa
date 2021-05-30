@@ -39,9 +39,9 @@ public class Preset_AngularVelocity extends Preset {
         Utils.applyParameter("--df", Material.DUMMY.getDynamicFriction(), args, circle.getMaterial()::setDynamicFriction);
         Utils.applyParameter("--sf", Material.DUMMY.getStaticFriction(), args, circle.getMaterial()::setStaticFriction);
 
-        physics.addEntity(rect);
-        physics.addEntity(circle);
-        physics.globalForces.add(new PlanetGravity(1));
+        physics.placeEntity(rect);
+        physics.placeEntity(circle);
+        physics.addGlobalForce(new PlanetGravity(1));
 
         System.out.println(rect.getInertia());
         System.out.println(circle.getInertia());

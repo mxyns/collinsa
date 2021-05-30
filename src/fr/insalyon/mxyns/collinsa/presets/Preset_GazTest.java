@@ -37,7 +37,7 @@ public class Preset_GazTest extends Preset {
         pusher.setCollisionType(Collision.CollisionType.KINEMATIC);
         System.out.println("inertia " + pusher.getInertia());
         pusher.setAcc(50, 0);
-        collinsa.getPhysics().addEntity(pusher);
+        collinsa.getPhysics().placeEntity(pusher);
 
 
         for (int i = 0; i < n; ++i) {
@@ -51,7 +51,7 @@ public class Preset_GazTest extends Preset {
 
             // On teste une accélération vers le bas type gravité = 10g
             //circle.setVel(speed);
-            physics.addEntity(circle);
+            physics.placeEntity(circle);
         }
 
         System.out.println("max size = " + pusher.getMaximumSize());

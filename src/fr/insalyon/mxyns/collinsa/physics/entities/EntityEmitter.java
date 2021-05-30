@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static fr.insalyon.mxyns.collinsa.physics.collisions.Collision.CollisionType.IGNORE;
@@ -23,9 +24,9 @@ public class EntityEmitter extends Entity {
     // if false will emit all entities in #this.emitted
     public boolean randomEmit = true;
 
-    public EntityEmitter(Physics physics, Entity body) {
+    private EntityEmitter(UUID uuid, Physics physics, Entity body) {
 
-        super(body.pos);
+        super(uuid);
 
         if (body instanceof EntityEmitter) throw new IllegalArgumentException();
 
@@ -40,10 +41,14 @@ public class EntityEmitter extends Entity {
         this.physics = physics;
         this.pos = body.pos;
     }
+    public EntityEmitter(Physics physics, Entity body) {
+
+        this(null, physics, body);
+    }
 
     private void emit(Entity entity) {
 
-        physics.addEntity(entity);
+        physics.insertEntity(entity);
         entity.pos.set(body.pos);
 
         if (range > 0)
@@ -119,7 +124,7 @@ public class EntityEmitter extends Entity {
     @Override
     public Entity copy() {
 
-        EntityEmitter copy = new EntityEmitter(physics, body.copy());
+        EntityEmitter copy = new EntityEmitter(uuid, physics, body.copy());
         copyTo(copy);
         copy.emitted.addAll(emitted);
         copy.stack = stack;

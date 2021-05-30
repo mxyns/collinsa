@@ -1,8 +1,8 @@
 package fr.insalyon.mxyns.collinsa.ui.tools;
 
-import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.render.Renderable;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
@@ -13,6 +13,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.UUID;
+
+import static fr.insalyon.mxyns.collinsa.Collinsa.INSTANCE;
 
 /**
  * Outil permettant de sélectionner une entité (pour la modifier / supprimer ou juste mieux la voir)
@@ -22,7 +25,9 @@ public class SelectionTool extends Tool {
     /**
      * Entité actuellement sélectionnée
      */
-    private Entity selected = null;
+    private UUID selected = null;
+
+    private Renderable extra = null;
 
     /**
      * Constructeur qui précise le nom, le tooltip et le chemin de l'icone de l'outil
@@ -53,10 +58,10 @@ public class SelectionTool extends Tool {
             return;
         }
 
-        Vec2f posInWorld = new Vec2f(e.getX(), e.getY()).div((float) Collinsa.INSTANCE.getRenderer().getRenderFactor()).add(Collinsa.INSTANCE.getRenderer().getCamera().getPos());
-        Physics physics = Collinsa.INSTANCE.getPhysics();
+        Vec2f posInWorld = new Vec2f(e.getX(), e.getY()).div((float) INSTANCE.getRenderer().getRenderFactor()).add(INSTANCE.getRenderer().getCamera().getPos());
+        Physics physics = INSTANCE.getPhysics();
 
-        selected = physics.getClosestEntity(posInWorld, .1f);
+        setSelectedEntity(physics.getClosestEntity(posInWorld, .1f));
     }
 
     /**
@@ -69,9 +74,9 @@ public class SelectionTool extends Tool {
             if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
                 setSelectedEntity(null);
             else if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-                Collinsa.INSTANCE.getMainFrame().supprimer();
+                INSTANCE.getMainFrame().supprimer();
             } else if (e.getKeyCode() == KeyEvent.VK_ENTER)
-                Collinsa.INSTANCE.getMainFrame().ouvrirPageModification(selected);
+                INSTANCE.getMainFrame().ouvrirPageModification(selected);
     }
 
     /**
@@ -80,7 +85,15 @@ public class SelectionTool extends Tool {
      */
     public void setSelectedEntity(Entity entity) {
 
-        this.selected = entity;
+        if (entity == null)
+            this.selected = null;
+        else
+            this.selected = entity.uuid;
+
+        if (extra != null)
+            INSTANCE.getRenderer().removeExtra(extra);
+
+        INSTANCE.getRenderer().addExtra(extra = new RenderableOutline(this.selected));
     }
 
     /**
@@ -90,13 +103,16 @@ public class SelectionTool extends Tool {
      */
     public void drawSelectedEntityOutline(Renderer renderer, Graphics2D g) {
 
-        if (selected == null)
+        if (this.selected == null)
             return;
 
         // On fait une copie du Graphics pour ne pas affecter le reste du rendu
         g = (Graphics2D) g.create();
 
-        Entity selected = getSelectedEntity();
+        Entity selected = renderer.tick.entities.get(this.selected);
+
+        if (selected == null)
+            return;
 
         Color[] oldColors = { selected.getOutlineColor(), selected.getFillColor()};
         Color newColor = Utils.getHighContrastColor(selected.getFillColor() != null ? selected.getFillColor() : selected.getOutlineColor());
@@ -116,8 +132,21 @@ public class SelectionTool extends Tool {
      * Renvoie l'entité actuellement sélectionnée
      * @return selectedEntity
      */
-    public Entity getSelectedEntity() {
+    public UUID getSelectedEntity() {
 
         return selected;
+    }
+
+    class RenderableOutline implements Renderable {
+
+        private final UUID uuid;
+
+        public RenderableOutline(UUID uuid) { this.uuid = uuid; }
+
+        @Override
+        public void render(Renderer renderer, Graphics2D g) {
+
+            drawSelectedEntityOutline(renderer, g);
+        }
     }
 }

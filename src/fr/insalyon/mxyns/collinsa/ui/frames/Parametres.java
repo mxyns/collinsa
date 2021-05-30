@@ -2,7 +2,6 @@ package fr.insalyon.mxyns.collinsa.ui.frames;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
-import fr.insalyon.mxyns.collinsa.physics.forces.Force;
 import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
@@ -117,18 +116,21 @@ public class Parametres extends JFrame {
 
         gravite = null;
         // On récupère le dernier PlanetGravity global et on considère que c'est le seul présent
-        for (Force force : physics.globalForces)
+
+        //FIXME : refaire toute l'interface avec le GUI Designer et fix l'accès aux forces
+        /*for (Force force : physics.globalForces)
             if (force instanceof PlanetGravity)
-                gravite = (PlanetGravity) force;
+                gravite = (PlanetGravity) force;*/
 
         JCheckBox gravite = new JCheckBox("Gravité", this.gravite != null);
+        gravite.setEnabled(false); // TODO : remove when fixed l.120
         gravite.setBounds(0, 5, 200, 15);
         gravite.addActionListener(e -> {
             if (this.gravite != null && !gravite.isSelected()) {
-                physics.globalForces.remove(this.gravite);
+                //physics.globalForces.remove(this.gravite);
                 this.gravite = null;
             } else {
-                physics.globalForces.add(this.gravite = new PlanetGravity(1));
+                //physics.globalForces.add(this.gravite = new PlanetGravity(1));
                 graviteSlider.setValue(100);
             }
 

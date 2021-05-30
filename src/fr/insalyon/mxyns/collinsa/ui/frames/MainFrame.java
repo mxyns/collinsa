@@ -1,13 +1,13 @@
 package fr.insalyon.mxyns.collinsa.ui.frames;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
-import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 import fr.insalyon.mxyns.collinsa.ui.tools.*;
 
 import javax.swing.*;
 import java.awt.Color;
 import java.awt.Component;
+import java.util.UUID;
 
 /**
  * Frame principale, titre et Sandbox
@@ -124,10 +124,10 @@ public class MainFrame extends JFrame {
      * on veut récupérer les paramètres de l'objet à modifier et les rouvrir dans la page création
      * @param aModifier l'entité à modifier
      */
-    public void ouvrirPageModification(Entity aModifier) {
+    public void ouvrirPageModification(UUID aModifier) {
 
         if (aModifier != null)
-            new Creation(790, 490, aModifier);
+            new Creation(790, 490, Collinsa.INSTANCE.getPhysics().getEntities().get(aModifier));
         else
             JOptionPane.showMessageDialog(this, "Aucun entité sélectionnée", "Erreur", JOptionPane.ERROR_MESSAGE);
     }

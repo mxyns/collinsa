@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.forces;
 
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 
 /**
@@ -24,15 +25,17 @@ public class Gravity extends Force {
         this.target = target;
     }
 
-
     /**
      * Valeur de la force de gravité
      *
      * @return G * m(source) * m(target) / dist(source, target)² * Vec2d(target -> source)
+     * @param readTick tick utilisé pour les calculs
      */
     @Override
-    protected Vec2d computeValue() {
+    protected Vec2d computeValue(Tick readTick) {
 
+        Entity source = readTick.entities.get(this.source.uuid);
+        Entity target = readTick.entities.get(this.target.uuid);
         return source.getPos().toDouble().sub(target.getPos().x, target.getPos().y).setMag(GRAVITATIONAL_CONSTANT * target.getInertia().getMass() * source.getInertia().getMass() / target.getPos().sqrdDist(source.getPos()));
     }
 
@@ -42,8 +45,14 @@ public class Gravity extends Force {
      * @return 0
      */
     @Override
-    protected double computeMoment(Vec2d GM, Vec2d value) {
+    protected double computeMoment(Tick readTick, Vec2d GM, Vec2d value) {
 
         return 0;
+    }
+
+    @Override
+    public Gravity copy() {
+
+        return new Gravity(this.source, this.target);
     }
 }

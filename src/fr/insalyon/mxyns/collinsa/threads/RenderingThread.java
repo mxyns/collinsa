@@ -77,6 +77,8 @@ public class RenderingThread extends ClockedThread {
         this.framerate = (short)framerate;
         this.baseDelay = 1000 / framerate;
         this.delay = baseDelay;
+
+        setName("collinsa-rendering");
     }
 
     /**

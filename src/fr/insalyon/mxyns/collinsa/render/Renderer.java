@@ -8,6 +8,7 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.physics.forces.Force;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.threads.RenderingThread;
 import fr.insalyon.mxyns.collinsa.ui.panels.SandboxPanel;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
@@ -42,6 +43,9 @@ public class Renderer {
      * Puisque le CameraController du Renderer peut avoir plusieurs caméras, Renderer.camera contiendra seulement la caméra actuelle, et cet attribut sera mis à jour à chaque changement de caméras.
      */
     Camera camera;
+
+    public static long lastRendered = -1;
+    public Tick tick = null;
 
     /**
      * Le controleur qui permet de controller la Camera (déplacement, zoom/redimensionnement, etc.)
@@ -147,10 +151,10 @@ public class Renderer {
         }
 
         // On fait le rendu de tous les Chunk visibles
-        for (Chunk chunk : physics.getChunks())
+        // System.out.println("Rend. Tick " + physics.getLastTick().id);
+        for (Chunk chunk : physics.getLastTick().chunks)
             if(shouldRenderChunk(chunk))
                 renderChunk(chunk, g);
-
 
         // On affiche les limites du monde si voulu (renderWorldBounds = true)
         if (renderWorldBounds) {
@@ -175,18 +179,13 @@ public class Renderer {
             // On met à jour le facteur de rendu des forces.
             forceFactor = factor / scale * forceScale;
 
-            for (Force force : physics.forces)
+            for (Force force : physics.getLastTick().forces)
                 force.render(this, g);
         }
 
         // On affiche les extras
         for (Renderable extra : extras)
             extra.render(this, g);
-
-
-        // On dessine l'entité sélectionée par l'outil de sélection
-        INSTANCE.getMainFrame().selectionTool.drawSelectedEntityOutline(this, g);
-
 
         // HUD : On affiche les différents compteurs de FPS
         Rectangle2D textBox = new Rectangle2D.Float(0, 0, 90, 45);
@@ -230,7 +229,12 @@ public class Renderer {
     public void render(Physics physics) {
 
         graphicsBuffer.resetBackBuffer();
+
+        // TODO: interpolate between last and now
         renderSandbox(physics, graphicsBuffer.getGraphics2D());
+        lastRendered = physics.getLastTick().id;
+        tick = physics.getLastTick();
+        physics.getTickMachine().rendered();
         graphicsBuffer.flip();
     }
 

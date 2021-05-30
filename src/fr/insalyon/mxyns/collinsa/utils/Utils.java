@@ -191,11 +191,11 @@ public class Utils {
         Utils.applyParameter("--showForces", false, args, collinsa.getRenderer()::setRenderForces);
 
         Utils.applyParameter("--chunkCount", new Vec2f(3, 3), args, collinsa.getPhysics()::setChunkCount);
-        Utils.applyParameter("--worldSize", new Vec2f(1440, 810), args, collinsa.getPhysics()::resize);
+        Utils.applyParameter("--worldSize", new Vec2f(1440, 810), args, collinsa.getPhysics()::resizeCurrent);
 
         float width = Utils.getParameter("--width", collinsa.getPhysics().getWidth(), args);
         float height = Utils.getParameter("--height", collinsa.getPhysics().getHeight(), args);
-        collinsa.getPhysics().resize(new Vec2f(width, height));
+        collinsa.getPhysics().resizeCurrent(new Vec2f(width, height));
     }
 
     /**

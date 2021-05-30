@@ -43,7 +43,7 @@ public class Presets_Tests extends Preset {
         emitter.range = 10;
         emitter.delay = 1e-2;
 
-        physics.addEntity(circle);
-        physics.addEntity(emitter);
+        physics.placeEntity(circle);
+        physics.placeEntity(emitter);
     }
 }

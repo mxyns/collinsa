@@ -1,7 +1,6 @@
 package fr.insalyon.mxyns.collinsa.presets;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
-import fr.insalyon.mxyns.collinsa.utils.Utils;
 
 /**
  * Une classe pour définir des preset executables depuis la commande le temps qu'une IHM soit développée
@@ -29,6 +28,7 @@ public abstract class Preset {
     /**
      * Enum listant les presets et permettant de les executer à partir de leur nom
      */
+    // TODO SOME REFLECTION SHIT INSTEAD OF BAD ENUM
     public enum EPreset {
 
         PRESET_1(new Preset_1()),
@@ -41,7 +41,8 @@ public abstract class Preset {
         GlobalForces(new Preset_GlobalForces()),
         Huge(new Preset_Huge()),
         Tests(new Presets_Tests()),
-        Force(new Preset_Force());
+        Force(new Preset_Force()),
+        Temp(new Preset_Temp());
 
         private final Preset presetInstance;
 
@@ -55,19 +56,15 @@ public abstract class Preset {
             for (EPreset preset : EPreset.values())
                 if (preset.name().toLowerCase().equals(name.toLowerCase())) {
 
-                    Utils.applyParameters(collinsa, args);
-
-                    // Affichage des infos du programme
-                    System.out.println("World: " + collinsa.getPhysics());
-                    System.out.println("Renderer: " + collinsa.getRenderer());
-
                     System.out.println("=====- RUNNING PRESET " + preset.name() + " -=====");
 
                     preset.presetInstance.setup(args, collinsa);
 
                     collinsa.start();
 
-                    preset.presetInstance.loop(args, collinsa);
+                    Thread thread = new Thread(() -> preset.presetInstance.loop(args, collinsa));
+                    thread.setName("collinsa-preset-" + name.toLowerCase());
+                    thread.start();
                 }
         }
     }

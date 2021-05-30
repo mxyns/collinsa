@@ -5,6 +5,7 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 
 import java.awt.Color;
@@ -98,7 +99,7 @@ public class Collider {
      *
      * @return Liste d'entités proches de 'e'
      */
-    public LinkedHashSet<Entity> getNearbyEntities(Entity e) {
+    public LinkedHashSet<Entity> getNearbyEntities(Tick tick, Entity e) {
 
         // On ne veut pas de doublons, et on parcourera la liste sans accès aléatoire
         // LinkedHashSet est donc un bon candidat
@@ -108,7 +109,7 @@ public class Collider {
 
         for (int chunkId : chunksId)
             if (chunkId >= 0 && chunkId < physics.getTotalChunkCount())
-                nearby.addAll(physics.getChunks().get(chunkId).entities);
+                nearby.addAll(tick.chunks.get(chunkId).entities);
 
         nearby.remove(e);
 

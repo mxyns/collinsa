@@ -33,6 +33,8 @@ public class RefreshingThread extends ClockedThread {
     public RefreshingThread(Component componentToRefresh) {
 
         this(componentToRefresh, new MillisClock(), 60);
+
+        setName("collinsa-refreshing");
     }
     /**
      * Crée un Thread de rafraichissement à partir d'un composant à rafraichir, un framerate, avec une précision par défaut en milliseconde

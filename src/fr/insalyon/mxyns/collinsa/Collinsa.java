@@ -13,9 +13,7 @@ import java.awt.Toolkit;
 
 import static java.lang.Thread.State.TIMED_WAITING;
 
-// TODO:
-//  - Layering to ignore collisions between some objects / objects types
-//  - TextObject to display text in the world
+// FIXME FORCES
 
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme
@@ -30,9 +28,9 @@ public class Collinsa {
     /**
      * Instances du moteur physique, de rendu, et de la Frame
      */
-    private Physics physics;
+    private final Physics physics;
     private Renderer renderer;
-    private Monitoring monitoring;
+    private final Monitoring monitoring;
     final private MainFrame mainFrame;
 
     /**
@@ -63,19 +61,26 @@ public class Collinsa {
             // On pose le framerate voulu
             INSTANCE.setFramerate(60);
 
+        // si aucun preset n'est lancé, on applique tous les paramètres donnés
+        Utils.applyParameters(INSTANCE, args);
+
         // Si on a activé un preset dans les paramètres de lancement on l'execute et on n'execute pas le programme principal
-        if (args.length > 0 && args[0].equals("-s") && args.length > 1) {
+        if (args.length > 0 && args[0].equals("-s") && args.length > 1)
             Preset.EPreset.run(args[1], args, INSTANCE);
-            return;
-        } else // si aucun preset n'est lancé, on applique tous les paramètres donnés
-            Utils.applyParameters(INSTANCE, args);
+
 
         // Affichage des infos du programme
         System.out.println("World: " + INSTANCE.getPhysics());
         System.out.println("Renderer: " + INSTANCE.getRenderer());
 
+        // Initiate first tick from init tick
+        // INSTANCE.physics.getProcessingThread().tick(0);
+
+        //Monitor monitor = new Monitor();
+
         // Démarre le programme (Simulation & Rendu)
-        INSTANCE.start();
+        if (!(INSTANCE.physics.getProcessingThread().isAlive() || INSTANCE.renderer.getRenderingThread().isAlive() || INSTANCE.mainFrame.getSandboxPanel().getRefreshingThread().isAlive()))
+            INSTANCE.start();
     }
 
     /**

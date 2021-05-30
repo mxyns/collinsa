@@ -1,6 +1,7 @@
 package fr.insalyon.mxyns.collinsa.physics.forces;
 
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
@@ -30,9 +31,10 @@ public class Spring extends Force {
 
     /**
      * @return F = SPRING_CONSTANT * (longueur du ressort - REST_LENGTH)
+     * @param readTick
      */
     @Override
-    protected Vec2d computeValue() {
+    protected Vec2d computeValue(Tick readTick) {
 
         Vec2d distanceVector = source.getPos().toDouble().add(toSourceApplicationPoint).sub(target.getPos().toDouble().add(toTargetApplicationPoint));
         return distanceVector.setMag(- SPRING_CONSTANT * (REST_LENGTH - distanceVector.mag()));
@@ -55,5 +57,11 @@ public class Spring extends Force {
         super.render(renderer, g);
 
         renderer.renderSpring(source.getPos().copy().add(toSourceApplicationPoint.x, toSourceApplicationPoint.y), target.getPos().copy().add(toTargetApplicationPoint.x, toTargetApplicationPoint.y), lastValue.mag(), SPRING_CONSTANT, REST_LENGTH, g);
+    }
+
+    @Override
+    public Spring copy() {
+
+        return new Spring(this.source, this.target, this.SPRING_CONSTANT, this.REST_LENGTH);
     }
 }

@@ -355,7 +355,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
 
         Collinsa.INSTANCE.getRenderer().removeExtra(preview);
 
-        if (Collinsa.INSTANCE.getMainFrame().selectionTool.getSelectedEntity() == preview)
+        if (Collinsa.INSTANCE.getMainFrame().selectionTool.getSelectedEntity() == preview.uuid)
             Collinsa.INSTANCE.getMainFrame().selectionTool.setSelectedEntity(null);
 
         preview = null;
@@ -376,7 +376,7 @@ public class Creation extends JFrame implements ActionListener, ChangeListener {
                 Entity nouvobjet = creerEntite();
 
                 // Après l'avoir créé, on l'envoie dans le monde
-                Collinsa.INSTANCE.getPhysics().addEntity(nouvobjet);
+                Collinsa.INSTANCE.getPhysics().insertEntity(nouvobjet);
 
             } else { // si on a utilisé Creation pour une modification
 

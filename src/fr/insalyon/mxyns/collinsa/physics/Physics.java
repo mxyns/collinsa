@@ -10,12 +10,13 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Polygon;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.physics.forces.Force;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
+import fr.insalyon.mxyns.collinsa.physics.ticks.TickMachine;
 import fr.insalyon.mxyns.collinsa.threads.ProcessingThread;
 import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
-import java.util.ArrayList;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
 
 /**
  * Moteur physique s'occupant de la logique physique du jeu.
@@ -32,19 +33,6 @@ public class Physics {
      * Thread de calcul dédié à la mise à jour de la simulation
      */
     private ProcessingThread processingThread;
-
-    /**
-     * ArrayList des différents Chunks partitionnant le monde
-     * La façon dont sont gérés les chunks permet quand même de garantir l'unicité de chaque chunk ajouté même si on n'a pas un 'Set'
-     * L'ArrayList permet d'accéder aléatoirement à un Chunk avec une complexité O(1) ce qui est nécessaire pour une simulation dense ou très vaste (à grand nombre de Chunks).
-     * Les Chunks sont organisés grâce au SpatialHashing qui est performant dans les simulations où la répartition des éléments est plutôt homogène.
-     * Un Oct-Tree serait moins couteux en mémoire mais plus difficile à implémenter et pas forcément plus performant.
-     *
-     * ArrayList Complexity:
-     * | Add  | Remove | Get  | Contains | Next |
-     * | O(1) |  O(n)  | O(1) |   O(n)   | O(1) |
-     */
-    private final ArrayList<Chunk> chunks = new ArrayList<>();
 
     /**
      * Permet de stocker la taille des Chunks sans avoir à accéder au Set des chunks à chaque fois
@@ -71,22 +59,15 @@ public class Physics {
      */
     private boolean isRealtime;
 
+    /**
+     * Temps total écoulé dans la simulation
+     */
     public double totalElapsedTime = 0;
 
     /**
-     * ArrayList des entités présentes dans la simulation.
-     * Obligatoire pour pouvoir garder un accès des instances existantes puisqu'elles sont enregistrées temporairement dans les Chunk
-     *
-     * ArrayList Complexity:
-     * | Add  | Remove | Get  | Contains | Next |
-     * | O(1) |  O(n)  | O(1) |   O(n)   | O(1) |
-     *
-     * Suppression d'entité plutôt rare. Add, Get et Next sont systématiquement utilisés
+     * Contient les entités, les forces, et forces globales à chaque tick
      */
-    // FIXME: change this slow bs
-    final private CopyOnWriteArrayList<Entity> entities = new CopyOnWriteArrayList<>();
-
-    final public ArrayList<Force> forces = new ArrayList<>(), globalForces = new ArrayList<>();
+    final private TickMachine tickMachine;
 
     /**
      * Largeur et hauteur de la simulation en mètres
@@ -118,9 +99,10 @@ public class Physics {
         this.height = height;
         this.isRealtime = isRealtime;
         this.fixedDeltaTime = fixedDeltaTime;
+        this.chunkCount.set(horizontalChunkCount, verticalChunkCount);
 
+        tickMachine = new TickMachine(this);
         processingThread = new ProcessingThread(this, new MillisClock(), refreshRate);
-        buildChunks(horizontalChunkCount, verticalChunkCount, width * 1.0f / horizontalChunkCount, height * 1.0f / verticalChunkCount);
     }
 
     /**
@@ -149,16 +131,21 @@ public class Physics {
     }
 
     /**
-     * Ajoute une entité au monde.
+     * Ajoute une entité au monde de manière safe.
      * TODO: (Vérifier par la même occasion s'il faut redimensionner les Chunks ou non pas pour l'instant)
      */
-    public void addEntity(Entity e) {
+    public void insertEntity(Entity e) {
 
-        entities.add(e);
+        tickMachine.current().entitiesToInsert.add(e);
+    }
 
-        for (int a : collider.getChunksContaining(e))
-            if (a >= 0 && a < totalChunkCount)
-                chunks.get(a).entities.add(e);
+    /**
+     * Ajoute une entité au monde de manière non-safe (insertion directe), à faire à l'init.
+     * @param e
+     */
+    public void placeEntity(Entity e) {
+
+        tickMachine.current().entities.put(e.uuid, e);
     }
 
     /**
@@ -169,31 +156,59 @@ public class Physics {
 
         entity.setActivated(false);
 
-        entities.remove(entity);
-        forces.removeIf(force -> force.affects(entity));
+        tickMachine.current().entitiesToRemove.add(entity.uuid);
         Collinsa.INSTANCE.getMonitoring().entityMonitoring.stopMonitoring(entity);
     }
+    /**
+     * Supprime une entité du monde
+     * @param uuid uuid de l'entité à supprimer
+     */
+    public void removeEntity(UUID uuid) {
+
+        tickMachine.getPrev().entities.get(uuid).setActivated(false);
+
+        tickMachine.getPrev().entitiesToRemove.add(uuid);
+        Collinsa.INSTANCE.getMonitoring().entityMonitoring.stopMonitoring(uuid);
+    }
+
+    public void addForce(Force force) {
+
+        tickMachine.current().forces.add(force);
+    }
+    public void addForce(Force force, Object dummy) {
+
+        tickMachine.current().forces.add(force);
+        tickMachine.getPrev().forces.add(force);
+    }
+
+    public void addGlobalForce(Force globalForce) {
+
+        tickMachine.current().globalForces.add(globalForce);
+    }
+    public void addGlobalForce(Force globalForce, Object dummy) {
+
+        tickMachine.current().globalForces.add(globalForce);
+        tickMachine.getPrev().globalForces.add(globalForce);
+    }
+
 
     /**
      * Replace une entité dans les Chunk auxquels il appartient
      * @param entity entité à replacer
      */
-    public void spatialHashing(Entity entity) {
+    public void spatialHashing(Entity entity, Tick tick) {
 
         for (int a : collider.getChunksContaining(entity))
             if (a >= 0 && a < totalChunkCount)
-                chunks.get(a).entities.add(entity);
+                tick.chunks.get(a).entities.add(entity);
     }
 
     /**
      * Replace toutes les entités dans les Chunks
      */
-    public void spatialHashing() {
+    public void spatialHashing(Tick tick) {
 
-        for (Entity e : entities)
-            for (int a : collider.getChunksContaining(e))
-                if (a >= 0 && a < totalChunkCount)
-                    chunks.get(a).entities.add(e);
+        tick.entities.forEach( (uuid, entity) -> spatialHashing(entity, tick));
     }
 
     /**
@@ -204,12 +219,12 @@ public class Physics {
      * @param h hauteur d'un chunk
      * @see Chunk
      */
-    private void buildChunks(int n_x, int n_y, float w, float h) {
+    public void buildChunks(Tick tick, int n_x, int n_y, float w, float h) {
 
-        chunks.clear();
+        tick.chunks.clear();
         for (int y = 0; y < n_y; ++y)
             for (int x = 0; x < n_x; ++x)
-                chunks.add(new Chunk(x * w, y * h, w, h));
+                tick.chunks.add(new Chunk(x * w, y * h, w, h));
 
         chunkSize.set(w, h);
         chunkCount.set(n_x, n_y);
@@ -219,9 +234,9 @@ public class Physics {
     /**
      * Vide le contenu de tous les chunks
      */
-    public void clearChunks() {
+    public void clearChunks(Tick tick) {
 
-        chunks.forEach(chunk -> chunk.entities.clear());
+        tick.chunks.forEach(chunk -> chunk.entities.clear());
     }
 
     /**
@@ -298,7 +313,7 @@ public class Physics {
                 }
             });
 
-            addEntity(circle);
+            insertEntity(circle);
 
             try {
                 Thread.sleep((long) (2 * processingThread.getClock().getLastElapsed() * processingThread.getClock().toSec() * 1000));
@@ -322,7 +337,7 @@ public class Physics {
 
         float minDistance = Float.POSITIVE_INFINITY, tmp;
         Entity hitEntity = null;
-        for (Entity test : collider.getNearbyEntities(entity))
+        for (Entity test : collider.getNearbyEntities(tickMachine.current(), entity))
             if (entity.getAABB().intersects(test.getAABB())) {
                 if ((tmp=entity.getPos().sqrdDist(test.getPos())) < minDistance) {
                     minDistance = tmp;
@@ -647,7 +662,9 @@ public class Physics {
 
         // coefficient d'impulsion en fonction des masses et de la restitution
         // impulsion normale = k * vitesseRelative.normale
-        return (1 + e) * Math.abs(relativeSpeed.dot(normalBtoA)) / inverseMassSum;
+        float val = (1 + e) * Math.abs(relativeSpeed.dot(normalBtoA)) / inverseMassSum;
+
+        return val;
     }
 
     /**
@@ -721,9 +738,9 @@ public class Physics {
      * Renvoie l'array list contenant toutes les entités de la simulation
      * @return l'array list contenant toutes les entités
      */
-    public CopyOnWriteArrayList<Entity> getEntities() {
+    public Map<UUID, Entity> getEntities() {
 
-        return entities;
+        return Collections.synchronizedMap(tickMachine.current().entities);
     }
 
     /**
@@ -733,7 +750,7 @@ public class Physics {
      */
     public ArrayList<Chunk> getChunks() {
 
-        return chunks;
+        return tickMachine.current().chunks;
     }
 
     /**
@@ -776,11 +793,22 @@ public class Physics {
      * Redimensionne le monde. Mieux vaut le faire pendant que la simulation est en pause pour éviter les ConcurrentModificationException liées à l'ArrayList des Chunks
      * @param newSize nouvelle taille du monde
      */
+    @Deprecated // FIXME
     public void resize(Vec2f newSize) {
 
         setWidth(newSize.x);
         setHeight(newSize.y);
-        buildChunks((int)chunkCount.x, (int)chunkCount.y, newSize.x / chunkCount.x, newSize.y / chunkCount.y);
+        buildChunks(tickMachine.getPrev(), (int)chunkCount.x, (int)chunkCount.y, newSize.x / chunkCount.x, newSize.y / chunkCount.y);
+        spatialHashing(tickMachine.getPrev());
+    }
+
+    @Deprecated // FIXME
+    public void resizeCurrent(Vec2f newSize) {
+
+        setWidth(newSize.x);
+        setHeight(newSize.y);
+        buildChunks(tickMachine.current(), (int)chunkCount.x, (int)chunkCount.y, newSize.x / chunkCount.x, newSize.y / chunkCount.y);
+        spatialHashing(tickMachine.current());
     }
 
     /**
@@ -894,5 +922,15 @@ public class Physics {
     public String toString() {
 
         return "Physics[ Size: [" + width + "m x " + height + "m], " + "Chunks [" + (chunkCount.x * chunkCount.y) + "], Collider: \n    " + collider;
+    }
+
+    public Tick getLastTick() {
+
+        return tickMachine.last();
+    }
+
+    public TickMachine getTickMachine() {
+
+        return tickMachine;
     }
 }

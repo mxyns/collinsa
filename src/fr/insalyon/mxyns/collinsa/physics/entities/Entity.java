@@ -12,11 +12,17 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Représente une Entité (un objet ou un élément de la simulation) de manière générale
  */
 public abstract class Entity implements Renderable {
+
+    /**
+     * Unique identifier, used in order to find the corresponding Entity in different Ticks
+     */
+    public final UUID uuid;
 
     /**
      * Vec2f position de l'entité
@@ -89,9 +95,15 @@ public abstract class Entity implements Renderable {
     final private LinkedHashSet<CollisionListener> listeners = new LinkedHashSet<>();
 
     /**
-     * Constructeur global
+     * Constructeurs globaux
      */
     private Entity() {
+
+        this(UUID.randomUUID());
+    }
+    protected Entity(UUID uid) {
+
+        this.uuid = uid == null ? UUID.randomUUID() : uid;
 
         vel = Vec2f.zero();
         acc = Vec2f.zero();
@@ -101,6 +113,11 @@ public abstract class Entity implements Renderable {
 
         inertia = new Inertia(this);
         setMaterial(Material.DUMMY.copy());
+    }
+    protected Entity(UUID uid, Vec2f pos) {
+
+        this(uid);
+        this.pos = pos.copy();
     }
 
     /**
@@ -466,17 +483,43 @@ public abstract class Entity implements Renderable {
         dest.setRot(rot);
         dest.setAngVel(angVel);
         dest.setAngAcc(angAcc);
-        dest.setFillColor(new Color(fillColor.getRGB()));
-        dest.setOutlineColor(new Color(outlineColor.getRGB()));
+        if (fillColor != null)
+            dest.setFillColor(new Color(fillColor.getRGB()));
+        if (outlineColor != null)
+            dest.setOutlineColor(new Color(outlineColor.getRGB()));
         dest.setCollisionType(collisionType);
-        dest.setMaterial(material.copy());
+        dest.material = material.copy();
+        dest.inertia.setMass(inertia.getMass());
+        dest.inertia.setJ(inertia.getJ());
         dest.setActivated(activated);
         dest.lifespan = lifespan;
         dest.lived = lived;
 
+        dest.listeners.addAll(listeners);
+
         if (Collinsa.INSTANCE.getMonitoring().entityMonitoring.isMonitored(this))
             Collinsa.INSTANCE.getMonitoring().monitor(dest);
 
+        dest.updateAABB();
+
         return dest;
+    }
+
+    public String toString() {
+
+        return String.format("[" +
+                             "activated=%b\n" +
+                             "pos=%s\n" +
+                             "vel=%s\n" +
+                             "acc=%s\n" +
+                             "rot=%s\n" +
+                             "angVel=%s\n" +
+                             "angAcc=%s\n" +
+                             "lived=%e until it reaches lifespan=%e\n" +
+                             "collisionType=%s\n" +
+                             "material=%s\n" +
+                             "inertia=%s\n" +
+                             "colors : outline=%s, fill=%s\n",
+                             activated, pos, vel, acc, rot, angVel, angAcc, lived, lifespan, collisionType, material, inertia, outlineColor, fillColor);
     }
 }

@@ -7,7 +7,6 @@ import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
 import fr.insalyon.mxyns.collinsa.physics.forces.Gravity;
-import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.physics.forces.Spring;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
@@ -25,7 +24,7 @@ public class Preset_Force extends Preset {
         Circle balle1 = new Circle(new Vec2f(350, 300), 50);
         Circle balle2 = new Circle(new Vec2f(550, 300), 10);
 
-        balle2.setVel(0, 200);
+        //balle2.setVel(0, 200);
         balle1.getInertia().setMass(1e17f);
         System.out.println("balle1 inertia " + balle1.getInertia());
 
@@ -34,15 +33,15 @@ public class Preset_Force extends Preset {
         balle4.getInertia().setMass(10);
         carre.setCollisionType(Collision.CollisionType.CLASSIC);
 
-        physics.addEntity(balle1);
-        physics.addEntity(balle2);
-        physics.addEntity(carre);
-        physics.addEntity(balle4);
-        physics.forces.add(new Gravity(balle2, balle1));
-        physics.forces.add(new PlanetGravity(balle4, 2));
+        physics.placeEntity(balle1);
+        physics.placeEntity(balle2);
+        physics.placeEntity(carre);
+        physics.placeEntity(balle4);
+        physics.addForce(new Gravity(balle2, balle1), 0);
+        //physics.addForce(new PlanetGravity(balle4, 2), 0);
 
         Spring spring;
-        physics.forces.add(spring = new Spring(carre, balle4, 10, 100));
+        physics.addForce(spring = new Spring(carre, balle4, 10, 100), 0);
         spring.toSourceApplicationPointLocal = new Vec2d(0, carre.getSize().y * .5f);
     }
 }

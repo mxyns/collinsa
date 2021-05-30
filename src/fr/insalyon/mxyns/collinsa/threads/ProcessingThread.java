@@ -8,8 +8,8 @@ import fr.insalyon.mxyns.collinsa.physics.collisions.Collider;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
 import fr.insalyon.mxyns.collinsa.physics.forces.Force;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.utils.monitoring.EntityMonitoring;
-import fr.insalyon.mxyns.collinsa.utils.monitoring.Monitoring;
 
 import java.awt.Color;
 
@@ -28,8 +28,6 @@ public class ProcessingThread extends ClockedThread {
      */
     private Collider collider;
 
-    private Monitoring monitoring;
-
     /**
      * Nombre de tick par secondes à générer visé par le Thread, s'il y arrive, il se fixe autour.
      * Short car jamais plus grand que 32,767 fps
@@ -40,6 +38,8 @@ public class ProcessingThread extends ClockedThread {
      * Délai de base entre chaque tick en millisecondes, si le calcul prenait un temps de calcul de 0 (ms ou ns selon précision)
      */
     private int baseDelay;
+
+    public static boolean stepTick = false;
 
     /**
      * Crée un Thread de calcul à partir d'une simulation (Physics), avec une précision par défaut en milliseconde et un refreshRate de 0
@@ -72,6 +72,7 @@ public class ProcessingThread extends ClockedThread {
         this.collider = physics.getCollider();
         this.refreshRate = (short)refreshRate;
         this.baseDelay = 1000 / refreshRate;
+        setName("collinsa-processing");
     }
 
     /**
@@ -84,56 +85,74 @@ public class ProcessingThread extends ClockedThread {
     @Override
     public void tick(long elapsedTime) {
 
+        // Le tick 0 est déjà créé à l'initialisation donc on commence par finir le tick précédent et récupérer le nouveau
+        Tick readTick = physics.getTickMachine().finished(physics, deltaTime);
+        Tick writeTick = physics.getTickMachine().current();
+
+        readTick.entitiesToInsert.forEach( entity -> writeTick.entities.put(entity.uuid, entity));
+        readTick.entitiesToRemove.forEach(writeTick.entities::remove);
+
+        physics.spatialHashing(writeTick);
+
         // Sélection du temps à utiliser
         deltaTime = physics.isRealtime() ? elapsedTime : physics.getFixedDeltaTime();
 
         physics.totalElapsedTime += deltaTime;
 
+        // TODO : access from a 'Monitoring' instance
         EntityMonitoring entityMonitoring = Collinsa.INSTANCE.getMonitoring().entityMonitoring;
 
         // Test de mise à jour des positions, vitesses, accélérations
-        for (Entity entity : physics.getEntities()) {
+        readTick.entities.forEach( (uuid, readEntity) -> {
+
+            Entity writeEntity = writeTick.entities.get(uuid); // next state of the entity
+            if (writeEntity == null) { // Entity must have been removed
+                return;
+            }
+
             // 1ère étape : mettre à jour les éléments
             // Pour le test on bloque les entités en bas de l'écran pour pas qu'elles se tirent
-            if (entity.getPos().y <= physics.getHeight() && entity.getPos().y >= 0 && entity.getPos().x >= 0 && entity.getPos().x <= physics.getWidth()) {
-                if (entity.isActivated()) {
+            if (readEntity.getPos().y <= physics.getHeight() && readEntity.getPos().y >= 0 && readEntity.getPos().x >= 0 && readEntity.getPos().x <= physics.getWidth()) {
+                if (readEntity.isActivated()) {
 
-                    if (entity.update(deltaTime * clock.toSec())) {
-                        if (entityMonitoring.isMonitored(entity)) {
-                            entityMonitoring.logScalarInfo(entity, physics.totalElapsedTime);
-                            entityMonitoring.logVectorialInfo(entity, physics.totalElapsedTime);
+                    if (writeEntity.update(deltaTime * clock.toSec())) {
+                        if (entityMonitoring.isMonitored(readEntity)) { // TODO : fix monitoring, it's possible that it won't work bc now &writeEntity != &readEntity but writeEntity.equals(readEntity) so hashCodes are maybe different
+                            entityMonitoring.logScalarInfo(writeEntity, physics.totalElapsedTime);
+                            entityMonitoring.logVectorialInfo(writeEntity, physics.totalElapsedTime);
                         }
                     } else
-                        physics.removeEntity(entity);
+                        physics.removeEntity(writeEntity);
 
-
-                    if (!entity.isKinematic()) {
-                        entity.setAcc(0, 0);
-                        entity.setAngAcc(0);
+                    if (!readEntity.isKinematic()) {
+                        writeEntity.setAcc(0, 0);
+                        writeEntity.setAngAcc(0);
                     }
                 }
             } else
-                physics.removeEntity(entity);
-        }
+                physics.removeEntity(writeEntity);
+        });
 
         // 1-bis étape : on applique les forces
-        for (Force force : physics.forces)
-            force.apply();
+        for (Force force : readTick.forces) // TODO : think about changing source & target bc now it is a copy so its not the same lol
+            force.apply(readTick);
 
-        for (Entity entity : physics.getEntities()) {
+        readTick.entities.forEach( (uuid, readEntity) -> {
 
             // 1-ter étape : on applique les forces globales (on le fait ici pour éviter de re-parcourir une deuxième fois la liste des entités
-            for (Force globalForce : physics.globalForces) {
-                if (!globalForce.affects(entity)) { // on évite d'appliquer la force d'un objet sur lui même
-                    globalForce.setTarget(entity);
-                    globalForce.apply();
+            for (Force globalForce : readTick.globalForces) {
+                if (!globalForce.affects(uuid)) { // on évite d'appliquer la force d'un objet sur lui même
+                    globalForce.setTarget(writeTick.entities.get(uuid));
+                    globalForce.apply(readTick);
                 }
             }
 
+            // On met à jour la AABB de l'entité en lecture puisque c'est à partir d'elle qu'on va faire les calculs
+            readEntity.update(0);
+
             // 2ème étape : détection de collisions
-            for (Entity target : collider.getNearbyEntities(entity))
-                collider.checkForCollision(entity, target);
-        }
+            for (Entity target : collider.getNearbyEntities(readTick, readEntity))
+                collider.checkForCollision(readEntity, target);
+        });
 
      // 3ème étape : résolution des collisions détectées
         if (collider.preciseResolution) {
@@ -141,6 +160,7 @@ public class ProcessingThread extends ClockedThread {
             // TODO: do some fancy collision time calculations and resolve collisions by time order accounting for simultaneous collisions when time difference is lower than a threshold
 
         } else // Résout les collisions dans leur ordre de détection qui est aléatoire (rapide mais n'est pas déterministe)
+
             for (Collision coll : collider.getRegisteredCollision()) {
 
                 if (collider.displayCollisionColor) {
@@ -148,18 +168,24 @@ public class ProcessingThread extends ClockedThread {
                     coll.getIncident().setColor(Color.red);
                 }
 
-                coll.resolve();
+                // TODO : change way to resolve collision so that modifications are applied to writeTick's entities copies
+                coll.resolve(writeTick.entities.get(coll.getReference().uuid), writeTick.entities.get(coll.getIncident().uuid));
 
-                // trigger collision listeners
+                // trigger collision listeners (done in resolve)
             }
 
             // 4ème étape : on remet à jour les Chunks
-            physics.clearChunks();
+            physics.clearChunks(writeTick);
             collider.clearCollisions();
-            physics.spatialHashing();
+            physics.spatialHashing(writeTick);
 
-            // 5ème on régule le délai
+            // 5ème on régule le délai pour avoir un nombre de fps constant
             regulateDelay(baseDelay, elapsedTime);
+
+            // TODO : also
+            //    - check if changing chunk counts will cause problems or not
+
+        stepTick = false;
     }
 
     /**

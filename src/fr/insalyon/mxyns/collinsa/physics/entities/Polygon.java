@@ -5,6 +5,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Geometry;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
+import java.util.UUID;
 
 public abstract class Polygon extends Entity {
 
@@ -31,6 +32,14 @@ public abstract class Polygon extends Entity {
         this.normals = new Vec2f[n];
         this.local_vertices = new Vec2f[n];
     }
+    protected Polygon(UUID uuid, Vec2f pos, int n) {
+
+        super(uuid, pos);
+        this.vertices = new Vec2f[n];
+        this.edges = new Vec2f[n];
+        this.normals = new Vec2f[n];
+        this.local_vertices = new Vec2f[n];
+    }
 
     /**
      * Constructeur d'un polygone quelconque à partir d'un ensemble de points dans le repère local (relatif par rapport au centre)
@@ -41,6 +50,19 @@ public abstract class Polygon extends Entity {
     public Polygon(Vec2f pos, Vec2f[] local_vertices) {
 
         this(pos, local_vertices.length);
+
+        this.local_vertices = new Vec2f[local_vertices.length];
+
+        Vec2f barycenter = Geometry.getBarycenter(local_vertices);
+        for (int i = 0; i < local_vertices.length; ++i)
+            this.local_vertices[i] = local_vertices[i].copy().sub(barycenter);
+
+        updateVertices();
+        getInertia().update();
+    }
+    protected Polygon(UUID uuid, Vec2f pos, Vec2f[] local_vertices) {
+
+        this(uuid, pos, local_vertices.length);
 
         this.local_vertices = new Vec2f[local_vertices.length];
 

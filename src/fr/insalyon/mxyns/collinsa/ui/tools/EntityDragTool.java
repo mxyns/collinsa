@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.util.UUID;
 
 /**
  * Outil permettant de déplacer une entité dans la simulation en la déplaçant avec la souris
@@ -27,7 +28,7 @@ public class EntityDragTool extends Tool {
     /**
      * Entité en train d'être déplacée
      */
-    private Entity grabbedEntity;
+    private UUID grabbedEntity;
 
     /**
      * Constructeur qui précise le nom, le tooltip et le chemin de l'icone de l'outil
@@ -49,7 +50,7 @@ public class EntityDragTool extends Tool {
         if (selected != null) {
             dragOrigin = e.getPoint();
             previousState = selected.isActivated();
-            grabbedEntity = selected;
+            grabbedEntity = selected.uuid;
 
             if (e.getButton() == MouseEvent.BUTTON1)
                 selected.setActivated(false);
@@ -70,8 +71,10 @@ public class EntityDragTool extends Tool {
 
         double renderFactor = Collinsa.INSTANCE.getRenderer().getRenderFactor();
 
-        grabbedEntity.getPos().sub((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderFactor), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderFactor));
-        grabbedEntity.update(0);
+        Entity toEdit = Collinsa.INSTANCE.getPhysics().getTickMachine().getPrev().entities.get(grabbedEntity);
+        toEdit.getPos().sub((float) ((dragOrigin.getX() - e.getPoint().getX())  / renderFactor), (float) ((dragOrigin.getY() - e.getPoint().getY()) / renderFactor));
+
+        //toEdit.update(0);
 
         dragOrigin = e.getPoint();
     }
@@ -83,7 +86,7 @@ public class EntityDragTool extends Tool {
     public void onMouseReleased(MouseEvent e) {
 
         if (grabbedEntity != null)
-            grabbedEntity.setActivated(previousState);
+            Collinsa.INSTANCE.getPhysics().getEntities().get(grabbedEntity).setActivated(previousState);
 
         grabbedEntity = null;
         dragOrigin = null;

@@ -29,6 +29,7 @@ public class Preset_1 extends Preset {
         rect2.setAngVel(-2f);
         rect2.setRot(0.2f);
         rect2.setVel(new Vec2f(0, 20));
+        rect2.setAcc(new Vec2f(60, 0));
 
         // Test not aligned circle-circle collision
         Circle circle1 = new Circle(rect1.getPos().x - 500, rect1.getPos().y, 20);
@@ -37,10 +38,14 @@ public class Preset_1 extends Preset {
 
         // Test moving circle-circle
         Circle circle3 = new Circle(300, 600, 20);
-        circle3.getInertia().setMass(1000);
+        circle3.getInertia().setMass(1);
         Circle circle4 = new Circle(20, 600, 5);
+        circle4.getInertia().setMass(1);
         circle4.setVel(new Vec2f(120, 0));
         circle3.setVel(new Vec2f(0, 0));
+
+        System.out.println(circle3.getInertia());
+        System.out.println(circle4.getInertia());
 
         // Test rotated circle-rect collision
         Rect rect3 = new Rect(collinsa.getPhysics().getWidth() / 2 + 300, collinsa.getPhysics().getHeight() / 2, 50, 150);
@@ -65,22 +70,22 @@ public class Preset_1 extends Preset {
 
             // On teste une accélération vers le bas type gravité = 10g
             circle.setVel(new Vec2f((float) (Math.random() * 200) - 100, (float) (Math.random() * 200) - 100));
-            physics.addEntity(circle);
+            physics.placeEntity(circle);
         }
 
         // On ajoute les entités au moteur physique
-        physics.addEntity(rect1);
-        physics.addEntity(rect2);
-        physics.addEntity(rect3);
-        physics.addEntity(circle1);
-        physics.addEntity(circle2);
-        physics.addEntity(circle3);
-        physics.addEntity(circle4);
-        physics.addEntity(circle5);
+        physics.placeEntity(rect1);
+        physics.placeEntity(rect2);
+        physics.placeEntity(rect3);
+        physics.placeEntity(circle1);
+        physics.placeEntity(circle2);
+        physics.placeEntity(circle3);
+        physics.placeEntity(circle4);
+        physics.placeEntity(circle5);
 
         Rect test = new Rect(0, 0, 300, 300);
         test.setRot(0.2f);
 
-        physics.addEntity(test);
+        physics.placeEntity(test);
     }
 }

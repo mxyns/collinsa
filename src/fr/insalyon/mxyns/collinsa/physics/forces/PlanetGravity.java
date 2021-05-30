@@ -2,6 +2,7 @@ package fr.insalyon.mxyns.collinsa.physics.forces;
 
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Entity;
+import fr.insalyon.mxyns.collinsa.physics.ticks.Tick;
 import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 
@@ -39,21 +40,23 @@ public class PlanetGravity extends Force {
     /**
      * S'applique seulement à target donc on simplifie la méthode
      * @return true si appliquée
+     * @param readTick
      */
     @Override
-    public boolean apply() {
+    public boolean apply(Tick readTick) {
 
         if (target.getCollisionType() == Collision.CollisionType.CLASSIC)
-            applyForce(target, lastValue = computeValue());
+            applyForce(target, lastValue = computeValue(readTick));
 
         return true;
     }
 
     /**
      * @return F = gFactor * EARTH_GRAVITY * m(target) * Vec2f(0, 1) (vers le bas)
+     * @param readTick
      */
     @Override
-    protected Vec2d computeValue() {
+    protected Vec2d computeValue(Tick readTick) {
 
         return new Vec2d(0, EARTH_GRAVITY * gFactor * target.getInertia().getMass());
     }
@@ -75,8 +78,14 @@ public class PlanetGravity extends Force {
      * @return 0
      */
     @Override
-    protected double computeMoment(Vec2d GM, Vec2d value) {
+    protected double computeMoment(Tick readTick, Vec2d GM, Vec2d value) {
 
         return 0;
+    }
+
+    @Override
+    public PlanetGravity copy() {
+
+        return this.target == null ? new PlanetGravity(gFactor) : new PlanetGravity(this.target, gFactor);
     }
 }

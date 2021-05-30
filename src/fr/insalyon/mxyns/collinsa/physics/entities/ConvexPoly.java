@@ -3,6 +3,7 @@ package fr.insalyon.mxyns.collinsa.physics.entities;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * Polygone convexe simple, points ordonnés dans le sens de l'angle (avec l'axe Ox) décroissant (horaire)
@@ -17,6 +18,10 @@ public class ConvexPoly extends Polygon {
     public ConvexPoly(Vec2f pos, int n) {
 
         super(pos, n);
+    }
+    protected ConvexPoly(UUID uuid, Vec2f pos, int n) {
+
+        super(uuid, pos, n);
     }
 
     /**
@@ -50,6 +55,10 @@ public class ConvexPoly extends Polygon {
 
         super(pos, vertices);
     }
+    protected ConvexPoly(UUID uuid, Vec2f pos, Vec2f... vertices) {
+
+        super(uuid, pos, vertices);
+    }
 
     public String toString() {
 
@@ -59,7 +68,7 @@ public class ConvexPoly extends Polygon {
     @Override
     public Entity copy() {
 
-        ConvexPoly copy = new ConvexPoly(pos, local_vertices);
+        ConvexPoly copy = new ConvexPoly(uuid, pos, local_vertices);
         return copyTo(copy);
     }
 }

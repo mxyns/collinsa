@@ -27,7 +27,7 @@ public class Preset_GlobalForces extends Preset {
         //attractor.setCollisionType(Collision.CollisionType.KINEMATIC);
         attractor.setFillColor(Color.red);
         Utils.applyParameter("--m", 5f, args, attractor.getInertia()::setMass);
-        physics.addEntity(attractor);
+        physics.placeEntity(attractor);
 
         for (int i = 0; i < Utils.getParameter("--n", 300, args); ++i) {
 
@@ -38,10 +38,10 @@ public class Preset_GlobalForces extends Preset {
 
             // On teste une accélération vers le bas type gravité = 10g
             //circle.setVel(speed);
-            physics.addEntity(circle);
+            physics.placeEntity(circle);
         }
 
-        physics.globalForces.add(new Spring(attractor, null, 100, 100));
-        physics.globalForces.add(new Gravity(attractor, null));
+        physics.addGlobalForce(new Spring(attractor, null, 100, 100));
+        physics.addGlobalForce(new Gravity(attractor, null));
     }
 }

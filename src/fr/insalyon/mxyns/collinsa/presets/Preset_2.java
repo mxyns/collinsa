@@ -49,17 +49,17 @@ public class Preset_2 extends Preset {
             Circle circle = new Circle((int) (Math.random() * collinsa.getPhysics().getWidth()), (int) (Math.random() * collinsa.getPhysics().getHeight()), 5);
             circle.getMaterial().setRestitution(e);
 
-            circle.getInertia().setMass(m);
+            // circle.getInertia().setMass(m);
 
             // On redéfinit la couleur du matériau
             circle.setColor(new Color((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256)));
 
             // On teste une accélération vers le bas type gravité = 10g
             circle.setVel(new Vec2f((float) (Math.random() * 200) - 100, (float) (Math.random() * 200) - 100));
-            physics.addEntity(circle);
+            physics.placeEntity(circle);
         }
 
         // On ajoute les entités au moteur physique
-        physics.addEntity(moulin);
+        physics.placeEntity(moulin);
     }
 }

@@ -17,13 +17,13 @@ public class Collision {
      * Les noms 'reference' et 'incident' ne représentent pas grand chose, ils permettent seulement de mieux voir la différence entre les deux entités que si on utilisait entity1/entityA et entity2/entityB
      * donc Collision(A, B) ≡ Collision(B, A)
      */
-    Entity reference, incident;
+    final Entity reference, incident;
 
     /**
      * La fonction à executer pour résoudre la collision.
      * Permet de ne pas avoir à refaire des comparaisons de types d'entités ou de créer plein de sous-classes Collision pour chaque type de collision
      */
-    Function<Collision, Boolean> manifoldFunction;
+    final Function<Collision, Boolean> manifoldFunction;
 
     /**
      * Normale à la surface de la collision de l'incident vers la référence
@@ -61,7 +61,7 @@ public class Collision {
     /**
      * Execute la fonction de resolution
      */
-    public void resolve() {
+    public void resolve(Entity referenceWrite, Entity incidentWrite) {
 
         // Une collision entre deux éléments cinématiques ne doit pas être résolue puisqu'ils ignorent les modifications de position/vitesse/accélération/... causées par les autres éléments
         // On évite donc des calculs inutiles puisque les résultats ne seront pas utilisés. Par contre, on peut réagir à la détection de la collision (utilisation d'objets comme trigger box par exemple)
@@ -86,7 +86,7 @@ public class Collision {
                 }
 
                 // Push entities away to prevent them from intersecting
-                Physics.displace(reference, incident, normal, Utils.max(penetrations), getType() == CollisionType.KINEMATIC);
+                Physics.displace(referenceWrite, incidentWrite, normal, Utils.max(penetrations), getType() == CollisionType.KINEMATIC);
 
                 // Foreach contact
                 for (int i = 0; i < contactCount; ++i) {
@@ -95,20 +95,20 @@ public class Collision {
                     float i_n = Physics.bounceImpulseAmplitude(reference, incident, centerToContactReference[i], centerToContactIncident[i], normal) / contactCount;
 
                     if (!reference.isKinematic())
-                        Physics.applyImpulse(reference, centerToContactReference[i], normal.multOut(i_n));
+                        Physics.applyImpulse(referenceWrite, centerToContactReference[i], normal.multOut(i_n));
 
                     if (!incident.isKinematic())
-                        Physics.applyImpulse(incident, centerToContactIncident[i], normal.multOut(-i_n));
+                        Physics.applyImpulse(incidentWrite, centerToContactIncident[i], normal.multOut(-i_n));
 
                     // Apply friction
                     Vec2f frictionImpulse = Physics.frictionImpulseVector(reference, incident, centerToContactReference[i], centerToContactIncident[i], normal, i_n);
                     if (frictionImpulse != null) {
 
                         if (!reference.isKinematic())
-                            Physics.applyImpulse(reference, centerToContactReference[i], frictionImpulse);
+                            Physics.applyImpulse(referenceWrite, centerToContactReference[i], frictionImpulse);
 
                         if (!incident.isKinematic())
-                            Physics.applyImpulse(incident, centerToContactIncident[i], frictionImpulse.neg());
+                            Physics.applyImpulse(incidentWrite, centerToContactIncident[i], frictionImpulse.neg());
                     }
 
                     // Notify listeners of resolution

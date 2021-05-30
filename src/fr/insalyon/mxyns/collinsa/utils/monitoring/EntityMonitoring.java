@@ -6,12 +6,16 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.UUID;
 
+/**
+ * Monitors entities in 'toMonitor' (saves position, speed, mass etc.) over time
+ */
 public class EntityMonitoring {
 
-    public HashSet<Entity> toMonitor = new HashSet<>();
-    public HashMap<Entity, LinkedHashMap<Double, Vec2f[]>> vectorialData = new HashMap<>();
-    public HashMap<Entity, LinkedHashMap<Double, HashMap<String, Double>>> scalarData = new HashMap<>();
+    public HashSet<UUID> toMonitor = new HashSet<>();
+    public HashMap<UUID, LinkedHashMap<Double, Vec2f[]>> vectorialData = new HashMap<>();
+    public HashMap<UUID, LinkedHashMap<Double, HashMap<String, Double>>> scalarData = new HashMap<>();
 
     public void logVectorialInfo(Entity entity, double time) {
 
@@ -37,20 +41,20 @@ public class EntityMonitoring {
     private void addScalarInfo(Entity entity, String dataType, double time, double value) {
 
         LinkedHashMap<Double, HashMap<String, Double>> dataOverTime;
-        if ((dataOverTime = scalarData.get(entity)) == null)
-            scalarData.put(entity, dataOverTime = new LinkedHashMap<>());
+        if ((dataOverTime = scalarData.get(entity.uuid)) == null)
+            scalarData.put(entity.uuid, dataOverTime = new LinkedHashMap<>());
 
         HashMap<String, Double> data;
         if ((data = dataOverTime.get(time)) == null)
-            scalarData.get(entity).put(time, data = new HashMap<>());
+            scalarData.get(entity.uuid).put(time, data = new HashMap<>());
 
         data.put(dataType, value);
     }
     private void addVectorialInfo(Entity entity, double time, int index, Vec2f vector) {
 
         LinkedHashMap<Double, Vec2f[]> dataOverTime;
-        if ((dataOverTime = vectorialData.get(entity)) == null)
-            vectorialData.put(entity, dataOverTime = new LinkedHashMap<>());
+        if ((dataOverTime = vectorialData.get(entity.uuid)) == null)
+            vectorialData.put(entity.uuid, dataOverTime = new LinkedHashMap<>());
 
         Vec2f[] data;
         if ((data = dataOverTime.get(time)) == null)
@@ -61,10 +65,14 @@ public class EntityMonitoring {
 
     public boolean isMonitored(Entity entity) {
 
-        return toMonitor.contains(entity);
+        return toMonitor.contains(entity.uuid);
     }
+
     public boolean stopMonitoring(Entity entity) {
 
-        return toMonitor.remove(entity);
+        return toMonitor.remove(entity.uuid);
+    }    public boolean stopMonitoring(UUID uuid) {
+
+        return toMonitor.remove(uuid);
     }
 }

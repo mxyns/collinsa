@@ -139,4 +139,9 @@ public class AABB {
                y < other.y + other.h &&
                h + y > other.y;
     }
+
+    public String toString() {
+
+        return "AABB (" + x + ", " + y + ") -> " + w + "x" + h;
+    }
 }

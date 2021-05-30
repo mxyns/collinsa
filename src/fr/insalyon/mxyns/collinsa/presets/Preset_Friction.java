@@ -6,7 +6,6 @@ import fr.insalyon.mxyns.collinsa.physics.Physics;
 import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.entities.Rect;
-import fr.insalyon.mxyns.collinsa.physics.forces.PlanetGravity;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 
 import java.awt.Color;
@@ -29,14 +28,14 @@ public class Preset_Friction extends Preset {
         r_sticky.setCollisionType(Collision.CollisionType.KINEMATIC);
         r_sticky.setMaterial(Material.STICKY.copy());
         r_sticky.getInertia().setMass(1.5f);
-        physics.addEntity(r_sticky);
+        physics.placeEntity(r_sticky);
 
         Rect r_bouncy = new Rect(250, 300, 200, 30);
         r_bouncy.setMaterial(Material.BOUNCY.copy());
         r_bouncy.getInertia().setMass(100);
         r_bouncy.setRot(.5f);
         r_bouncy.setCollisionType(Collision.CollisionType.KINEMATIC);
-        physics.addEntity(r_bouncy);
+        physics.placeEntity(r_bouncy);
 
         Rect smallMill = new Rect(175, 425, 100, 10);
         smallMill.setMaterial(Material.DUMMY.copy());
@@ -44,14 +43,14 @@ public class Preset_Friction extends Preset {
         smallMill.setRot(.5f);
         smallMill.setAngVel(-2f);
         smallMill.setCollisionType(Collision.CollisionType.KINEMATIC);
-        physics.addEntity(smallMill);
+        physics.placeEntity(smallMill);
 
         Rect r_cyan = new Rect(250, 500, 500, 30);
         r_cyan.setColor(Color.cyan);
         Utils.applyParameter("--cyanMass", 5f, args, r_cyan.getInertia()::setMass);
         r_cyan.setRot(0.2f);
         r_cyan.setCollisionType(Collision.CollisionType.KINEMATIC);
-        physics.addEntity(r_cyan);
+        physics.placeEntity(r_cyan);
 
         mill = new Rect(780, 500, 275, 15);
         Utils.applyParameter("--millDF", Material.DUMMY.getDynamicFriction(), args, mill.getMaterial()::setDynamicFriction);
@@ -60,7 +59,7 @@ public class Preset_Friction extends Preset {
         mill.setAngAcc(-0.1f);
         mill.setCollisionType(Collision.CollisionType.KINEMATIC);
         mill.setActivated(true);
-        physics.addEntity(mill);
+        physics.placeEntity(mill);
 
         Rect r_landing = new Rect(725, 650, 525, 15);
         r_landing.setMaterial(Material.DUMMY.copy());
@@ -69,46 +68,49 @@ public class Preset_Friction extends Preset {
         r_landing.setRot(.0f);
         r_landing.setCollisionType(Collision.CollisionType.KINEMATIC);
         r_landing.setColor(Color.black);
-        physics.addEntity(r_landing);
-        physics.globalForces.add(new PlanetGravity(1));
+        physics.placeEntity(r_landing);
+        //physics.addGlobalForce(new PlanetGravity(1));
     }
 
     @Override
     public void loop(String[] args, Collinsa collinsa) {
 
+
+        //System.out.println("loop");
         Physics physics = collinsa.getPhysics();
         float x,y,vx,vy;
 
         int rate = Utils.getParameter("--rate", 1, args);
 
-        while (true) {
+        while (true)
+            while(physics.getEntities().size() < 2000) {
+                if (mill.getAngVel() < -1.5) mill.setAngAcc(0);
+                if (physics.getEntities().size() > rate * 10)
+                    mill.setActivated(true);
 
-            if (mill.getAngVel() < -1.5) mill.setAngAcc(0);
-            if (physics.getEntities().size() > rate*10)
-                mill.setActivated(true);
+                x = (int) (100 * Math.random()) + 30;
+                y = (int) (100 * Math.random()) + 10;
+                vx = (int) (15 * Math.random()) + 1;
+                vy = (int) (30 * Math.random()) + 1;
 
-            x = (int) (100*Math.random()) + 30;
-            y = (int) (100*Math.random()) + 10;
-            vx = (int) (15*Math.random()) + 1;
-            vy = (int) (30*Math.random()) + 1;
+                vx *= 5;
+                vy *= 5;
 
-            vx*=5f;
-            vy*=5;
+                Circle circle = new Circle(x, y, (int) (2 * Math.random()) + 2);
+                circle.setAcc(0, 10000);
+                circle.setFillColor(null);
+                circle.setOutlineColor(Color.yellow);
+                Utils.applyParameter("--m", 1f, args, circle.getInertia()::setMass);
+                circle.setVel(vx, vy);
+                Utils.applyParameter("--e", Material.DUMMY.getRestitution(), args, circle.getMaterial()::setRestitution);
 
-            Circle circle = new Circle(x, y, (int) (2 * Math.random()) + 2);
-            circle.setFillColor(null);
-            circle.setOutlineColor(Color.yellow);
-            Utils.applyParameter("--m", 1f, args, circle.getInertia()::setMass);
-            circle.setVel(vx, vy);
-            Utils.applyParameter("--e", Material.DUMMY.getRestitution(), args, circle.getMaterial()::setRestitution);
+                physics.insertEntity(circle);
 
-            physics.addEntity(circle);
-
-            try {
-                Thread.sleep(1000 / rate);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                try {
+                    Thread.sleep(1000 / rate);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
     }
 }

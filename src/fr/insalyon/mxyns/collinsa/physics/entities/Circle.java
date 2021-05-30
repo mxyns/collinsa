@@ -4,6 +4,7 @@ import fr.insalyon.mxyns.collinsa.render.Renderer;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
+import java.util.UUID;
 
 /**
  * Entitée circulaire, la plus simple possible, permet de modéliser un liquide ou une particule par exemple
@@ -20,6 +21,14 @@ public class Circle extends Entity {
      * @param pos vecteur position du centre du cercle
      * @param r rayon du cercle
      */
+    private Circle(UUID uuid, Vec2f pos, float r) {
+
+        super(uuid, pos);
+        this.r = r;
+
+        getInertia().update();
+        updateAABB();
+    }
     public Circle(Vec2f pos, float r) {
 
         super(pos);
@@ -109,15 +118,16 @@ public class Circle extends Entity {
 
     public String toString() {
 
-        return "Circle["+pos+", "+r+"]";
+        return String.format("Circle%s,r=%f]"
+                            , super.toString(), r);
     }
 
     @Override
     public Entity copy() {
 
-        Circle copy = new Circle(this.pos, this.r);
+        Circle copy = new Circle(uuid, this.pos, this.r);
         copyTo(copy);
-        copy.setR(r);
+        copy.r = r;
 
         return copy;
     }

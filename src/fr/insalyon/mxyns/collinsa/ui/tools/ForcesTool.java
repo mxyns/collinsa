@@ -205,7 +205,7 @@ public class ForcesTool extends Tool {
      */
     public void addForce(Force force) {
 
-        Collinsa.INSTANCE.getPhysics().forces.add(force);
+        Collinsa.INSTANCE.getPhysics().addForce(force);
     }
 
     /**
@@ -217,7 +217,7 @@ public class ForcesTool extends Tool {
         int reponse = JOptionPane.showConfirmDialog(Collinsa.INSTANCE.getMainFrame(), "Êtes-vous sûr de vouloir créer une force globale ?", "Création de force globale", JOptionPane.YES_NO_OPTION);
 
         if (reponse == JOptionPane.YES_OPTION)
-            Collinsa.INSTANCE.getPhysics().globalForces.add(force);
+            Collinsa.INSTANCE.getPhysics().addGlobalForce(force);
     }
 
     /**

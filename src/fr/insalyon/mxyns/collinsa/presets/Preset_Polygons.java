@@ -53,7 +53,7 @@ public class Preset_Polygons extends Preset {
                                             new Vec2f(-5f, 30)
         );
         convexPoly.setCollisionType(Collision.CollisionType.KINEMATIC);
-        physics.addEntity(convexPoly);
+        physics.placeEntity(convexPoly);
 
         Circle boule = new Circle(triangle.getPos().copy(), 20);
         boule.getPos().add(10, -50);
@@ -90,12 +90,12 @@ public class Preset_Polygons extends Preset {
         });
 
 
-        physics.addEntity(boule);
-        physics.addEntity(listenerTest);
-        physics.addEntity(sol);
-        physics.addEntity(triangle);
-        physics.addEntity(poly);
-        physics.addEntity(poly2);
-        physics.globalForces.add(new PlanetGravity(1));
+        physics.placeEntity(boule);
+        physics.placeEntity(listenerTest);
+        physics.placeEntity(sol);
+        physics.placeEntity(triangle);
+        physics.placeEntity(poly);
+        physics.placeEntity(poly2);
+        physics.addGlobalForce(new PlanetGravity(1));
     }
 }

@@ -6,6 +6,7 @@ import fr.insalyon.mxyns.collinsa.utils.geo.Vec2d;
 import fr.insalyon.mxyns.collinsa.utils.geo.Vec2f;
 
 import java.awt.Graphics2D;
+import java.util.UUID;
 
 /**
  * Entitée rectangulaire, simplifie les détections de collisions pour les objets simples
@@ -25,6 +26,15 @@ public class Rect extends ConvexPoly {
     public Rect(Vec2f pos, Vec2f size) {
 
         super(pos, 4);
+        this.size = size;
+        this.local_vertices = Geometry.getRectangeLocalCorners(this);
+
+        getInertia().update();
+        updateVertices();
+    }
+    private Rect(UUID uuid, Vec2f pos, Vec2f size) {
+
+        super(uuid, pos, 4);
         this.size = size;
         this.local_vertices = Geometry.getRectangeLocalCorners(this);
 
@@ -122,7 +132,7 @@ public class Rect extends ConvexPoly {
     @Override
     public Entity copy() {
 
-        Rect copy = new Rect(pos, size);
+        Rect copy = new Rect(uuid, pos, size);
         copyTo(copy);
 
         return copy;
