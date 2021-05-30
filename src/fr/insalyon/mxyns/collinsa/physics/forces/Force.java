@@ -185,7 +185,7 @@ public abstract class Force implements Renderable {
     }
     public boolean affects(UUID uuid) {
 
-        return uuid == source.uuid || uuid == target.uuid;
+        return (source != null && uuid == source.uuid) || (target != null && uuid == target.uuid);
     }
 
     public Entity getTarget() {

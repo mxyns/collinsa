@@ -70,7 +70,7 @@ public class TickMachine {
 
     private void copyTickTo(Physics physics, Tick origin, Tick target) {
 
-        origin.entities.forEach( (uuid, entity) -> target.entities.put(uuid, entity.copy()));
+        origin.entities.forEach((uuid, entity) -> target.entities.put(uuid, entity.copy()));
         target.entitiesToInsert.addAll(origin.entitiesToInsert);
         origin.entitiesToInsert.clear();
         target.entitiesToRemove.addAll(origin.entitiesToRemove);
@@ -78,7 +78,7 @@ public class TickMachine {
 
         physics.spatialHashing(target);
 
-        origin.forces.forEach( force -> {
+        origin.forces.forEach(force -> {
 
             Entity newSource = force.getSource() == null ? null : target.entities.get(force.getSource().uuid);
             Entity newTarget = force.getTarget() == null ? null : target.entities.get(force.getTarget().uuid);
@@ -86,8 +86,12 @@ public class TickMachine {
                 return;
             target.forces.add(force.copy(newSource, newTarget));
         });
-        // FIXME origin.globalForces.forEach( force -> target.globalForces.add(force.copy(target.entities.get(force.getSource().uuid), target.entities.get(force.getTarget().uuid))) );
+        origin.globalForces.forEach(force -> {
+            Entity sourceEntity = force.getSource() != null ? target.entities.get(force.getSource().uuid) : null;
+            Entity targetEntity = force.getTarget() != null ? target.entities.get(force.getTarget().uuid) : null;
+            target.globalForces.add(force.copy(sourceEntity, targetEntity));
+        });
 
-        target.forces.forEach( force -> System.out.println(force.lastValue));
+        target.forces.forEach(force -> System.out.println(force.lastValue));
     }
 }

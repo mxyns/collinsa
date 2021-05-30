@@ -45,6 +45,8 @@ public class PlanetGravity extends Force {
     @Override
     public boolean apply(Tick readTick) {
 
+        if (target == null) return false;
+
         if (target.getCollisionType() == Collision.CollisionType.CLASSIC)
             applyForce(target, lastValue = computeValue(readTick));
 

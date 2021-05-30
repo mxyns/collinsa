@@ -2,6 +2,7 @@ package fr.insalyon.mxyns.collinsa.presets;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
 import fr.insalyon.mxyns.collinsa.physics.Physics;
+import fr.insalyon.mxyns.collinsa.physics.collisions.Collision;
 import fr.insalyon.mxyns.collinsa.physics.entities.Circle;
 import fr.insalyon.mxyns.collinsa.physics.forces.Gravity;
 import fr.insalyon.mxyns.collinsa.physics.forces.Spring;
@@ -16,6 +17,8 @@ import java.awt.Color;
  */
 public class Preset_GlobalForces extends Preset {
 
+    Circle attractor;
+
     @Override
     public void setup(String[] args, Collinsa collinsa) {
 
@@ -23,11 +26,12 @@ public class Preset_GlobalForces extends Preset {
 
         physics.resize(new Vec2f(physics.getWidth(), physics.getHeight()));
 
-        Circle attractor = new Circle(new Vec2f(physics.getWidth() * .5f, physics.getHeight() * .5f), 50);
-        //attractor.setCollisionType(Collision.CollisionType.KINEMATIC);
+        attractor = new Circle(new Vec2f(physics.getWidth() * .5f, physics.getHeight() * .5f), 50);
+        attractor.setCollisionType(Collision.CollisionType.KINEMATIC);
         attractor.setFillColor(Color.red);
         Utils.applyParameter("--m", 5f, args, attractor.getInertia()::setMass);
         physics.placeEntity(attractor);
+        System.out.println(attractor);
 
         for (int i = 0; i < Utils.getParameter("--n", 300, args); ++i) {
 
@@ -41,7 +45,12 @@ public class Preset_GlobalForces extends Preset {
             physics.placeEntity(circle);
         }
 
-        physics.addGlobalForce(new Spring(attractor, null, 100, 100));
+        physics.addGlobalForce(new Spring(attractor, null, 20, 100));
         physics.addGlobalForce(new Gravity(attractor, null));
+    }
+
+    @Override
+    public void loop(String[] args, Collinsa collinsa) {
+        super.loop(args, collinsa);
     }
 }

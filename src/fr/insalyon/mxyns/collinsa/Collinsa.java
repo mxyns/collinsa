@@ -9,6 +9,7 @@ import fr.insalyon.mxyns.collinsa.ui.frames.MainFrame;
 import fr.insalyon.mxyns.collinsa.utils.Utils;
 import fr.insalyon.mxyns.collinsa.utils.monitoring.Monitoring;
 
+import javax.swing.*;
 import java.awt.Toolkit;
 
 import static java.lang.Thread.State.TIMED_WAITING;
@@ -43,7 +44,13 @@ public class Collinsa {
      * Crée une unique instance du programme.
      */
     public static void main(String[] args) {
-        
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException e) {
+            e.printStackTrace();
+        }
+
         // Crée l'INSTANCE unique du programme (Collinsa)
         INSTANCE = new Collinsa(1440, (int) (1440 / screenRatio));
 

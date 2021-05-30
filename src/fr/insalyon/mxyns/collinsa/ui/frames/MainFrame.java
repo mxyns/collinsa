@@ -46,7 +46,7 @@ public class MainFrame extends JFrame {
         setSize(width, height);
         setLocationRelativeTo(null);
         setLayout(null);
-        setResizable(false);
+        setResizable(true);
 
         sandboxPanel = new SandboxPanel(this);
         sandboxPanel.setBounds((int) (width * .005f), (int) (height * .049f), (int) (width * .85f), (int) (height * .908f));
