@@ -92,6 +92,6 @@ public class TickMachine {
             target.globalForces.add(force.copy(sourceEntity, targetEntity));
         });
 
-        target.forces.forEach(force -> System.out.println(force.lastValue));
+        // target.forces.forEach(force -> System.out.println(force.lastValue));
     }
 }

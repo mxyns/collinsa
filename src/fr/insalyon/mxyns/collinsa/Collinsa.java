@@ -14,8 +14,6 @@ import java.awt.Toolkit;
 
 import static java.lang.Thread.State.TIMED_WAITING;
 
-// FIXME FORCES
-
 /**
  * Génère une instance Collinsa. Link toutes les classes et fait fonctionner le programme
  */
@@ -51,6 +49,8 @@ public class Collinsa {
             e.printStackTrace();
         }
 
+        System.setProperty("sun.java2d.opengl", "true");
+
         // Crée l'INSTANCE unique du programme (Collinsa)
         INSTANCE = new Collinsa(1440, (int) (1440 / screenRatio));
 
@@ -73,7 +73,7 @@ public class Collinsa {
 
         // Si on a activé un preset dans les paramètres de lancement on l'execute et on n'execute pas le programme principal
         if (args.length > 0 && args[0].equals("-s") && args.length > 1)
-            Preset.EPreset.run(args[1], args, INSTANCE);
+            Preset.runPreset(args[1], args, INSTANCE);
 
 
         // Affichage des infos du programme

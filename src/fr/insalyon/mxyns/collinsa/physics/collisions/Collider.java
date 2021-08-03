@@ -73,20 +73,23 @@ public class Collider {
         AABB aabb = e.getAABB();
         Set<Integer> chunksToAddEntityTo = new TreeSet<>();
 
-        //TopLeft
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x, aabb.y));
+        int topLeft = physics.getPositionHash(aabb.x, aabb.y);
+        int topRight = physics.getPositionHash(aabb.x + aabb.w, aabb.y);
+        int bottomRight = physics.getPositionHash(aabb.x + aabb.w, aabb.y + aabb.h);
+        int bottomLeft = physics.getPositionHash(aabb.x, aabb.y + aabb.h);
 
-        //TopRight
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x + aabb.w, aabb.y));
+        int rowCount = bottomLeft - topLeft;
+        int columnCount = topRight - topLeft;
 
-        //BottomRight
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x + aabb.w, aabb.y + aabb.h));
+        for (float y = 0; y <= rowCount; y += 1)
+            for (int x = 0; x <= columnCount; x += 1) {
+                chunksToAddEntityTo.add((int) (topLeft + x + y * physics.getChunkCount().x));
+            }
 
-        //BottomLeft
-        chunksToAddEntityTo.add(physics.getPositionHash(aabb.x, aabb.y + aabb.h));
-
-        // Center
-        chunksToAddEntityTo.add(physics.getPositionHash(e.getPos()));
+        chunksToAddEntityTo.add(topLeft);
+        chunksToAddEntityTo.add(topRight);
+        chunksToAddEntityTo.add(bottomLeft);
+        chunksToAddEntityTo.add(bottomRight);
 
         return chunksToAddEntityTo;
     }

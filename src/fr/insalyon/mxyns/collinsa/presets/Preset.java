@@ -2,15 +2,37 @@ package fr.insalyon.mxyns.collinsa.presets;
 
 import fr.insalyon.mxyns.collinsa.Collinsa;
 
+import java.util.HashMap;
+
 /**
  * Une classe pour définir des preset executables depuis la commande le temps qu'une IHM soit développée
  */
 public abstract class Preset {
 
+    private final static HashMap<String, Preset> registeredPresets;
+
+    static {
+        registeredPresets = new HashMap<>();
+
+        registerPreset("mesh", new Preset_Mesh());
+        registerPreset("1", new Preset_1());
+        registerPreset("2", new Preset_2());
+        registerPreset("friction", new Preset_Friction());
+        registerPreset("angularvelocity", new Preset_AngularVelocity());
+        registerPreset("polygons", new Preset_Polygons());
+        registerPreset("gaztest", new Preset_GazTest());
+        registerPreset("globalforces", new Preset_GlobalForces());
+        registerPreset("huge", new Preset_Huge());
+        registerPreset("tests", new Presets_Tests());
+        registerPreset("force", new Preset_Force());
+        registerPreset("temp", new Preset_Temp());
+        registerPreset("boxdrag", new Preset_BoxDrag());
+    }
+
     /**
      * Préparation du monde, à faire avant que la simulation soit lancée
      *
-     * @param args arguments passés dans la commande de lancement
+     * @param args     arguments passés dans la commande de lancement
      * @param collinsa instance de collinsa sur laquelle appliquer le preset
      */
     public abstract void setup(String[] args, Collinsa collinsa);
@@ -25,48 +47,28 @@ public abstract class Preset {
      **/
     public void loop(String[] args, Collinsa collinsa) {}
 
-    /**
-     * Enum listant les presets et permettant de les executer à partir de leur nom
-     */
-    // TODO SOME REFLECTION SHIT INSTEAD OF BAD ENUM
-    public enum EPreset {
+    public static void registerPreset(String name, Preset instance) {
 
-        PRESET_1(new Preset_1()),
-        PRESET_2(new Preset_2()),
-        Friction(new Preset_Friction()),
-        Angular_Velocity(new Preset_AngularVelocity()),
-        Wheel(new Preset_AngularVelocity()),
-        Poly(new Preset_Polygons()),
-        GazTest(new Preset_GazTest()),
-        GlobalForces(new Preset_GlobalForces()),
-        Huge(new Preset_Huge()),
-        Tests(new Presets_Tests()),
-        Force(new Preset_Force()),
-        Temp(new Preset_Temp());
+        registeredPresets.put(name, instance);
+    }
 
-        private final Preset presetInstance;
+    public static void runPreset(String name, String[] args, Collinsa collinsa) {
 
-        EPreset(Preset presetInstance) {
+        if (registeredPresets.containsKey(name.toLowerCase())) {
 
-            this.presetInstance = presetInstance;
-        }
+            Preset presetInstance = registeredPresets.get(name);
 
-        public static void run(String name, String[] args, Collinsa collinsa) {
+            System.out.println("=====- RUNNING PRESET " + name + " -=====");
 
-            for (EPreset preset : EPreset.values())
-                if (preset.name().toLowerCase().equals(name.toLowerCase())) {
+            presetInstance.setup(args, collinsa);
 
-                    System.out.println("=====- RUNNING PRESET " + preset.name() + " -=====");
+            collinsa.start();
 
-                    preset.presetInstance.setup(args, collinsa);
-
-                    collinsa.start();
-
-                    Thread thread = new Thread(() -> preset.presetInstance.loop(args, collinsa));
-                    thread.setName("collinsa-preset-" + name.toLowerCase());
-                    thread.start();
-                }
+            Thread thread = new Thread(() -> presetInstance.loop(args, collinsa));
+            thread.setName("collinsa-preset-" + name.toLowerCase());
+            thread.start();
+        } else {
+            System.err.println("Couldn't find any preset named '" + name + "'");
         }
     }
 }
-

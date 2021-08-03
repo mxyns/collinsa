@@ -83,12 +83,22 @@ public abstract class Force implements Renderable {
      *
      * @return true si la force a été appliquée
      * @param readTick tick utilisé pour les calculs
+     * @param writeTick
      */
-    public boolean apply(Tick readTick) {
+    public boolean apply(Tick readTick, Tick writeTick) {
 
-        if (target == null || (target.isKinematic() && source.isKinematic()) && lastValue == null) return false;
+
+        if (target == null || (target.isKinematic() && source.isKinematic()) && lastValue == null)
+            return false;
+
+        Entity writeSource = writeTick.entities.get(source.uuid);
+        Entity writeTarget = writeTick.entities.get(target.uuid);
+
+        if ((source != null && writeSource == null) || writeTarget == null)
+            return false;
 
         lastValue = computeValue(readTick);
+
         toSourceApplicationPoint = toSourceApplicationPointLocal.rotateOut(source.getRot());
         toTargetApplicationPoint = toTargetApplicationPointLocal.rotateOut(target.getRot());
 
@@ -97,14 +107,14 @@ public abstract class Force implements Renderable {
 
         if (target.getCollisionType() == CLASSIC) {
 
-            applyForce(target, lastValue);
-            applyMoment(target, computeMoment(readTick, toTargetApplicationPoint, lastValue));
+            applyForce(writeTarget, lastValue);
+            applyMoment(writeTarget, computeMoment(readTick, toTargetApplicationPoint, lastValue));
         }
 
-        if (source != null && source.getCollisionType() == CLASSIC) {
+        if (source != null && writeSource != null && source.getCollisionType() == CLASSIC) {
 
-            applyForce(source, lastValue.neg());
-            applyMoment(source, computeMoment(readTick, toSourceApplicationPoint, lastValue));
+            applyForce(writeSource, lastValue.neg());
+            applyMoment(writeSource, computeMoment(readTick, toSourceApplicationPoint, lastValue));
             lastValue.neg();
         }
 

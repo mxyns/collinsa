@@ -30,9 +30,10 @@ public class Motor extends Force {
      * S'applique seulement à target donc on simplifie la méthode
      * @return true si appliquée
      * @param readTick
+     * @param writeTick
      */
     @Override
-    public boolean apply(Tick readTick) {
+    public boolean apply(Tick readTick, Tick writeTick) {
 
         if (target.getCollisionType() == Collision.CollisionType.CLASSIC)
             applyMoment(target, computeMoment(readTick, null, null));

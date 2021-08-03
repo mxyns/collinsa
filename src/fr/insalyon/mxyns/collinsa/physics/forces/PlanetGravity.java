@@ -41,14 +41,16 @@ public class PlanetGravity extends Force {
      * S'applique seulement à target donc on simplifie la méthode
      * @return true si appliquée
      * @param readTick
+     * @param writeTick
      */
     @Override
-    public boolean apply(Tick readTick) {
+    public boolean apply(Tick readTick, Tick writeTick) {
 
-        if (target == null) return false;
+        Entity writeTarget;
+        if (target == null || (writeTarget = writeTick.entities.get(target.uuid)) == null) return false;
 
         if (target.getCollisionType() == Collision.CollisionType.CLASSIC)
-            applyForce(target, lastValue = computeValue(readTick));
+            applyForce(writeTarget, lastValue = computeValue(readTick));
 
         return true;
     }

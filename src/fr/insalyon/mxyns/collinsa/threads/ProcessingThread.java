@@ -133,8 +133,8 @@ public class ProcessingThread extends ClockedThread {
         });
 
         // 1-bis étape : on applique les forces
-        for (Force force : readTick.forces) // TODO : think about changing source & target bc now it is a copy so its not the same lol
-            force.apply(readTick);
+        for (Force force : readTick.forces)
+            force.apply(readTick, writeTick);
 
         readTick.entities.forEach( (uuid, readEntity) -> {
 
@@ -142,7 +142,7 @@ public class ProcessingThread extends ClockedThread {
             for (Force globalForce : readTick.globalForces) {
                 if (!globalForce.affects(uuid)) { // on évite d'appliquer la force d'un objet sur lui même
                     globalForce.setTarget(writeTick.entities.get(uuid));
-                    globalForce.apply(readTick);
+                    globalForce.apply(readTick, writeTick);
                 }
             }
 
@@ -168,7 +168,6 @@ public class ProcessingThread extends ClockedThread {
                     coll.getIncident().setColor(Color.red);
                 }
 
-                // TODO : change way to resolve collision so that modifications are applied to writeTick's entities copies
                 coll.resolve(writeTick.entities.get(coll.getReference().uuid), writeTick.entities.get(coll.getIncident().uuid));
 
                 // trigger collision listeners (done in resolve)
